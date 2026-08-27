@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img">
+  <title>Project artwork pending</title>
+
+  <defs>
+    <!-- 50px blueprint grid, the same warm ink the copy is set in -->
+    <pattern id="ph-grid" width="50" height="50" patternUnits="userSpaceOnUse">
+      <path d="M50 0H0V50" fill="none" stroke="#2d2a24" stroke-opacity="0.07" stroke-width="1" />
+    </pattern>
+
+    <!-- Corners sit slightly darker so the plate has a centre to look at -->
+    <radialGradient id="ph-vignette" cx="50%" cy="46%" r="72%">
+      <stop offset="52%" stop-color="#f0e6d7" />
+      <stop offset="100%" stop-color="#dbcaae" />
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#ph-vignette)" />
+  <rect width="1600" height="900" fill="url(#ph-grid)" />
+
+  <!-- Inset rule, drawn on the grid so the plate reads as a frame, not a crop -->
+  <rect
+    x="80"
+    y="80"
+    width="1440"
+    height="740"
+    rx="28"
+    fill="none"
+    stroke="#2d2a24"
+    stroke-opacity="0.18"
+    stroke-width="2"
+    stroke-dasharray="14 12"
+  />
+
+  <!-- The site mark, from the same path the preloader and header use -->
+  <g transform="translate(680.7 268) scale(4.26)" fill="#2d2a24" fill-opacity="0.22">
+    <path
+      d="M3 14 24 2C28 0 28 0 32 2L53 14C56 16 56 17 56 19L56 43C56 46 55 47 51 49L32 59C28 61 28 61 24 59L5 49C1 47 0 46 0 43L0 19C0 17 0 16 3 14M28 4 5 17 28 28 51 17 28 4M53 20 30 31 30 56 53 44 53 20M40 42 33 35C33 35 32 34 33 33 34 32 35 33 36 34L36 34 43 41C44 42 44 42 43 43L35 51C35 51 34 52 33 51 32 50 33 49 33 49L40 42M16 42 23 35C23 35 24 34 23 33 22 32 21 33 20 34L13 41C12 42 12 42 13 43L21 51C21 51 22 52 23 51 24 50 23 49 23 49L16 42"
+    />
+  </g>
+
+  <!-- Generic mono only: fonts do not load inside an <img>-embedded SVG, so a
+       named family here would silently fall back to a serif on some machines. -->
+  <text
+    x="800"
+    y="632"
+    text-anchor="middle"
+    font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+    font-size="30"
+    letter-spacing="10"
+    fill="#2d2a24"
+    fill-opacity="0.52"
+  >
+    ARTWORK PENDING
+  </text>
+
+  <!-- One accent tick, the same orange as the card's action button -->
+  <rect x="760" y="676" width="80" height="4" rx="2" fill="#ff8400" fill-opacity="0.85" />
+</svg>
