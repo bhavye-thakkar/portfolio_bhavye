@@ -6,6 +6,7 @@ import AppearingText from "../../../components/AppearingText.vue";
 import { BREAKPOINTS } from "../../../utils/sizes";
 import { Vector3 } from "three";
 import ProjectedElement from "../../../components/ProjectedElement.vue";
+import { skillHighlights } from "../../../content/profile";
 
 const point = new Vector3(0.75, 2.75, 6.75);
 
@@ -96,22 +97,13 @@ const handleTimelineCreated = (timeline: gsap.core.Timeline, delay: number) => {
  */
 const VISIBLE_ROWS = 5;
 
-const services = [
-  { name: "Three.js & WebGL" },
-  { name: "Node.js & WebSockets" },
-  { name: "React & Vue" },
-  { name: "Kubernetes & Redis" },
-  { name: "Real-time Multiplayer" },
-  { name: "FastAPI" },
-  { name: "Python & TensorFlow" },
-  { name: "Keras & scikit-learn" },
-  { name: "Pandas & NumPy" },
-  { name: "Matplotlib & Seaborn" },
-  { name: "Computer Vision & NLP" },
-  { name: "Generative AI & LLMs" },
-  { name: "Machine Learning" },
-  { name: "Deep Learning" },
-] as const satisfies { name: string }[];
+/**
+ * The list moved to `content/profile.ts` so the skills, the certificates and
+ * llms.txt all come out of one file. The panel itself — its scroll container,
+ * its reveal timeline, its layout — is untouched; only the source of the
+ * words changed.
+ */
+const services = skillHighlights;
 
 // The opening view keeps its original stagger; everything below the fold lands
 // with the last visible row instead of dragging the reveal out off-screen.

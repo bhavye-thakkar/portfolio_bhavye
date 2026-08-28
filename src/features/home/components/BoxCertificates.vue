@@ -8,6 +8,7 @@ import { Vector3 } from "three";
 import ProjectedElement from "../../../components/ProjectedElement.vue";
 import ButtonRound from "../../../components/ButtonRound.vue";
 import ArrowRightLong from "../../../components/icons/ArrowRightLong.vue";
+import { certificates } from "../../../content/profile";
 
 // Same z-plane as the other about panels, vertically centred on the avatar
 const pointLeft = new Vector3(-0.9, 2.37, 6.75);
@@ -15,68 +16,16 @@ const pointRight = new Vector3(0.75, 2.37, 6.75);
 
 /**
  * ─── CERTIFICATE LINKS ────────────────────────────────────────────────────
- * Paste each certificate's URL into `url` below (Google Drive share link,
- * Credly badge, hosted PDF — anything). A card with a `url` becomes a link
- * that opens in a new tab; a card left at `""` stays a plain, non-clickable
- * HUD card, so partial data is safe to ship.
- *
- * The five below are DUMMY example.com links so the interaction is testable —
- * swap each one for the real certificate URL.
+ * The cards, their URLs and their years live in `content/profile.ts` — the
+ * five below are the real destinations the portfolio publishes, not stand-ins.
+ * A card with a `url` renders as an `<a>` that opens in a new tab; a card with
+ * an empty `url` stays a plain, non-clickable HUD card, so an entry whose link
+ * is not public yet is still safe to ship.
  *
  * Drop a file in `src/assets/images/certificates/` and set `image` to its
  * import to show a preview inside the card. Entries without one keep the
  * plain HUD treatment.
  */
-const certificates = [
-  {
-    organisation: "Edunet Foundation",
-    note: "Sponsored by SAP",
-    name: "Artificial Intelligence / Machine Learning (AI/ML)",
-    year: "2024",
-    url: "https://example.com/certificates/edunet-aiml",
-    image: null,
-  },
-  {
-    organisation: "GeeksforGeeks",
-    note: null,
-    name: "TensorFlow Certification",
-    year: "2024",
-    url: "https://example.com/certificates/geeksforgeeks-tensorflow",
-    image: null,
-  },
-  {
-    organisation: "Deloitte",
-    note: null,
-    name: "Data Analytics",
-    year: "2025",
-    url: "https://example.com/certificates/deloitte-data-analytics",
-    image: null,
-  },
-  {
-    organisation: "Intel®",
-    note: null,
-    name: "Intel® Applied AI",
-    year: "2022",
-    url: "https://example.com/certificates/intel-applied-ai",
-    image: null,
-  },
-  {
-    organisation: "Oracle",
-    note: null,
-    name: "Data Science Professional",
-    year: "2025",
-    url: "https://example.com/certificates/oracle-data-science",
-    image: null,
-  },
-] as const satisfies {
-  organisation: string;
-  note: string | null;
-  name: string;
-  year: string;
-  url: string;
-  image: string | null;
-}[];
-
 type Certificate = (typeof certificates)[number];
 
 // A linked card renders as <a>, an unlinked one as <div> — keeps the markup

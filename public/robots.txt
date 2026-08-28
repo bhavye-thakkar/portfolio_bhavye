@@ -1,6 +1,47 @@
+# Everything on this site is public. Nothing here is disallowed.
 User-agent: *
 Allow: /
 
-# Placeholder domain — see the note at the top of sitemap.xml. Change this in
-# the same edit as index.html's canonical/og:url and the <loc> values there.
+# ── AI crawlers, allowed on purpose ───────────────────────────────────────
+# These are the agents behind AI answers and assistant citations. They are
+# covered by the wildcard above; they are named explicitly because several of
+# them treat an unnamed default as "no opinion" and because a future edit that
+# tightens the wildcard should have to think about them separately.
+#
+# Most of them do NOT execute JavaScript, so what they can actually read is
+# the static fallback inside #app in index.html and /llms.txt — not the 3D app.
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# A machine-readable summary of the public portfolio.
+# /llms.txt
+
+# Placeholder domain — change this in the same edit as index.html's canonical
+# and og:url, `site` in src/content/profile.ts, and the <loc> values in
+# sitemap.xml. Until it is real, nothing here can rank.
 Sitemap: https://example.com/sitemap.xml

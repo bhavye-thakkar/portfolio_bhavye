@@ -4,30 +4,159 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Bhavye Thakkar - AIML & Web Developer</title>
+    <!--
+      The domain below is still the project's placeholder. It appears here, in
+      public/sitemap.xml, in public/robots.txt and in public/llms.txt — change
+      all four in one edit when the real one exists. Nothing else in this head
+      is a placeholder: the title, the description and the profile links are
+      what the portfolio actually publishes.
+    -->
+    <title>Bhavye Thakkar — Data Scientist &amp; Flutter Developer</title>
     <meta
       name="description"
-      content="AIML & Web developer creating interactive 3D web experiences and real-time apps with WebGL, TypeScript, and Node.js for high-performance, engaging websites."
+      content="Portfolio of Bhavye Thakkar, a Data Scientist and Flutter Engineer. AI/ML, computer vision and data analytics work in Python and TensorFlow, and mobile apps built with Flutter."
     />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://example.com/" />
 
-    <meta property="og:title" content="Bhavye Thakkar - AIML & Web Developer" />
+    <meta property="og:title" content="Bhavye Thakkar — Data Scientist &amp; Flutter Developer" />
     <meta
       property="og:description"
-      content="AIML & Web developer creating interactive 3D web experiences and real-time apps with WebGL, TypeScript, and Node.js for high-performance, engaging websites."
+      content="Portfolio of Bhavye Thakkar, a Data Scientist and Flutter Engineer. AI/ML, computer vision and data analytics work in Python and TensorFlow, and mobile apps built with Flutter."
     />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content="profile" />
     <meta property="og:url" content="https://example.com/" />
+    <meta property="og:site_name" content="Bhavye Thakkar" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:image" content="https://example.com/meta/og-image.webp" />
+    <meta property="og:image:alt" content="Bhavye Thakkar — Data Scientist and Flutter Engineer" />
+    <meta property="profile:first_name" content="Bhavye" />
+    <meta property="profile:last_name" content="Thakkar" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Bhavye Thakkar - AIML & Web Developer" />
+    <meta name="twitter:title" content="Bhavye Thakkar — Data Scientist &amp; Flutter Developer" />
     <meta
       name="twitter:description"
-      content="AIML & Web developer creating interactive 3D web experiences and real-time apps with WebGL, TypeScript, and Node.js for high-performance, engaging websites."
+      content="Portfolio of Bhavye Thakkar, a Data Scientist and Flutter Engineer. AI/ML, computer vision and data analytics work in Python and TensorFlow, and mobile apps built with Flutter."
     />
     <meta name="twitter:image" content="https://example.com/meta/twitter-image.webp" />
+
+    <!--
+      ── STRUCTURED DATA ───────────────────────────────────────────────────
+
+      One graph rather than three competing scripts, so the Person, the page
+      it is about and the site are linked by @id instead of asserted three
+      times over. Every value is something the portfolio actually publishes:
+
+        · `sameAs` has GitHub and LinkedIn only. The social row also renders
+          an X button, but its URL is a placeholder — pointing a search engine
+          at a profile that does not exist is worse than omitting it.
+        · `hasCredential` is the five real certificates, each with the URL the
+          card links to.
+        · There is deliberately no `worksFor` and no `alumniOf`. The
+          Experience section owns employment history and none of it is
+          asserted here.
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Person",
+            "@id": "https://example.com/#person",
+            "name": "Bhavye Thakkar",
+            "givenName": "Bhavye",
+            "familyName": "Thakkar",
+            "url": "https://example.com/",
+            "mainEntityOfPage": { "@id": "https://example.com/#webpage" },
+            "jobTitle": "Data Scientist and Flutter Engineer",
+            "description": "Data Scientist and Flutter Engineer working in AI/ML, computer vision and data analytics with Python and TensorFlow, and building mobile apps with Flutter.",
+            "email": "mailto:thakkarbhavye1425@gmail.com",
+            "address": { "@type": "PostalAddress", "addressCountry": "IN" },
+            "sameAs": ["https://github.com/bhavye-thakkar", "https://www.linkedin.com/in/bhavyethakkar/"],
+            "knowsLanguage": "en",
+            "knowsAbout": [
+              "Data Science",
+              "Machine Learning",
+              "Deep Learning",
+              "Artificial Intelligence",
+              "Computer Vision",
+              "Data Analytics",
+              "Python",
+              "TensorFlow",
+              "Pandas",
+              "NumPy",
+              "Matplotlib",
+              "Seaborn",
+              "OpenCV",
+              "Flutter",
+              "Dart",
+              "JavaScript"
+            ],
+            "hasCredential": [
+              {
+                "@type": "EducationalOccupationalCredential",
+                "name": "Artificial Intelligence / Machine Learning (AI/ML)",
+                "credentialCategory": "certificate",
+                "recognizedBy": { "@type": "Organization", "name": "Edunet Foundation" },
+                "url": "https://drive.google.com/file/d/1cy62eOolwDnVRfcP5BY2luChQY9k8t66/view",
+                "dateCreated": "2024"
+              },
+              {
+                "@type": "EducationalOccupationalCredential",
+                "name": "TensorFlow Certification",
+                "credentialCategory": "certificate",
+                "recognizedBy": { "@type": "Organization", "name": "GeeksforGeeks" },
+                "url": "https://drive.google.com/file/d/1A6JV-YtU8XLByb0hWmTmDmGu_kzdhak9/view",
+                "dateCreated": "2024"
+              },
+              {
+                "@type": "EducationalOccupationalCredential",
+                "name": "Data Analytics",
+                "credentialCategory": "certificate",
+                "recognizedBy": { "@type": "Organization", "name": "Deloitte" },
+                "url": "https://drive.google.com/file/d/1LR1f5aJhqdCBf6lJyazxB8ISPXdW9WrN/view",
+                "dateCreated": "2025"
+              },
+              {
+                "@type": "EducationalOccupationalCredential",
+                "name": "Intel® Applied AI",
+                "credentialCategory": "certificate",
+                "recognizedBy": { "@type": "Organization", "name": "Intel" },
+                "url": "https://drive.google.com/file/d/1NjFWw2v-8CZT8ImyxrOq4eMZBASpFJM4/view",
+                "dateCreated": "2022"
+              },
+              {
+                "@type": "EducationalOccupationalCredential",
+                "name": "Data Science Professional",
+                "credentialCategory": "certificate",
+                "recognizedBy": { "@type": "Organization", "name": "Oracle" },
+                "url": "https://drive.google.com/file/d/1qe64-45D5WFgawEeiUnB24M1HmTlbknh/view?usp=drive_link",
+                "dateCreated": "2025"
+              }
+            ]
+          },
+          {
+            "@type": "ProfilePage",
+            "@id": "https://example.com/#webpage",
+            "url": "https://example.com/",
+            "name": "Bhavye Thakkar — Data Scientist & Flutter Developer",
+            "isPartOf": { "@id": "https://example.com/#website" },
+            "about": { "@id": "https://example.com/#person" },
+            "mainEntity": { "@id": "https://example.com/#person" },
+            "inLanguage": "en"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://example.com/#website",
+            "url": "https://example.com/",
+            "name": "Bhavye Thakkar",
+            "publisher": { "@id": "https://example.com/#person" },
+            "inLanguage": "en"
+          }
+        ]
+      }
+    </script>
 
     <link rel="preload" href="/fonts/urbanist-400.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
     <link rel="preload" href="/fonts/urbanist-700.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
@@ -50,7 +179,123 @@
         ></path>
       </defs>
     </svg>
+    <!--
+      ── THE CRAWLABLE COPY OF THIS PAGE ───────────────────────────────────
+
+      Everything visual on this site is drawn by JavaScript, so without this
+      block the page ships ZERO text: an empty mount point, no heading and no
+      links. Google runs JS and sees the real app, but the crawlers behind AI
+      answers mostly do not — they were being handed a blank document.
+
+      IT LIVES IN A NOSCRIPT BLOCK ON PURPOSE. It was inside #app first, on the
+      theory that Vue clears that container before it mounts. It does — but
+      only once the bundle has run, and the stylesheet arrives with that same
+      bundle in dev, so every refresh painted this as an unstyled document
+      first. A parser never renders noscript content when scripting is on, so
+      there is nothing to flash and nothing to hide with CSS; a crawler that
+      does not execute JS still reads it straight out of the HTML source.
+
+      Two rules for editing it:
+        · It must stay TRUE to what the rendered page says. This is a no-JS
+          fallback, not a keyword box — text here that the real page does not
+          back up is cloaking, and it is what gets a site penalised.
+        · Every fact below is in src/content/profile.ts. Change it there and
+          mirror it here and in public/llms.txt.
+    -->
     <div id="app"></div>
+    <noscript>
+    <main>
+      <h1>Bhavye Thakkar — Data Scientist and Flutter Engineer</h1>
+      <p>
+        I craft digital products that merge creativity with technology. With hands-on experience in Flutter and
+        AI/ML, I've built apps, explored data-driven solutions, and brought ideas to life at hackathons. What
+        excites me most is solving real problems with simple, scalable tech — and leaving an impact that lasts.
+      </p>
+      <p>Based in India. This portfolio is an interactive 3D experience; the summary below is its text equivalent.</p>
+
+      <h2>Skills</h2>
+      <ul>
+        <li>Python — machine learning, deep learning and data analysis</li>
+        <li>TensorFlow — model building and training</li>
+        <li>Pandas, NumPy — data wrangling</li>
+        <li>Matplotlib, Seaborn — data visualisation</li>
+        <li>OpenCV — computer vision</li>
+        <li>Flutter and Dart — cross-platform mobile apps</li>
+        <li>JavaScript — web development</li>
+      </ul>
+
+      <h2>Certificates</h2>
+      <ul>
+        <li>
+          <a href="https://drive.google.com/file/d/1cy62eOolwDnVRfcP5BY2luChQY9k8t66/view"
+            >Artificial Intelligence / Machine Learning (AI/ML) — Edunet Foundation, sponsored by SAP, 2024</a
+          >
+        </li>
+        <li>
+          <a href="https://drive.google.com/file/d/1A6JV-YtU8XLByb0hWmTmDmGu_kzdhak9/view"
+            >TensorFlow Certification — GeeksforGeeks, 2024</a
+          >
+        </li>
+        <li>
+          <a href="https://drive.google.com/file/d/1LR1f5aJhqdCBf6lJyazxB8ISPXdW9WrN/view"
+            >Data Analytics — Deloitte, 2025</a
+          >
+        </li>
+        <li>
+          <a href="https://drive.google.com/file/d/1NjFWw2v-8CZT8ImyxrOq4eMZBASpFJM4/view"
+            >Intel® Applied AI — Intel®, 2022</a
+          >
+        </li>
+        <li>
+          <a href="https://drive.google.com/file/d/1qe64-45D5WFgawEeiUnB24M1HmTlbknh/view?usp=drive_link"
+            >Data Science Professional — Oracle, 2025</a
+          >
+        </li>
+      </ul>
+
+      <h2>Projects</h2>
+      <ul>
+        <li><a href="/project/garbacircle">Garba Circle</a> — Navratri and Garba app</li>
+        <li>
+          <a href="https://github.com/bhavye-thakkar/Expense-tracker">Mobile Finance App</a> — Flutter expense
+          tracking with budget analysis
+        </li>
+        <li>
+          <a href="https://github.com/bhavye-thakkar/Stock_MArket-prediction-AI-ML">Stock Market Analyzer</a> —
+          stock prediction with machine learning
+        </li>
+        <li>
+          <a href="https://github.com/bhavye-thakkar/house-price-prediction-with-the-help-of-streeamlit"
+            >House Price Prediction</a
+          >
+          — regression model behind a Streamlit interface
+        </li>
+        <li>
+          <a href="https://github.com/bhavye-thakkar/note-taking-and-summarization-"
+            >Note Taking &amp; Summarization</a
+          >
+          — collaborative notes with automatic summarisation
+        </li>
+      </ul>
+
+      <h2>Hackathons</h2>
+      <ul>
+        <li>InnoNova 24-Hour Hackathon, March 2025 — Team Lead, Top 15 Finalist</li>
+        <li>HackHertz, September 2025 — Team Lead, Finalist</li>
+        <li>Tic Tac Toe 2025, DA-IICT Gandhinagar, April 2025 — Participant</li>
+        <li>Smart India Hackathon 2024 — Participant</li>
+      </ul>
+
+      <h2>Contact</h2>
+      <ul>
+        <li><a href="mailto:thakkarbhavye1425@gmail.com">thakkarbhavye1425@gmail.com</a></li>
+        <li><a href="https://github.com/bhavye-thakkar">GitHub</a></li>
+        <li><a href="https://www.linkedin.com/in/bhavyethakkar/">LinkedIn</a></li>
+      </ul>
+
+      <p><a href="/llms.txt">Machine-readable summary of this portfolio</a></p>
+    </main>
+    </noscript>
     <div class="preloader">
       <svg class="preloader-svg" viewBox="0 0 56 61" xmlns="http://www.w3.org/2000/svg">
         <mask id="preloader-mask">

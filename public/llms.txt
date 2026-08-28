@@ -1,0 +1,94 @@
+# Bhavye Thakkar
+
+> Data Scientist and Flutter Engineer. AI/ML, computer vision and data analytics in Python and TensorFlow; mobile apps in Flutter.
+
+Everything below is public information from this portfolio. It contains no
+private contact details and no employment history — the site's Experience
+section is written separately and is not summarised here.
+
+Placeholder note: the domain in the links below is the project's configured
+placeholder. It is changed here, in index.html, in sitemap.xml and in
+robots.txt together.
+
+## About
+
+I craft digital products that merge creativity with technology. With hands-on
+experience in Flutter and AI/ML, I've built apps, explored data-driven
+solutions, and brought ideas to life at hackathons. What excites me most is
+solving real problems with simple, scalable tech — and leaving an impact that
+lasts.
+
+Based in India.
+
+## Skills
+
+- Python — Intermediate
+- JavaScript — Intermediate
+- Flutter — Advanced
+- Pandas — Advanced
+- NumPy — Advanced
+- Seaborn — Advanced
+- Matplotlib — Advanced
+- TensorFlow — Intermediate
+- OpenCV — Beginner
+
+Also used across the projects below: Dart, Firebase, Streamlit, scikit-learn,
+yfinance, SQLAlchemy, React.
+
+Soft skills: Communication, Problem-Solving, Teamwork, Time Management.
+
+## AI/ML
+
+- Machine Learning
+- Deep Learning
+- Artificial Intelligence
+- Computer Vision
+- Data Science
+- Data Analytics
+
+## LLM
+
+- Generative AI & LLMs
+
+No specific LLM framework, model or provider is claimed. This entry is the
+one the portfolio itself lists; nothing has been added to it.
+
+## Projects
+
+Published case study on this site:
+
+- [Garba Circle](https://example.com/project/garbacircle) — Navratri & Garba app
+
+Public repositories:
+
+- [Mobile Finance App](https://github.com/bhavye-thakkar/Expense-tracker) — Flutter expense tracking with budget analysis (Flutter, Python, SQLAlchemy)
+- [Stock Market Analyzer](https://github.com/bhavye-thakkar/Stock_MArket-prediction-AI-ML) — stock prediction with machine learning (Python, Streamlit, yfinance, scikit-learn)
+- [House Price Prediction](https://github.com/bhavye-thakkar/house-price-prediction-with-the-help-of-streeamlit) — regression model behind a Streamlit interface (Python, Streamlit, Pandas, NumPy)
+- [Note Taking & Summarization](https://github.com/bhavye-thakkar/note-taking-and-summarization-) — collaborative notes with automatic summarisation (Flutter, Python, Firebase)
+
+To-Do App (Flutter, Firebase, Dart) has no public repository.
+
+## Hackathons
+
+- InnoNova — 24-Hour Hackathon, Innovation Hub, March 2025 — Team Lead, Top 15 Finalist (AI/ML, Python, TensorFlow)
+- HackHertz, Tech Community, September 2025 — Team Lead, Finalist (React, Node.js, Mobile)
+- Tic Tac Toe 2025, DA-IICT Gandhinagar, April 2025 — Participant (Algorithms, Game Theory, Python)
+- Smart India Hackathon 2024, Government of India, Aug–Sept 2024 — Participant (Civic Tech, Full Stack)
+
+## Certificates
+
+- [Artificial Intelligence / Machine Learning (AI/ML) — Edunet Foundation, sponsored by SAP, 2024](https://drive.google.com/file/d/1cy62eOolwDnVRfcP5BY2luChQY9k8t66/view)
+- [TensorFlow Certification — GeeksforGeeks, 2024](https://drive.google.com/file/d/1A6JV-YtU8XLByb0hWmTmDmGu_kzdhak9/view)
+- [Data Analytics — Deloitte, 2025](https://drive.google.com/file/d/1LR1f5aJhqdCBf6lJyazxB8ISPXdW9WrN/view)
+- [Intel® Applied AI — Intel®, 2022](https://drive.google.com/file/d/1NjFWw2v-8CZT8ImyxrOq4eMZBASpFJM4/view)
+- [Data Science Professional — Oracle, 2025](https://drive.google.com/file/d/1qe64-45D5WFgawEeiUnB24M1HmTlbknh/view?usp=drive_link)
+
+## Profiles
+
+- [GitHub](https://github.com/bhavye-thakkar)
+- [LinkedIn](https://www.linkedin.com/in/bhavyethakkar/)
+
+## Contact
+
+- Email: thakkarbhavye1425@gmail.com
+

@@ -1,0 +1,14 @@
+# SPA rewrite. This app routes with history.pushState, so /project/garbacircle
+# and /experience/notionmind are real URLs to a visitor and to a crawler — but
+# there is no file at those paths, so a static host answers 404 and the page
+# never gets indexed. This hands every unmatched path to index.html, which
+# boots the app on the right route.
+#
+# 200, not 301: a redirect would change the URL and lose the route.
+#
+# This is Netlify's format (the existing portfolio is hosted there). On other
+# hosts the equivalent is:
+#   Vercel   vercel.json  → { "rewrites": [{ "source": "/(.*)", "destination": "/" }] }
+#   GH Pages copy dist/index.html to dist/404.html
+#   Nginx    try_files $uri $uri/ /index.html;
+/*  /index.html  200

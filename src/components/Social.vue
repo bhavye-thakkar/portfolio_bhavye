@@ -23,7 +23,9 @@ const icons = {
   instagram: Instagram,
 } as const;
 
-const getAriaLabel = (name: string) => `${t("go-to")} ${name.charAt(0).toUpperCase() + name.slice(1)}`;
+/** "Go to Mail" reads wrong for the one entry that is an action, not a place. */
+const getAriaLabel = (name: string) =>
+  name === "mail" ? t("send-email") : `${t("go-to")} ${name.charAt(0).toUpperCase() + name.slice(1)}`;
 </script>
 
 <template>
