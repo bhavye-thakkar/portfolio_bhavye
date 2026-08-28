@@ -6,7 +6,6 @@ import AppearingText from "../../../components/AppearingText.vue";
 import { BREAKPOINTS } from "../../../utils/sizes";
 import { Vector3 } from "three";
 import ProjectedElement from "../../../components/ProjectedElement.vue";
-import ButtonRound from "../../../components/ButtonRound.vue";
 import ArrowRightLong from "../../../components/icons/ArrowRightLong.vue";
 import { certificates } from "../../../content/profile";
 
@@ -100,13 +99,18 @@ watchEffect((onInvalidate) => {
       if (!isMobile) {
         // Cards settle in one after another, same restraint as the other panels
         if (cards.length > 0) {
+          // `--scan` rides the same tween as the clip-path, so the bright
+          // leading line is always exactly at the wipe's edge. Two tweens
+          // with their own eases would drift apart and read as a glow
+          // chasing the card rather than as one scan across it.
           tl.fromTo(
             cards,
-            { opacity: 0, y: 12, clipPath: "inset(0% 100% 0% 0%)" },
+            { opacity: 0, y: 12, clipPath: "inset(0% 100% 0% 0%)", "--scan": 0 },
             {
               opacity: 1,
               y: 0,
               clipPath: "inset(0% 0% 0% 0%)",
+              "--scan": 1,
               duration: 0.35,
               ease: "power1.out",
               stagger: 0.09,
@@ -116,7 +120,7 @@ watchEffect((onInvalidate) => {
         }
       } else {
         if (cards.length > 0) {
-          gsap.set(cards, { opacity: 1, y: 0, clipPath: "inset(0% 0% 0% 0%)" });
+          gsap.set(cards, { opacity: 1, y: 0, clipPath: "inset(0% 0% 0% 0%)", "--scan": 1 });
         }
       }
 
@@ -201,15 +205,13 @@ const setCardRef = (el: unknown, index: number) => {
               loading="lazy"
             />
           </div>
-          <ButtonRound
-            v-if="certificate.url"
-            class="box-certificates-item-go"
-            variant="accent"
-            renderAs="div"
-            size="sm"
-          >
+          <!-- Not the shared accent button any more: that variant is filled
+               with `--color-orange-400`, which is the site's CTA colour and
+               reads as a warm sticker on a cold holographic card. This is a
+               plain span the card styles itself. -->
+          <span v-if="certificate.url" class="box-certificates-item-go" aria-hidden="true">
             <ArrowRightLong class="box-certificates-item-go-arrow" />
-          </ButtonRound>
+          </span>
         </component>
       </div>
     </div>
@@ -246,15 +248,13 @@ const setCardRef = (el: unknown, index: number) => {
               loading="lazy"
             />
           </div>
-          <ButtonRound
-            v-if="certificate.url"
-            class="box-certificates-item-go"
-            variant="accent"
-            renderAs="div"
-            size="sm"
-          >
+          <!-- Not the shared accent button any more: that variant is filled
+               with `--color-orange-400`, which is the site's CTA colour and
+               reads as a warm sticker on a cold holographic card. This is a
+               plain span the card styles itself. -->
+          <span v-if="certificate.url" class="box-certificates-item-go" aria-hidden="true">
             <ArrowRightLong class="box-certificates-item-go-arrow" />
-          </ButtonRound>
+          </span>
         </component>
       </div>
     </div>
@@ -385,11 +385,33 @@ const setCardRef = (el: unknown, index: number) => {
     z-index: 0;
     display: block;
 
+    /**
+     * ── THE PANEL ITSELF ──────────────────────────────────────────────────
+     *
+     * Same world as the x-ray figure standing next to it: a pane of cold
+     * glass with a scanline raster across it and light caught along its top
+     * edge. Three layers, all cheap:
+     *
+     *   background   the existing hologram gradient, unchanged
+     *   ::before     the raster + the edge illumination, always on
+     *   ::after      a single bright line that sweeps the card on entrance
+     *
+     * The raster is 3px-pitch and 7% alpha on purpose. Anything denser
+     * moirés against the card's own text at small sizes, and anything
+     * brighter turns a readable panel into a screensaver.
+     */
     &-inner {
+      --scan: 1;
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
       will-change: transform, opacity, clip-path;
       border: var(--stroke-sm) solid var(--color-cyan-400);
       border-radius: var(--radius-md);
       background: linear-gradient(to bottom, var(--color-hologram-top) 0%, var(--color-hologram-bottom) 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(190, 235, 255, 0.35),
+        inset 0 0 18px rgba(52, 191, 255, 0.14);
       display: flex;
       flex-direction: column;
       gap: var(--space-xxs);
@@ -401,6 +423,41 @@ const setCardRef = (el: unknown, index: number) => {
 
       @include mixins.mq("md") {
         padding: var(--space-sm) var(--space-md);
+      }
+
+      /* raster + top-edge illumination */
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background:
+          linear-gradient(to bottom, rgba(120, 220, 255, 0.16) 0%, transparent 38%),
+          repeating-linear-gradient(
+            to bottom,
+            rgba(120, 220, 255, 0.07) 0px,
+            rgba(120, 220, 255, 0.07) 1px,
+            transparent 1px,
+            transparent 3px
+          );
+      }
+
+      /* The reveal's leading edge. `--scan` is tweened 0 -> 1 by the same
+         timeline that runs the clip-path, so the line rides the wipe instead
+         of being a second animation with its own timing to drift out of. */
+      &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        z-index: -1;
+        width: 42px;
+        pointer-events: none;
+        left: calc(var(--scan) * 100%);
+        transform: translateX(-100%);
+        background: linear-gradient(to right, rgba(120, 220, 255, 0) 0%, rgba(150, 235, 255, 0.55) 100%);
+        opacity: calc(1 - var(--scan));
       }
     }
 
@@ -465,17 +522,36 @@ const setCardRef = (el: unknown, index: number) => {
       }
     }
 
-    /* The accent arrow badge from the project cards — it is what says "this
-       opens something". Lives on the unclipped link wrapper so the card's
-       entrance clip-path cannot crop it. */
+    /* The "this opens something" badge. It used to be the shared accent
+       button — an orange disc, the site's CTA colour, sitting on a cyan
+       hologram. Now it is an illuminated ring cut from the same glass as the
+       card: transparent centre, lit rim, cyan arrow.
+
+       Lives on the unclipped link wrapper so the card's entrance clip-path
+       cannot crop it. */
     &-go {
       position: absolute;
       right: 6px;
       bottom: 6px;
       pointer-events: none;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 35%, rgba(52, 191, 255, 0.28), rgba(0, 40, 90, 0.4));
+      border: var(--stroke-sm) solid var(--color-cyan-400);
+      box-shadow:
+        0 0 0 1px rgba(52, 191, 255, 0.18),
+        0 0 12px rgba(52, 191, 255, calc(0.25 + var(--hover) * 0.45));
+      --icon-color: var(--color-text-cyan-400);
       transition:
         opacity 0.1s ease-in-out,
-        scale 0.1s ease-in-out;
+        scale 0.1s ease-in-out,
+        box-shadow 0.15s ease-in-out,
+        background-color 0.15s ease-in-out;
 
       /* Touch has no hover, so the badge stays put and does the signalling on
          its own — same trade the project preview cards make. */

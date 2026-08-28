@@ -24,6 +24,9 @@ watchEffect((onInvalidate) => {
   <div class="contact grid" ref="contactElement">
     <div class="contact-content">
       <h2 class="contact-title" v-html="t('lets-work-together')"></h2>
+      <!-- What happens after they click. A contact section that only shows
+           icons asks for a message without saying whether one comes back. -->
+      <p class="contact-promise">{{ t("response-time") }}</p>
       <Social variant="background" />
     </div>
   </div>
@@ -62,6 +65,20 @@ watchEffect((onInvalidate) => {
 
     @include mixins.mq("lg") {
       grid-column: 2 / 6;
+    }
+  }
+
+  /* The column's gap is `--space-xl` on desktop, which would leave this
+     floating between the headline and the icons rather than reading as part
+     of the invitation. Pull it up under the title. */
+  &-promise {
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-copy);
+    max-width: 42ch;
+    margin-top: calc(var(--space-md) * -1);
+
+    @include mixins.mq("md") {
+      margin-top: calc(var(--space-xl) * -1 + var(--space-xs));
     }
   }
 

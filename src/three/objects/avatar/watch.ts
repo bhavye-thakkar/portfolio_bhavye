@@ -6,22 +6,47 @@ import { bakeToBone } from "./spectacles";
 import type { BufferGeometry, Material, Object3D, Skeleton } from "three";
 
 /**
- * A smart watch on the avatar's left wrist.
+ * A smart watch on the avatar's RIGHT wrist — his own right, not the right of
+ * the screen.
  *
- * Everything is authored in `leftForeArmBone` space, where the forearm runs
- * along +Y and its surface is a ~0.135-radius tube centred on (0.06, 0.16) —
- * measured off the `skin` mesh's forearm-weighted vertices, not guessed. The
- * geometry is then baked into bind space and rigid-skinned to that bone, the
- * same way the spectacles ride the head, so it follows every clip for free.
+ * Everything is authored in `rightForearmBone` space (note the spelling: the
+ * rig capitalises the two sides differently — `leftForeArmBone` but
+ * `rightForearmBone`), where the forearm runs along +Y and its surface is a
+ * ~0.133-radius tube centred on (-0.06, 0.16). Those numbers are measured off
+ * the `skin` mesh's forearm-weighted vertices, not guessed.
+ *
+ * ── WHY THE MIRROR IS SAFE ────────────────────────────────────────────────
+ *
+ * Measuring both forearms the same way returns rings at cx +0.065…+0.068 on
+ * the left and −0.067…−0.070 on the right, with cz +0.161 and r 0.1334 on
+ * BOTH. So the right bone's local frame is a clean reflection of the left
+ * through its own YZ plane: x negates, z does not. (Had the rig instead
+ * rotated the right arm 180° about Y — the other common convention — cz would
+ * have flipped too, and a mirrored angle would have put the watch face
+ * against the skin.)
+ *
+ * That is the whole port: negate `cx`, negate `caseAngle`, and scale `y` by
+ * the two arms' measured lengths. The geometry is then baked into bind space
+ * and rigid-skinned to that one bone, the same way the spectacles ride the
+ * head, so it follows every clip and every transition for free — there is no
+ * per-frame code and nothing to detach.
+ *
+ * There is exactly one watch: `init` builds two meshes, a body and a screen,
+ * and both are bound to this bone alone.
  */
 const P = {
-  /** forearm tube centre, in the bone's XZ plane */
-  cx: 0.06,
+  /** forearm tube centre, in the bone's XZ plane. Negative = his right arm. */
+  cx: -0.06,
   cz: 0.16,
   /** forearm surface radius */
   armR: 0.135,
-  /** how far up the forearm the strap sits (hand joint is at y = 0.538) */
-  y: 0.435,
+  /**
+   * How far up the forearm the strap sits. The left arm's tuned 0.435 sat
+   * 0.004 under the top of its weighted skin (0.439); the right arm's skin
+   * ends at 0.432, so the same clearance is 0.428. Going higher walks the
+   * strap over the wrist crease and into the hand.
+   */
+  y: 0.428,
   /** strap: a band hugging the arm, slightly proud of the skin */
   strapGap: 0.016,
   strapH: 0.115,
@@ -33,11 +58,14 @@ const P = {
   screenH: 0.056,
   /**
    * Which way round the wrist the case sits, measured from the bone's +Z.
-   * 150° is the back of the wrist: measured, not guessed — the direction from
-   * the wrist to the camera lands at 151° in the contact pose and 148° in the
-   * about pose, so one value reads in both.
+   *
+   * The left arm's tuned value was +150°, the back of that wrist. `rotateY(θ)`
+   * sends +Z to (sin θ, 0, cos θ), so +150° points (+0.5, 0, −0.866) — out
+   * along +X and back along −Z. The reflection that maps this bone's frame
+   * onto the left one negates x, so the same anatomical direction here is
+   * (−0.5, 0, −0.866), which is −150°.
    */
-  caseAngle: (150 * Math.PI) / 180,
+  caseAngle: (-150 * Math.PI) / 180,
 };
 
 const findBoneIndex = (skeleton: Skeleton, name: string): number => {
@@ -55,7 +83,7 @@ const radialDisc = (radius: number, height: number, out: number): BufferGeometry
     .translate(P.cx, P.y, P.cz);
 
 export const createWatchGeometries = (skeleton: Skeleton): { body: BufferGeometry; screen: BufferGeometry } => {
-  const boneIndex = findBoneIndex(skeleton, "leftForeArmBone");
+  const boneIndex = findBoneIndex(skeleton, "rightForearmBone");
 
   const strapR = P.armR + P.strapGap;
   const strap = new CylinderGeometry(strapR, strapR, P.strapH, 18).translate(P.cx, P.y, P.cz);

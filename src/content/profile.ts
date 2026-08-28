@@ -139,7 +139,9 @@ export const skillHighlights = [
   { name: "Three.js & WebGL" },
   { name: "Node.js & WebSockets" },
   { name: "React & Vue" },
-  { name: "Kubernetes & Redis" },
+  // Kubernetes removed on request. Redis went with it rather than being left
+  // alone on the row: it was never a claim of its own, only the second half of
+  // that label, and no verified skill exists to pair it with.
   { name: "Real-time Multiplayer" },
   { name: "FastAPI" },
   { name: "Python & TensorFlow" },

@@ -1,5 +1,4 @@
 import {
-  Box3,
   BoxGeometry,
   CylinderGeometry,
   Group,
@@ -9,9 +8,10 @@ import {
   PlaneGeometry,
   SRGBColorSpace,
   TorusGeometry,
-  Vector3,
 } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { createPlant } from "./plant";
 import gsap from "gsap";
 import { resources } from "../../../utils/resources";
 import { scene } from "../../core/scene";
@@ -62,7 +62,7 @@ const group = new Group();
 const reveal = { value: 0 };
 
 let materials: Material[] = [];
-let disposables: (BufferGeometry | Material)[] = [];
+let disposables: (BufferGeometry | Material | Texture)[] = [];
 let leftScreen: Mesh | null = null;
 let rightScreen: Mesh | null = null;
 
@@ -103,6 +103,17 @@ const cylinder = (rTop: number, rBottom: number, h: number, x: number, y: number
   return geometry;
 };
 
+/**
+ * A box with its edges taken off. Two segments is enough at this scale — the
+ * point is that the silhouette has a highlight where a primitive would have a
+ * hard line, not that the corner is smooth under a magnifier.
+ */
+const roundedBox = (w: number, h: number, d: number, r: number, x: number, y: number, z: number) => {
+  const geometry = new RoundedBoxGeometry(w, h, d, 2, r);
+  geometry.translate(x, y, z);
+  return geometry;
+};
+
 /** Places a monitor's chassis into the shell/dark/frame buckets. */
 const addMonitor = (shell: Bucket, dark: Bucket, frame: Bucket, side: -1 | 1) => {
   const x = MONITOR.offsetX * side;
@@ -135,8 +146,14 @@ const addMonitor = (shell: Bucket, dark: Bucket, frame: Bucket, side: -1 | 1) =>
   at(dark, MONITOR.screenWidth + 0.1, MONITOR.screenHeight + 0.1, 0.04, 0, centerY, 0.015);
   at(frame, MONITOR.screenWidth + 0.04, MONITOR.screenHeight + 0.04, 0.06, 0, centerY, -0.02);
   at(dark, MONITOR.screenWidth * 0.66, MONITOR.screenHeight * 0.6, 0.08, 0, centerY, -0.07);
-  at(frame, 0.15, 0.62, 0.1, 0, centerY - MONITOR.screenHeight / 2 - 0.29, -0.05);
-  at(shell, 0.82, 0.045, 0.34, 0, DESK_TOP + 0.028, -0.02);
+  // neck: a flattened column rather than a slab, and a hinge collar where it
+  // meets the panel — the join is what a real arm has and a primitive does not
+  at(frame, 0.13, 0.6, 0.085, 0, centerY - MONITOR.screenHeight / 2 - 0.28, -0.05);
+  at(dark, 0.19, 0.1, 0.1, 0, centerY - MONITOR.screenHeight / 2 - 0.02, -0.05);
+  // base: a shallow plinth on a thinner riser, so it sits ON the desk instead
+  // of being flush with it
+  at(frame, 0.34, 0.055, 0.2, 0, DESK_TOP + 0.06, -0.04);
+  at(shell, 0.86, 0.035, 0.36, 0, DESK_TOP + 0.019, -0.02);
 };
 
 const buildScreen = (side: -1 | 1) => {
@@ -197,15 +214,6 @@ const cloneFromRoom = (name: string): Mesh | null => {
   return clone;
 };
 
-/** Drops a cloned room prop so its footprint centre lands on a given spot. */
-const placeByFootprint = (mesh: Mesh, x: number, y: number, z: number) => {
-  const bounds = new Box3().setFromObject(mesh);
-  const center = bounds.getCenter(new Vector3());
-  mesh.position.x += x - center.x;
-  mesh.position.y += y - bounds.min.y;
-  mesh.position.z += z - center.z;
-};
-
 const buildChassis = () => {
   const shell: Bucket = {
     geometries: [],
@@ -236,18 +244,73 @@ const buildChassis = () => {
   rim.translate(0, -0.44, -1.0);
   accent.geometries.push(rim);
 
-  // ── desk
-  shell.geometries.push(
-    box(DESK_HALF_WIDTH * 2, DESK_THICKNESS, DESK_BACK_Z - DESK_FRONT_Z, 0, DESK_TOP - DESK_THICKNESS / 2, (DESK_FRONT_Z + DESK_BACK_Z) / 2),
+  /**
+   * ── DESK ────────────────────────────────────────────────────────────────
+   *
+   * What was here was one box on four tapered pins, and it read as exactly
+   * that. Three things fix it, none of them expensive:
+   *
+   *   1. The top is a RoundedBox, so its edges catch a highlight instead of
+   *      ending in a mathematically sharp corner. A real desk has a 2-3mm
+   *      radius on the laminate; at this scale that is 0.02.
+   *   2. Underneath it is a slightly inset second slab in the frame colour.
+   *      That is the edge band every laminate desk has, and it is what makes
+   *      the top read as a manufactured panel with a thickness rather than as
+   *      an infinitely thin plane.
+   *   3. The legs are a T-frame per end — post, floor foot, top rail — braced
+   *      by a rail across the back. Four independent pins is what a primitive
+   *      looks like; a frame is what furniture looks like, and it also gives
+   *      the eye an actual contact patch on the deck.
+   */
+  /**
+   * DESK_BACK_Z is behind DESK_FRONT_Z, so `BACK - FRONT` is NEGATIVE (-2.2).
+   * BoxGeometry shrugs that off — it just builds the box inside out and
+   * nothing downstream cares about a thin slab's winding. RoundedBoxGeometry
+   * subtracts the corner radius from each side and extrudes a shape, so a
+   * negative depth gives it a self-inverted profile and it returns a slab the
+   * size of the room. Take the magnitude.
+   */
+  const deskDepth = Math.abs(DESK_BACK_Z - DESK_FRONT_Z);
+  const top = new RoundedBoxGeometry(DESK_HALF_WIDTH * 2, DESK_THICKNESS, deskDepth, 2, 0.02);
+  top.translate(0, DESK_TOP - DESK_THICKNESS / 2, (DESK_FRONT_Z + DESK_BACK_Z) / 2);
+  shell.geometries.push(top);
+
+  // the edge band: inset on every side so it reads as a shadow line, not a
+  // second slab
+  frame.geometries.push(
+    box(
+      DESK_HALF_WIDTH * 2 - 0.05,
+      0.035,
+      deskDepth - 0.05,
+      0,
+      DESK_TOP - DESK_THICKNESS - 0.014,
+      (DESK_FRONT_Z + DESK_BACK_Z) / 2,
+    ),
   );
-  // A slim cable tray rather than a full modesty panel — a solid panel closes
-  // the leg room off and reads as one dark slab under the whole desk.
-  frame.geometries.push(box(DESK_HALF_WIDTH * 2 - 1.4, 0.1, 0.16, 0, DESK_TOP - 0.28, DESK_BACK_Z + 0.22));
-  for (const legX of [-DESK_HALF_WIDTH + 0.24, DESK_HALF_WIDTH - 0.24]) {
-    for (const legZ of [DESK_FRONT_Z - 0.26, DESK_BACK_Z + 0.26]) {
-      frame.geometries.push(cylinder(0.062, 0.042, DESK_TOP - DESK_THICKNESS, legX, (DESK_TOP - DESK_THICKNESS) / 2, legZ, 12));
+
+  const legTop = DESK_TOP - DESK_THICKNESS - 0.03;
+  const deskMidZ = (DESK_FRONT_Z + DESK_BACK_Z) / 2;
+
+  for (const side of [-1, 1] as const) {
+    const legX = side * (DESK_HALF_WIDTH - 0.34);
+
+    // upright post, flattened across the desk so it reads as a panel leg
+    frame.geometries.push(roundedBox(0.11, legTop, 0.16, 0.022, legX, legTop / 2, deskMidZ));
+    // top rail, tucked under the edge band
+    frame.geometries.push(roundedBox(0.13, 0.07, 1.5, 0.02, legX, legTop - 0.035, deskMidZ));
+    // floor foot
+    frame.geometries.push(roundedBox(0.15, 0.075, 1.62, 0.03, legX, 0.0375, deskMidZ));
+    // glides, so the foot lands on four points rather than on its whole length
+    for (const footZ of [deskMidZ - 0.72, deskMidZ + 0.72]) {
+      dark.geometries.push(cylinder(0.045, 0.05, 0.02, legX, 0.01, footZ, 10));
     }
   }
+
+  // A slim cable tray rather than a full modesty panel — a solid panel closes
+  // the leg room off and reads as one dark slab under the whole desk. It also
+  // ties the two leg frames together, which is what stops them reading as two
+  // separate objects that happen to be under the same board.
+  frame.geometries.push(roundedBox(DESK_HALF_WIDTH * 2 - 0.9, 0.11, 0.17, 0.03, 0, DESK_TOP - 0.3, DESK_BACK_Z + 0.22));
 
   // ── monitors
   addMonitor(shell, dark, frame, -1);
@@ -282,7 +345,25 @@ const buildChassis = () => {
   // lamp are the only vertical props the bay needs.
 
   for (const bucket of [shell, frame, dark, accent]) {
-    const geometry = mergeGeometries(bucket.geometries);
+    /**
+     * `mergeGeometries` returns null — silently — if the inputs disagree on
+     * whether they are indexed, and RoundedBoxGeometry is the one primitive
+     * here that ships without an index. A null merge skips the bucket, which
+     * is how the entire desk and leg frame disappeared the first time the
+     * bevels went in: no error, no warning, just no furniture.
+     *
+     * Flattening everything to non-indexed is the fix that cannot be got
+     * wrong. `mergeVertices` would be the other direction, but it welds by
+     * position AND normal AND uv, so it is one attribute change away from
+     * rounding off the flat shading these bevels exist to create. The extra
+     * vertices are irrelevant at this scale — the whole office is a few
+     * thousand triangles.
+     */
+    const parts = bucket.geometries.map((item) => (item.index ? item.toNonIndexed() : item));
+    const geometry = mergeGeometries(parts);
+    parts.forEach((part, i) => {
+      if (part !== bucket.geometries[i]) part.dispose();
+    });
     bucket.geometries.forEach((item) => item.dispose());
     if (!geometry) continue;
     const mesh = new Mesh(geometry, bucket.material);
@@ -308,11 +389,21 @@ const init = () => {
   const mouse = cloneFromRoom("mouse");
   if (mouse) group.add(mouse);
 
-  const plant = cloneFromRoom("plant");
-  if (plant) {
-    placeByFootprint(plant, 3.5, 0, -0.1);
-    group.add(plant);
-  }
+  /**
+   * Built rather than cloned — see `plant.ts`. It also moved: at (3.5, -0.1)
+   * it stood level with the desk's front edge, which from the establishing
+   * framing put it between the camera and the bay as a big out-of-focus green
+   * shape. Pushing it back to the monitors' own z line and out past the end of
+   * the desk lands it beside the workstation instead of in front of it, which
+   * is where an office plant actually goes.
+   */
+  const plant = createPlant(matcap());
+  plant.group.position.set(3.62, 0, -1.35);
+  plant.group.rotation.y = -0.5;
+  plant.group.scale.setScalar(1.24);
+  group.add(plant.group);
+  materials.push(...plant.materials);
+  disposables.push(...plant.disposables);
 
   group.visible = false;
   scene.instance.add(group);

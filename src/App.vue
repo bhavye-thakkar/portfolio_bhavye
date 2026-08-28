@@ -11,7 +11,8 @@ import Home from "./features/home/components/Home.vue";
 import Project from "./features/projects/components/Project.vue";
 import { useProjectTransition } from "./composables/useProjectTransition";
 import { useScroll } from "./composables/useScroll";
-import { projectVisible, experienceId, experienceVisible } from "./composables/useRouteObserver";
+import { projectVisible, experienceId, experienceVisible, notFound } from "./composables/useRouteObserver";
+import NotFound from "./components/NotFound.vue";
 import ExperienceDetail from "./features/experience/components/ExperienceDetail.vue";
 import ProjectBackground from "./features/projects/components/ProjectBackground.vue";
 import { useClickSound } from "./features/sounds/composables/useClickSounds";
@@ -75,6 +76,10 @@ const { isTouch } = useAgent();
       <Project />
     </div>
   </div>
+
+  <!-- Unknown URL: a real dead end rather than the home page served at the
+       wrong address, which search engines read as a soft 404. -->
+  <NotFound v-if="notFound" />
 
   <Cursor v-if="!isTouch" />
 </template>

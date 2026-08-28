@@ -1,5 +1,5 @@
 import { watch } from "vue";
-import { path, experienceId, projectId } from "./useRouteObserver";
+import { path, experienceId, projectId, notFound } from "./useRouteObserver";
 import { experienceBySlug } from "../content/experience";
 import { previews } from "../content/projects/previews";
 import { profile, site } from "../content/profile";
@@ -26,7 +26,8 @@ import { profile, site } from "../content/profile";
 
 const SUFFIX = "Bhavye Thakkar";
 
-type Meta = { title: string; description: string; url: string };
+type Crumb = { name: string; url: string };
+type Meta = { title: string; description: string; url: string; breadcrumb?: Crumb[] };
 
 let base: Meta | null = null;
 
@@ -50,8 +51,40 @@ const setMeta = (selector: string, attribute: string, value: string, create: () 
   element.setAttribute(attribute, value);
 };
 
-const apply = ({ title, description, url }: Meta) => {
+/**
+ * `BreadcrumbList` for the detail routes, matching the trail `Breadcrumbs.vue`
+ * renders. One tag, replaced in place — the home page removes it rather than
+ * leaving a stale trail behind after a client-side navigation back.
+ */
+const BREADCRUMB_ID = "route-breadcrumb";
+
+const applyBreadcrumb = (crumbs: Crumb[] | undefined) => {
+  const existing = document.getElementById(BREADCRUMB_ID);
+
+  if (!crumbs || crumbs.length < 2) {
+    existing?.remove();
+    return;
+  }
+
+  const script = existing ?? document.createElement("script");
+  script.id = BREADCRUMB_ID;
+  script.setAttribute("type", "application/ld+json");
+  script.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: crumbs.map((crumb, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: crumb.name,
+      item: crumb.url,
+    })),
+  });
+  if (!existing) document.head.appendChild(script);
+};
+
+const apply = ({ title, description, url, breadcrumb }: Meta) => {
   document.title = title;
+  applyBreadcrumb(breadcrumb);
 
   setMeta('meta[name="description"]', "content", description, () => {
     const el = document.createElement("meta");
@@ -101,6 +134,11 @@ const forExperience = (slug: string): Meta | null => {
     title: `${entry.company} — Experience | ${SUFFIX}`,
     description,
     url: `${site}/experience/${slug}`,
+    breadcrumb: [
+      { name: SUFFIX, url: `${site}/` },
+      { name: "Experience", url: `${site}/#experience` },
+      { name: entry.company, url: `${site}/experience/${slug}` },
+    ],
   };
 };
 
@@ -114,6 +152,11 @@ const loadProjectMeta = async () => {
       title: `${preview.title} — Project | ${SUFFIX}`,
       description: `${preview.title}: ${preview.description}. A project by ${SUFFIX}, ${profile.role}.`,
       url: `${site}/project/${preview.slug}`,
+      breadcrumb: [
+        { name: SUFFIX, url: `${site}/` },
+        { name: "Projects", url: `${site}/#projects` },
+        { name: preview.title, url: `${site}/project/${preview.slug}` },
+      ],
     });
   }
 };
@@ -121,6 +164,18 @@ const loadProjectMeta = async () => {
 const update = async () => {
   if (typeof document === "undefined") return;
   const fallback = readBase();
+
+  // A dead end should say so in the tab and in a search result, and it must
+  // not claim a canonical of its own — pointing it at the home page is what
+  // tells a crawler there is nothing here worth indexing separately.
+  if (notFound.value) {
+    apply({
+      title: `Page not found — ${SUFFIX}`,
+      description: "There is no page at this address.",
+      url: `${site}/`,
+    });
+    return;
+  }
 
   if (experienceId.value) {
     apply(forExperience(experienceId.value) ?? fallback);

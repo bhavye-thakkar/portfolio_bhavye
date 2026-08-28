@@ -1,5 +1,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { isTransitioning } from "./useProjectTransition";
+import { projectIds } from "../content/projects/index";
+import { experiences } from "../content/experience";
 
 // -----------------------------------------------------------------------------
 // GLOBAL REACTIVE PATH
@@ -61,6 +63,35 @@ export const recentExperienceId = computed(() => {
  * the content differs, so the transition watches this rather than either id.
  */
 export const overlayId = computed(() => projectId.value ?? experienceId.value);
+
+/**
+ * ── UNKNOWN ROUTES ────────────────────────────────────────────────────────
+ *
+ * `/anything-else` used to render the home page: the two id computeds came
+ * back null, no overlay opened, and the visitor got the hero at a URL that
+ * was not the hero. To a search engine that is a soft 404 — a 200 response
+ * with content that does not match the URL — which is worse than a 404,
+ * because it gets indexed.
+ *
+ * The check is against the real slug lists rather than the URL shape, so
+ * `/project/does-not-exist` is a miss too, not just `/nonsense`.
+ */
+const KNOWN_PATHS = new Set(["/", ""]);
+
+export const isKnownRoute = computed(() => {
+  const value = path.value.replace(/\/+$/, "") || "/";
+  if (KNOWN_PATHS.has(value)) return true;
+
+  const project = isProjectRoute(value);
+  if (project) return projectIds.includes(project[1] as string);
+
+  const experience = isExperienceRoute(value);
+  if (experience) return experiences.some((entry) => entry.slug === experience[1]);
+
+  return false;
+});
+
+export const notFound = computed(() => !isKnownRoute.value);
 
 // -----------------------------------------------------------------------------
 // HISTORY PATCH (safe & minimal)

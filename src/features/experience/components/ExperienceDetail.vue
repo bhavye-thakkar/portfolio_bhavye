@@ -7,6 +7,7 @@ import ArrowRight from "../../../components/icons/ArrowRight.vue";
 import ArrowRightLong from "../../../components/icons/ArrowRightLong.vue";
 import PinIcon from "../../../components/icons/Pin.vue";
 import StoryChapterItem from "./StoryChapter.vue";
+import Breadcrumbs from "../../../components/Breadcrumbs.vue";
 import { experiences, experienceBySlug, chapterNumber } from "../../../content/experience";
 import { experienceId, experienceVisible, recentExperienceId } from "../../../composables/useRouteObserver";
 import { isTransitioning } from "../../../composables/useProjectTransition";
@@ -196,6 +197,12 @@ onBeforeUnmount(() => {
           <span>{{ t("experience") }}</span>
         </Link>
 
+        <Breadcrumbs
+          class="story-breadcrumbs"
+          :trail="[{ label: t('home'), to: '/' }, { label: t('experience'), to: '/#experience' }]"
+          :current="entry.company"
+        />
+
         <p class="story-masthead-eyebrow">
           {{ chapterNumber(entryIndex) }} — {{ entry.chapter }}
         </p>
@@ -322,6 +329,10 @@ onBeforeUnmount(() => {
     margin: 0 auto;
     padding: 0 var(--space-outer);
   }
+}
+
+.story-breadcrumbs {
+  margin-top: var(--space-sm);
 }
 
 /* ── back link, used at both ends of the page ─────────────────────────────── */
