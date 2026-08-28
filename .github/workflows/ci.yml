@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A newer push to the same branch makes the running check pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Type check and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Vite 7 needs Node 20.19+ / 22.12+; 22 is the current LTS line.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # npm, because package-lock.json is what this repo ships.
+      - name: Install
+        run: npm ci
+
+      # There is no lint script in this project. `npm run build` runs vue-tsc
+      # itself, but running it on its own first means a type error is reported
+      # as a type error rather than as a failed build.
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      # A build that emits nothing still exits 0. This is the actual gate.
+      - name: Check the bundle exists
+        run: test -f dist/index.html && test -f dist/sitemap.xml && test -f dist/robots.txt

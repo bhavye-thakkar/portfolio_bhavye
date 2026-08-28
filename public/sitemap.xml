@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Every URL below is a real route this app serves. The home page is one
+  scrolling document, so #about / #experience / #projects / #contact are
+  anchors within `/` and are deliberately NOT listed as separate pages; the
+  detail routes are, because they render their own page and their own <h1>.
+
+  THE DOMAIN IS A PLACEHOLDER. It matches the <link rel="canonical"> and the
+  og:url in index.html, which is the only place this project declares a site
+  URL. When the real domain is known, change it here, in index.html and in
+  public/robots.txt — those three and nothing else.
+
+  Routes come from:
+    experience  src/content/experience.ts  (slug per entry)
+    projects    src/content/projects/index.ts  (projectIds)
+  Adding an entry there means adding a <url> here.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://example.com/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <url>
+    <loc>https://example.com/experience/notionmind</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://example.com/experience/company-02</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://example.com/project/garbacircle</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://example.com/project/project-02</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://example.com/project/project-03</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://example.com/project/project-04</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://example.com/project/project-05</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>

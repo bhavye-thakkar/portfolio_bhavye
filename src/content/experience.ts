@@ -12,8 +12,9 @@
  * claiming a job that did not happen. Replace the company/role/location/
  * duration, drop the flag, and the entry becomes a real chapter.
  *
- * NotionMind is last on purpose — the array reads oldest to newest, so the
- * final entry is the current role and the one the section ends on.
+ * The array is the running order, newest first: NotionMind is chapter 01 and
+ * the section opens on it. Everything after it is a reserved slot until there
+ * is a real job to put there.
  */
 
 export type StoryChapterKey = "discovery" | "application" | "interview" | "hired" | "experience" | "learned";
@@ -182,6 +183,26 @@ export const experiences: ExperienceEntry[] = [
     statement: "Placeholder one-liner — replace with the real summary of the role.",
     // ── Remove this flag and swap sampleStoryContent() for the real chapters
     //    in the same edit. The badge on the story page is tied to it.
+    sampleStory: true,
+    story: sampleStoryContent(),
+  },
+  /**
+   * Reserved slot. It is a full chapter — its own card, its own camera beat,
+   * its own story page — so the section can be built and judged at its real
+   * length, but nothing here claims a job. Replacing it is: company, role,
+   * type, location, duration, statement, then drop `placeholder` and swap
+   * `sampleStoryContent()` for the real six chapters.
+   */
+  {
+    slug: "company-02",
+    chapter: "The Next Chapter",
+    company: "Company 02",
+    role: "Role to be added",
+    type: "",
+    location: "",
+    duration: "",
+    statement: "",
+    placeholder: true,
     sampleStory: true,
     story: sampleStoryContent(),
   },

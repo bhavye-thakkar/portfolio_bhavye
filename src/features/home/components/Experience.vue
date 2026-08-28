@@ -22,8 +22,17 @@ import { experiences, chapterNumber } from "../../../content/experience";
  * lives at /experience/:slug, not here.
  */
 
-// Beside the seated avatar, on the same plane as his shoulders.
-const openingPoint = new Vector3(3.2, 3.3, 6.5);
+/**
+ * The HUD tag hangs off this world point, just above and to one side of the
+ * seated avatar's head (he is at (0, 0, 6) with his head at y 2.5).
+ *
+ * It has to stay close to him: the card is 400px wide and opens to the RIGHT
+ * of wherever this projects to, so a point further out along +x pushes its far
+ * edge off the viewport. At the establishing framing this lands about 210px
+ * right of centre, which leaves the card and its connector comfortably inside
+ * a 1280-wide window.
+ */
+const openingPoint = new Vector3(1.7, 3.15, 5.5);
 
 const props = defineProps<{
   spacerRef: HTMLElement | null;
@@ -216,26 +225,37 @@ watchEffect((onInvalidate) => {
   flex-direction: column;
   gap: var(--space-xxs);
 
+  /* The card opens to the RIGHT of a projected point, so its width is what
+     decides whether it clears the viewport edge. A narrower landscape is the
+     tight case twice over: fewer pixels to give, and a narrower horizontal FOV
+     that pushes the same world point further out. 26svw keeps the far edge
+     inside a 1024-wide window and is inert above ~1385, where the fixed width
+     is already the smaller of the two. */
   @include mixins.landscape {
     position: relative;
     left: 0;
     bottom: 0;
     width: 400px;
-    max-width: calc(var(--svw) * 32);
+    max-width: calc(var(--svw) * 26);
     padding-left: var(--line-length);
     transform: translate(0, -50%);
   }
 
   @include mixins.landscape-large {
     width: 360px;
-    max-width: calc(var(--svw) * 30);
+    max-width: calc(var(--svw) * 26);
   }
 
   &-eyebrow {
     font-size: var(--font-size-title-xs);
     font-weight: 700;
+    /* Portrait stacks this over the scene rather than over the blue, and the
+       desk under it is nearly the same value as #e1f5ff. The card behind the
+       rest of the copy does this job; the eyebrow has to carry its own. */
+    text-shadow: 0 1px 6px rgba(0, 14, 40, 0.85);
 
     @include mixins.landscape {
+      text-shadow: none;
       font-size: var(--font-size-title-xxs);
     }
 

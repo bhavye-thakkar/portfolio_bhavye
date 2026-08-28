@@ -9,7 +9,6 @@ export const sceneWeights = {
   "experience-1": 0,
   "experience-2": 0,
   "experience-3": 0,
-  "experience-4": 0,
   projects: 0,
   contact: 0,
 };
@@ -50,10 +49,6 @@ export const sceneWeightsInOut = {
     out: 0,
   },
   "experience-3": {
-    in: 0,
-    out: 0,
-  },
-  "experience-4": {
     in: 0,
     out: 0,
   },

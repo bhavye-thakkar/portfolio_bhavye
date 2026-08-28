@@ -60,3 +60,50 @@ html {
     pointer-events: none;
   }
 }
+
+/**
+ * ── UI TEXT IS NOT A DOCUMENT ─────────────────────────────────────────────
+ *
+ * Headings, labels, nav items and controls are chrome: clicking one should do
+ * the thing, not drop an I-beam into it or drag-select half a company name.
+ * Body copy — the story chapters, the project write-ups — is left alone and
+ * stays selectable, which is the whole reason this is a list rather than a
+ * blanket rule on `body`.
+ *
+ * Pointer events are deliberately untouched here. Making text unselectable is
+ * not the same as making it unclickable, and `.children-unclickable` above is
+ * the only thing allowed to do the latter.
+ */
+:where(h1, h2, h3, h4, h5, h6, nav, button, summary, label, a[href], [data-cursor]) {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Two whole regions are chrome rather than text: the Experience HUD, which is
+   a heads-up layer over a moving camera, and the story masthead, which is a
+   stack of labels around a title. Their `<p>`s are captions, not copy. */
+.experience-content,
+.story-masthead,
+.story-rail,
+.chapter-number,
+.chapter-draft-tag {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* …and the parts of them that really are prose opt back in, along with the
+   chapter bodies, which are the reason anyone opened the page. */
+.story-masthead-statement,
+.chapter-headline,
+.chapter-paragraph,
+.chapter-draft-prompt,
+.chapter-meta {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* A link is a control. The UA gives `cursor: pointer` to buttons and not to
+   anchors, which is where the stray text caret over a card was coming from. */
+:where(a[href]) {
+  cursor: pointer;
+}

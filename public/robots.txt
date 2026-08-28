@@ -1,1 +1,6 @@
 User-agent: *
+Allow: /
+
+# Placeholder domain — see the note at the top of sitemap.xml. Change this in
+# the same edit as index.html's canonical/og:url and the <loc> values there.
+Sitemap: https://example.com/sitemap.xml
