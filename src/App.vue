@@ -11,7 +11,8 @@ import Home from "./features/home/components/Home.vue";
 import Project from "./features/projects/components/Project.vue";
 import { useProjectTransition } from "./composables/useProjectTransition";
 import { useScroll } from "./composables/useScroll";
-import { projectVisible, experienceId, experienceVisible, notFound } from "./composables/useRouteObserver";
+import { projectVisible, experienceId, experienceVisible, objectId, objectVisible, notFound } from "./composables/useRouteObserver";
+import ObjectDetail from "./features/objects/components/ObjectDetail.vue";
 import NotFound from "./components/NotFound.vue";
 import ExperienceDetail from "./features/experience/components/ExperienceDetail.vue";
 import ProjectBackground from "./features/projects/components/ProjectBackground.vue";
@@ -34,7 +35,12 @@ const { isTouch } = useAgent();
 </script>
 
 <template>
-  <Header />
+  <!-- The object panels get NO site header. They are a label beside an exhibit,
+       not a page: the "get in touch" call to action, the sound toggle and a
+       second back button on top of the panel's own were three pieces of site
+       chrome competing with the one thing the visitor opened. The panel carries
+       its own back link, Escape closes it, and so does the browser's own Back. -->
+  <Header v-if="objectId === null" />
 
   <!-- Experience story stage. Home teleports its live three canvas in here
        while the story is open, so the avatar on the story page is the same
@@ -61,6 +67,40 @@ const { isTouch } = useAgent();
     }"
   >
     <ExperienceDetail />
+  </div>
+
+  <!-- Object panel. Not an "overlay page" like the two below: home stays live
+       and un-fixed underneath it, and the 3D camera pushes in on the object
+       being read about. -->
+  <!--
+    `data-lenis-prevent` is load-bearing, not decoration. Lenis takes wheel and
+    touch events off `window` and calls preventDefault on them — including
+    while it is stopped — so the panel's own `overflow-y: auto` never saw a
+    single one and the content below the fold was unreachable. This attribute
+    is Lenis's documented opt-out for a nested scroller: the event is left
+    alone entirely for anything inside this element.
+  -->
+  <!--
+    `data-scene-blocker` is STATIC, not bound to `objectVisible`.
+
+    Bound, it was removed in the same microtask flush the closing click
+    triggers — element handlers run first, Vue patches the DOM at the
+    checkpoint between listeners, and by the time the scene's window-level
+    click handler ran the back link was no longer inside a blocker. The click
+    that closed the panel then raycast into the room behind it: from the
+    painting's close-up the orchid's box projects over the top-left, so
+    "back" landed on /object/orchid.
+
+    The wrapper is `pointer-events: none` while hidden, so nothing can land
+    inside it anyway — the attribute costs nothing when the panel is closed.
+  -->
+  <div
+    class="object-wrapper"
+    :class="{ 'object-wrapper-visible': objectVisible }"
+    data-scene-blocker
+    data-lenis-prevent
+  >
+    <ObjectDetail />
   </div>
 
   <!-- overlay page -->
@@ -145,6 +185,53 @@ const { isTouch } = useAgent();
     .story-page-inner {
       transform: translateY(calc(var(--story-exit-scroll, 0px) * -1));
     }
+  }
+}
+
+/* The object panel's shell. `fixed` with its own scroll, never `static` and
+   never in flow: home keeps the document scroll the whole time it is open, so
+   there is nothing to save and nothing to restore when it closes.
+
+   `visibility` rather than `display` so the fade actually runs, and
+   `overflow-y: auto` so long copy scrolls inside the panel instead of moving
+   the page — and therefore the camera — behind it. */
+.object-wrapper {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  z-index: var(--z-index-layout-project);
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity var(--transition-route-duration) var(--transition-route-ease),
+    visibility 0s linear var(--transition-route-duration);
+
+  .object-panel-inner {
+    transform: translateY(24px);
+    transition: transform 0.7s var(--transition-route-ease);
+  }
+
+  &-visible {
+    visibility: visible;
+    pointer-events: auto;
+    opacity: 1;
+    transition:
+      opacity var(--transition-route-duration) var(--transition-route-ease),
+      visibility 0s;
+
+    .object-panel-inner {
+      transform: translateY(0);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .object-wrapper,
+  .object-wrapper .object-panel-inner {
+    transition-duration: 0.01s;
   }
 }
 

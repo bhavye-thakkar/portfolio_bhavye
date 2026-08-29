@@ -8,6 +8,9 @@ import { avatar } from "../three/objects/avatar";
 import { lab } from "../three/objects/lab";
 import { workstation } from "../three/objects/workstation";
 import { screens } from "../three/objects/workstation/screens";
+import { animations } from "../three/objects/avatar/animations";
+import { face } from "../three/objects/avatar/face";
+import { resources } from "../utils/resources";
 import { sizes } from "../utils/sizes";
 
 import type { StoryChapterKey } from "../content/experience";
@@ -26,9 +29,9 @@ import type { StoryChapterKey } from "../content/experience";
  * then sets the stage by hand, which also means a cold deep-link lands on the
  * same picture as an in-page click.
  *
- * The camera framings are the only new numbers here: he stands, sits, and is
- * seen from a different side per chapter, which is the whole of the avatar
- * storytelling — no new clips, no second rig.
+ * A chapter is a camera framing plus a beat for the avatar — a turn, sometimes
+ * a clip, sometimes an expression. No new clips and no second rig: everything
+ * below is composed out of what the avatar already ships with.
  */
 
 type Pose = {
@@ -36,6 +39,39 @@ type Pose = {
   focus: [number, number, number];
   /** Which of the two monitor scenarios is up. */
   blend: number;
+  /**
+   * ── THE AVATAR'S OWN BEAT FOR THIS CHAPTER ──────────────────────────────
+   *
+   * The camera used to do all of the storytelling and he sat through six
+   * chapters in one idle loop, which read as a photograph the camera was
+   * circling. These three fields are what make him a participant instead —
+   * and they are deliberately small, because the rig has no walk that works
+   * seated and no gesture library. What it does have is a root yaw, one
+   * "glances at the other screen" clip, the intro wave and a proud face.
+   *
+   * `turn` is extra yaw on top of the seated facing, in radians. Positive
+   * turns him towards the left-hand monitor, negative towards the camera.
+   * Roughly ±0.25 is the working range: past that his shoulders leave the
+   * chair back and the seated pose stops reading.
+   *
+   * `clip` is a one-shot fired as the chapter arrives, blended in over 0.4s
+   * and settling back to the desk idle on its own. Only two chapters get one,
+   * so the strong beats stay strong — the rest are a turn of the head.
+   *
+   * ── ONLY `left-desktop` IS SAFE HERE ────────────────────────────────────
+   *
+   * `wave` was tried and produced a mangled, arms-out figure with its head out
+   * of frame. `updateIntro` weights it `wavingStrength * (1 - tIdleIntensity)`,
+   * and the story stage sets `tIdleIntensity` to 1 — so its weight is pinned at
+   * zero. Cross-fading INTO a zero-weight action fades the desk idle out and
+   * puts nothing in its place, and the mixer falls through to the bind pose.
+   * Any clip added here has to be one `updateIntro` keeps weighted while
+   * seated, which today means `desktop-idle` and `left-desktop` and nothing
+   * else.
+   */
+  turn: number;
+  clip?: "left-desktop";
+  face?: "default-0" | "proud-0";
 };
 
 /**
@@ -69,21 +105,32 @@ type Pose = {
  */
 const LANDSCAPE: Record<StoryChapterKey, Pose> = {
   // Wide from his front-left: the bay is a place across the room. Clears the
-  // right monitor at x −2.86.
-  discovery: { position: [-7.6, 3.2, 9.9], focus: [0, 2.3, 6.5], blend: 0 },
+  // right monitor at x −2.86. He is reading about the place on the other
+  // screen — the strongest beat of the six, and the one that establishes that
+  // he moves at all.
+  discovery: { position: [-7.6, 3.2, 9.9], focus: [0, 2.3, 6.5], blend: 0, turn: 0.2, clip: "left-desktop" },
   // Over the right shoulder — the applying-at-a-laptop beat. Behind him, so
-  // there is nothing in the way.
-  application: { position: [-5.2, 4.6, 1.2], focus: [0.4, 2.3, 7.0], blend: 0 },
+  // there is nothing in the way. Squared up to the main screen, writing.
+  application: { position: [-5.2, 4.6, 1.2], focus: [0.4, 2.3, 7.0], blend: 0, turn: -0.06 },
   // From across the corner of the desk: the interview table. Clears at x 2.85.
-  interview: { position: [9.6, 3.6, 8.4], focus: [0.35, 2.3, 6.2], blend: 0 },
+  // Turned out of the desk towards whoever is asking.
+  interview: { position: [9.6, 3.6, 8.4], focus: [0.35, 2.3, 6.2], blend: 0, turn: -0.24 },
   // Camera almost level with his eyeline. The one beat allowed to be
-  // triumphant. Clears at x −3.02.
-  hired: { position: [-7.0, 2.5, 9.6], focus: [0, 2.35, 6.4], blend: 0 },
+  // triumphant — turned furthest out of the desk, and the only chapter that
+  // changes his face. Clears at x −3.02.
+  //
+  // This pose briefly looked broken while the turn was being written to
+  // `waypointsRotation`: the workstation group is pinned to that rotation, so
+  // turning him swung both monitors round with him and one landed across his
+  // face. The pose was never the problem — see `avatar.storyTurn`.
+  hired: { position: [-7.0, 2.5, 9.6], focus: [0, 2.35, 6.4], blend: 0, turn: -0.3, face: "proud-0" },
   // Over the other shoulder, second scenario on the monitors: the work itself.
-  experience: { position: [3.6, 4.2, 2.4], focus: [-0.6, 2.3, 7.0], blend: 1 },
-  // Back and high — the chapter closes and the room gets its scale back.
-  // Clears at x 2.83.
-  learned: { position: [8.6, 4.6, 10.6], focus: [0, 2.3, 6.4], blend: 1 },
+  // The second and last chapter to get a clip — five chapters away from the
+  // first one, so it reads as a beat rather than a loop.
+  experience: { position: [3.6, 4.2, 2.4], focus: [-0.6, 2.3, 7.0], blend: 1, turn: 0.26, clip: "left-desktop" },
+  // Back and high — the chapter closes, he settles square to the desk and the
+  // room gets its scale back. Clears at x 2.83.
+  learned: { position: [8.6, 4.6, 10.6], focus: [0, 2.3, 6.4], blend: 1, turn: 0 },
 };
 
 /**
@@ -136,7 +183,12 @@ const forward = new Vector3();
 const right = new Vector3();
 const camUp = new Vector3();
 
-const framedFocus = (pose: Pose, out: Vector3) => {
+/**
+ * Exported because `animations/inspect.ts` frames its object panels the same
+ * way — one rule for "keep the subject clear of the copy column", not two that
+ * drift apart.
+ */
+export const framedFocus = (pose: { position: [number, number, number]; focus: [number, number, number] }, out: Vector3) => {
   out.set(pose.focus[0], pose.focus[1], pose.focus[2]);
 
   forward.set(pose.position[0], pose.position[1], pose.position[2]).sub(out).negate();
@@ -203,6 +255,11 @@ const applyStage = (chapter: StoryChapterKey, snapPose: boolean) => {
   waypoints.position.set(pose.position[0], pose.position[1], pose.position[2]);
   waypoints.focus.copy(framedFocus(pose, target));
   screens.state.blend = pose.blend;
+  // A cold deep link never runs `goTo`, so without this the opening chapter is
+  // the only one whose avatar beat never fires and he sits square to the desk
+  // through a shot framed for him turned.
+  avatar.storyTurn.value = pose.turn;
+  applyBeat(pose, 0.001);
 };
 
 const enter = (chapter: StoryChapterKey) => {
@@ -232,6 +289,58 @@ const enter = (chapter: StoryChapterKey) => {
 const reducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/** The clip currently owning the body, so a repeat is not re-fired. */
+let beatClip: string | null = null;
+
+/**
+ * The avatar half of a chapter change. Runs alongside the camera move rather
+ * than after it, so he is already turning as the shot arrives instead of
+ * snapping into place once it lands.
+ *
+ * `duration` is the camera's; the turn takes slightly less so the body has
+ * settled by the time the frame does. Nothing here touches his position — he
+ * stays in the chair for all six chapters, and moving the root is what made
+ * earlier attempts slide him through the desk.
+ */
+const applyBeat = (pose: Pose, duration: number) => {
+  gsap.to(avatar.storyTurn, {
+    value: pose.turn,
+    duration: duration * 0.8,
+    ease: "power2.inOut",
+    overwrite: "auto",
+  });
+
+  face.setIntroExpression(pose.face ?? "default-0");
+
+  // Only two chapters carry a clip, and re-firing the same one on a re-entry
+  // would restart it mid-pose. `play` already cross-fades, so the hand-off in
+  // and the settle back out are both blends rather than cuts.
+  if (!pose.clip) {
+    if (beatClip) {
+      animations.play("desktop-idle", 0.5);
+      beatClip = null;
+    }
+    return;
+  }
+
+  if (beatClip === pose.clip) return;
+
+  // A cold deep link asks for the opening chapter's clip before the avatar
+  // model has downloaded, and `play` is a no-op until it has. Recording
+  // `beatClip` anyway would mark a beat that never ran as done, so the chapter
+  // would sit in the plain idle for good — the same class of bug the camera
+  // pose had. Wait for the model instead, then run it.
+  if (!animations.actions.size) {
+    resources.once("ready", () => {
+      if (isActive) applyBeat(pose, 0.6);
+    });
+    return;
+  }
+
+  beatClip = pose.clip;
+  animations.play(pose.clip, 0.4);
+};
+
 const goTo = (chapter: StoryChapterKey, duration = 1.1) => {
   if (!isActive) return;
   if (reducedMotion()) duration = 0;
@@ -246,6 +355,8 @@ const goTo = (chapter: StoryChapterKey, duration = 1.1) => {
   // The monitors change under the move rather than after it, so the new
   // scenario is already up by the time the shot settles.
   tween.to(screens.state, { blend: pose.blend, duration: duration * 0.5 }, 0);
+
+  applyBeat(pose, Math.max(duration, 0.001));
 };
 
 /** Re-frames the current chapter after an orientation change. */
@@ -265,6 +376,16 @@ const exit = () => {
 
   tween?.kill();
   tween = null;
+
+  // Hand the body back the way it was found: square to the desk, desk idle,
+  // default face. Leaving a chapter's turn latched would carry it into the
+  // Experience section behind, where nothing would ever clear it.
+  gsap.to(avatar.storyTurn, { value: 0, duration: 0.5, ease: "power2.out", overwrite: "auto" });
+  face.setIntroExpression("default-0");
+  if (beatClip) {
+    animations.play("desktop-idle", 0.5);
+    beatClip = null;
+  }
 
   stageHold.value = false;
   storyActive.value = false;

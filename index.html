@@ -169,6 +169,86 @@
     <link rel="shortcut icon" href="/meta/favicon.ico" />
 
     <meta name="theme-color" content="#dfd1bc" />
+
+    <!--
+      ── THE PRELOADER'S OWN STYLES, INLINE AND ON PURPOSE ─────────────────
+
+      This used to live in src/assets/styles/preloader.scss, which ships inside
+      the JS bundle. That meant the preloader — the one thing on the page whose
+      entire job is to look right before anything else has loaded — was the
+      last thing to get styled.
+
+      Unstyled, `.preloader` is a static div and the SVG inside it has no
+      width, so it auto-sizes to the full viewport: a 1400px grey logo on a
+      white page. That is what a visitor sees for the whole of a slow first
+      paint, and *permanently* if the bundle fails to execute at all (a missing
+      asset import is enough — see src/assets/thumbnails/). The screen that is
+      supposed to hide a broken boot was drawing the broken boot.
+
+      So the rules live here, in the same document as the markup, and there is
+      no .scss copy of them to drift out of sync. Each colour is declared twice:
+      the literal for the first paint, then the token, which wins the moment
+      colors.scss lands. Keep these values in step with:
+        --color-beige-400 / --color-text-400   src/assets/styles/colors.scss
+        --z-index-preloader / --ease-power2-in src/assets/styles/variables.scss
+    -->
+    <style>
+      .is-loading {
+        overscroll-behavior: none;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+      }
+
+      .preloader {
+        position: fixed;
+        z-index: 100;
+        z-index: var(--z-index-preloader, 100);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #f5efe6;
+        background-color: var(--color-beige-400, #f5efe6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.3s ease-in-out;
+        opacity: 1;
+      }
+
+      .preloader-svg {
+        width: 120px;
+        height: 120px;
+        transition:
+          transform 0.2s var(--ease-power2-in, cubic-bezier(0.165, 0.84, 0.44, 1)),
+          opacity 0.2s var(--ease-power2-in, cubic-bezier(0.165, 0.84, 0.44, 1));
+      }
+
+      .preloader-rect {
+        transform-origin: bottom center;
+        transition: transform 0.3s ease-in-out;
+      }
+
+      .preloader-path {
+        fill: #2d2a24;
+        fill: var(--color-text-400, #2d2a24);
+      }
+
+      .preloader-hidden {
+        opacity: 0;
+        pointer-events: none !important;
+      }
+
+      .preloader-hidden * {
+        pointer-events: none !important;
+      }
+
+      .preloader-hidden svg {
+        transform: scale(0.4);
+        opacity: 0;
+      }
+    </style>
   </head>
   <body class="is-loading">
     <svg style="display: none" viewBox="0 0 56 61" xmlns="http://www.w3.org/2000/svg">
@@ -275,6 +355,21 @@
             >Note Taking &amp; Summarization</a
           >
           — collaborative notes with automatic summarisation
+        </li>
+      </ul>
+
+      <h2>The room</h2>
+      <p>
+        Two objects in the 3D workspace open a page of their own explaining why they are in the scene.
+      </p>
+      <ul>
+        <li>
+          <a href="/object/orchid">The Orchid</a> — a Phalaenopsis modelled procedurally rather than imported;
+          on patience and slow work
+        </li>
+        <li>
+          <a href="/object/starry-night">The Starry Night</a> — Vincent van Gogh, 1889, a public-domain
+          reproduction; on seeing a familiar pattern differently
         </li>
       </ul>
 

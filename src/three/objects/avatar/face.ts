@@ -127,4 +127,14 @@ const destroy = () => {
   gsap.ticker.remove(tick);
 };
 
-export const face = { init, destroy, getMaterial, FRAME_INDEXES, wakeUp, wave };
+/**
+ * The Experience story sets this per chapter — the beat where the job is
+ * offered gets the proud face, the rest keep the default with its blink.
+ * Anything not in FRAME_INDEXES is ignored rather than showing a blank face.
+ */
+const setIntroExpression = (name: keyof typeof FRAME_INDEXES) => {
+  if (!(name in FRAME_INDEXES)) return;
+  sceneFrames.intro = name as typeof sceneFrames.intro;
+};
+
+export const face = { init, destroy, getMaterial, FRAME_INDEXES, wakeUp, wave, setIntroExpression };

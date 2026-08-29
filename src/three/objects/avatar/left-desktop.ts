@@ -1,7 +1,7 @@
 import gsap from "gsap";
 import { animations as avatarAnimations } from "./animations";
 import { desktops } from "../room/desktops";
-import { sceneWeights } from "../../../animations/scenes";
+import { sceneWeights, stageHold } from "../../../animations/scenes";
 import { messagePopup } from "../room/message-popup";
 import { sizes } from "../../../utils/sizes";
 import { playSound } from "../../../features/sounds/utils/sounds";
@@ -46,7 +46,11 @@ const startInterval = () => {
     // The Experience office reuses this beat — it is the "glances at the other
     // screen" moment the second workstation exists for.
     const onStage = sceneWeights.hero > 0.95 || sceneWeights.experience > 0.95;
-    if (!onStage || !sizes.visible) return;
+    // ...but NOT while a detail page owns the stage. The story page fires this
+    // same clip deliberately, on the chapters where looking at the other screen
+    // is the beat; a random one landing on top of it makes the avatar look
+    // twitchy and makes the chapter motion non-deterministic.
+    if (!onStage || !sizes.visible || stageHold.value) return;
 
     const tl = gsap.timeline({
       duration: clip.duration + 0.2,

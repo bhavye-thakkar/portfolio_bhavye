@@ -5,7 +5,6 @@
 @use "./grid.scss";
 @use "./lenis.scss";
 @use "./projects.scss";
-@use "./preloader.scss";
 
 html {
   background: var(--color-background-400);
@@ -13,6 +12,7 @@ html {
   --icon-color: var(--color-text-400);
   font-family: "Urbanist";
   letter-spacing: 0.02em;
+  /* Permanently on screen so a short route does not shift the layout sideways. */
   overflow-y: scroll !important;
 
   --vh: 1vh;
@@ -34,6 +34,22 @@ html {
   --lvw: 1lvw;
 }
 
+/* An object panel is a fixed layer with its own `overflow-y: auto`, so while one
+   is open the page's scrollbar sat right beside the panel's — two bars, and the
+   page one inert, because Lenis is stopped for the duration.
+
+   Taking it away rather than reserving its strip with `scrollbar-gutter`: a
+   reserved-but-empty gutter is a pale 15px seam down the outside of the panel,
+   which looks more like a rendering fault than a scrollbar does. Without it the
+   panel covers the full viewport. The cost is that the page behind reflows by
+   the bar's width as the panel opens — under a half-second fade, over a page
+   the panel is already covering. */
+html:has(.object-wrapper-visible) {
+  overflow-y: hidden !important;
+}
+
+/* Also declared inline in index.html, without the tokens, so it applies on
+   the very first paint. This one wins once the bundle lands. */
 .is-loading {
   overscroll-behavior: none;
   position: fixed;
@@ -86,7 +102,10 @@ html {
 .story-masthead,
 .story-rail,
 .chapter-number,
-.chapter-draft-tag {
+.chapter-draft-tag,
+.object-masthead,
+.object-body-label,
+.object-facts-label {
   -webkit-user-select: none;
   user-select: none;
 }

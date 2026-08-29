@@ -74,12 +74,19 @@ export const useHowler = () => {
   });
 
   const loadAllSounds = () => {
-    for (const sound of Object.keys(sounds) as SoundKey[]) {
-      const howl = getSoundsHowl(sound);
-      if (howl) {
-        howl.load();
-      }
-    }
+    /**
+     * De-duplicated by Howl INSTANCE, not by sound key.
+     *
+     * Six of the keys in `sounds` — bird, keyboard, the three mouse wheels and
+     * notification — are sprites on one shared `room` Howl, and two more share
+     * the `contact` one. Howler starts a fresh XHR for every `load()` call
+     * without checking whether that file is already loading, so looping over
+     * the keys downloaded room.mp3 six times and contact.ogg twice: about
+     * 0.9 MB of identical bytes on every single page load, measured as five
+     * concurrent 145 KB requests for the same URL.
+     */
+    const howls = new Set((Object.keys(sounds) as SoundKey[]).map(getSoundsHowl).filter(Boolean));
+    for (const howl of howls) howl.load();
   };
 
   onMounted(() => {

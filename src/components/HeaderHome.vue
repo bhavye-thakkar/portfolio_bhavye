@@ -5,7 +5,7 @@ import { t } from "../i18n/utils/translate";
 import { lenis } from "../composables/useScroll";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useHeaderTheme } from "../composables/useHeaderTheme";
-import { overlayId } from "../composables/useRouteObserver";
+import { detailId } from "../composables/useRouteObserver";
 import { storyActive } from "../animations/story";
 
 const handleLinkClick = (link: string) => {
@@ -75,7 +75,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div :class="['header-home', { 'header-home-mounted': isMounted, 'header-home-isProjectPage': overlayId !== null }]">
+  <div :class="['header-home', { 'header-home-mounted': isMounted, 'header-home-isProjectPage': detailId !== null }]">
     <div :class="['header-home-links', { 'header-home-links-dark': isDarkTheme }]">
       <div
         :class="[

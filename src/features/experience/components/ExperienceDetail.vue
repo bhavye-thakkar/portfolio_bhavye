@@ -12,7 +12,6 @@ import { experiences, experienceBySlug, chapterNumber } from "../../../content/e
 import { experienceId, experienceVisible, recentExperienceId } from "../../../composables/useRouteObserver";
 import { isTransitioning } from "../../../composables/useProjectTransition";
 import { lenis } from "../../../composables/useScroll";
-import { useRouter } from "../../../composables/useRouter";
 import { story } from "../../../animations/story";
 import { sizes } from "../../../utils/sizes";
 
@@ -27,8 +26,6 @@ import { sizes } from "../../../utils/sizes";
  * into this page's stage element, so the avatar you scrolled past is the same
  * avatar standing here, re-posed per chapter by `animations/story`.
  */
-
-const router = useRouter();
 
 const entry = computed(() => experienceBySlug(recentExperienceId.value ?? ""));
 
@@ -109,13 +106,10 @@ watch(
   experienceId,
   async (id) => {
     if (id) {
-      // An unknown slug would otherwise render an empty overlay over the stage
-      // with no way out of it.
-      if (!experienceBySlug(id)) {
-        router.replace("/");
-        return;
-      }
-
+      // The unknown-slug redirect that used to live here is gone: it raced the
+      // 404 page and won, so `/experience/nonsense` silently became the home
+      // page. `experienceId` is now null for a slug with no entry, so this
+      // only runs for a real one and the 404 gets to render.
       activeChapter.value = 0;
       wasLandscape = sizes.isLandscape;
       sizes.off("resize", handleResize);
@@ -192,11 +186,10 @@ onBeforeUnmount(() => {
 
     <div class="story-page-inner">
       <header class="story-masthead">
-        <Link to="/" class="story-back" data-cursor="arrow" data-sound="click" data-hoversound="hover">
-          <ArrowRight class="story-back-icon" />
-          <span>{{ t("experience") }}</span>
-        </Link>
-
+        <!-- The top back link is gone for the same reason as on the object
+             panel: the site header's back button sits directly above it, and
+             the breadcrumb below carries its own links out. Three stacked ways
+             back read as duplicated navigation. The footer link stays. -->
         <Breadcrumbs
           class="story-breadcrumbs"
           :trail="[{ label: t('home'), to: '/' }, { label: t('experience'), to: '/#experience' }]"

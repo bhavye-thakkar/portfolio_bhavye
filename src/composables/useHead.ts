@@ -1,6 +1,7 @@
 import { watch } from "vue";
-import { path, experienceId, projectId, notFound } from "./useRouteObserver";
+import { path, experienceId, projectId, objectId, notFound } from "./useRouteObserver";
 import { experienceBySlug } from "../content/experience";
+import { objectBySlug } from "../content/objects";
 import { previews } from "../content/projects/previews";
 import { profile, site } from "../content/profile";
 
@@ -126,9 +127,15 @@ const forExperience = (slug: string): Meta | null => {
 
   // A reserved slot has no statement and no dates; describing it as a role
   // that happened would be a lie in a search result.
+  // The location goes in because this entry actually has one, not to put a city
+  // in a meta tag: it is the page's own `location` field, the same string the
+  // page renders, and an entry without one simply does not get the clause.
+  // That is the whole of this site's geographic SEO — the Person schema stays
+  // at country level, because nothing published says where he lives.
+  const place = entry.location ? `, ${entry.location}` : "";
   const description = entry.placeholder
     ? `A chapter of ${SUFFIX}'s career journal that has not been filled in yet.`
-    : `${entry.role} at ${entry.company}${entry.duration ? `, ${entry.duration}` : ""}. How the role came about, in six chapters.`;
+    : `${entry.role} at ${entry.company}${place}${entry.duration ? `, ${entry.duration}` : ""}. How the role came about, in six chapters.`;
 
   return {
     title: `${entry.company} — Experience | ${SUFFIX}`,
@@ -138,6 +145,27 @@ const forExperience = (slug: string): Meta | null => {
       { name: SUFFIX, url: `${site}/` },
       { name: "Experience", url: `${site}/#experience` },
       { name: entry.company, url: `${site}/experience/${slug}` },
+    ],
+  };
+};
+
+/**
+ * The two clickable props. Their copy is the only thing on the site that is
+ * about a decision rather than about work, so the description is the one
+ * written for the purpose in content/objects.ts rather than a stitched-up
+ * sentence.
+ */
+const forObject = (slug: string): Meta | null => {
+  const entry = objectBySlug(slug);
+  if (!entry) return null;
+
+  return {
+    title: `${entry.title} — ${entry.eyebrow} | ${SUFFIX}`,
+    description: entry.description,
+    url: `${site}/object/${slug}`,
+    breadcrumb: [
+      { name: SUFFIX, url: `${site}/` },
+      { name: entry.title, url: `${site}/object/${slug}` },
     ],
   };
 };
@@ -179,6 +207,11 @@ const update = async () => {
 
   if (experienceId.value) {
     apply(forExperience(experienceId.value) ?? fallback);
+    return;
+  }
+
+  if (objectId.value) {
+    apply(forObject(objectId.value) ?? fallback);
     return;
   }
 

@@ -41,6 +41,16 @@ const materialise = { value: 0 };
 
 const waypointsPosition = new Vector3();
 const waypointsRotation = new Euler();
+/**
+ * Extra yaw for HIM ALONE, on top of the waypoint rotation.
+ *
+ * The workstation group is pinned to `waypointsRotation` every tick, so
+ * turning him by writing that rotates the desk and both monitors with him —
+ * which is how the Experience story ended up framing a monitor across his
+ * face when a chapter turned him towards the camera. This is applied to his
+ * transform only, so the furniture stays where it is.
+ */
+const storyTurn = { value: 0 };
 const transform = new Group();
 const uniforms = { uProgress: { value: 0 }, uAmbientStrength: { value: 0 } };
 const contactPosition = new Vector3(0, -13, 0);
@@ -195,6 +205,7 @@ const tick = () => {
 
   transform.position.copy(waypointsPosition);
   transform.rotation.copy(waypointsRotation);
+  transform.rotation.y += storyTurn.value;
 
   //uniforms.uProgress.value = sceneWeightsInOut.about.in * 1.1 - 0.1;
   // About's scan dissolves him into the hologram; Experience runs it back so he
@@ -229,6 +240,7 @@ export const avatar = {
   materialise,
   waypointsPosition,
   waypointsRotation,
+  storyTurn,
   uniforms,
   transform,
 };

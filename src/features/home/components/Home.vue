@@ -16,7 +16,7 @@ import ScrollIcon from "../../../components/ScrollIcon.vue";
 import { raycast } from "../../../three/utils/raycast";
 import gsap from "gsap";
 import { useAgent } from "../../../composables/useAgent";
-import { experienceId, overlayId, projectVisible } from "../../../composables/useRouteObserver";
+import { experienceId, objectVisible, overlayId, projectVisible } from "../../../composables/useRouteObserver";
 import { isTransitioning } from "../../../composables/useProjectTransition";
 import { renderer } from "../../../three/core/renderer";
 import { experiences } from "../../../content/experience";
@@ -140,12 +140,20 @@ watch(
   <div
     :class="[
       'home-wrapper',
+      objectVisible && 'home-wrapper-inspecting',
       typeof overlayId === 'string' && isTransitioning && `home-wrapper-out`,
       typeof overlayId !== 'string' && isTransitioning && `home-wrapper-in`,
     ]"
   >
     <ScrollIcon />
     <Layout>
+      <!-- The page had no `main` landmark at all: a screen reader's "skip to
+           the content" had nothing to skip to, and the only <main> on the site
+           was the one inside the noscript fallback. It wraps everything except
+           the footer, and carries `.layout`'s own flex rules so it changes no
+           geometry — the scroll offsets every ScrollTrigger is measured
+           against have to stay exactly where they were. -->
+      <main class="home-main">
       <div class="intro-wrapper" ref="introRef">
         <div
           class="intro-sticky"
@@ -180,6 +188,7 @@ watch(
       <div ref="contactRef" class="home-contact">
         <Contact id="contact" v-if="projectsLoaded" />
       </div>
+      </main>
       <Footer :withSocial="false"></Footer>
     </Layout>
   </div>
@@ -187,6 +196,20 @@ watch(
 </template>
 
 <style scoped lang="scss">
+/* `display: contents`, so this landmark generates NO box: the children lay
+   themselves out in `.layout` exactly as they did before it existed.
+
+   That is not a tidiness preference, it is the fix. `.intro-sticky` sits at
+   `z-index: -1`, which puts every ancestor's own content layer ABOVE the HUD
+   panels inside it — which is why `.intro-wrapper` already has
+   `pointer-events: none`. A wrapper with a box re-created that exact bug one
+   level higher: hit-testing at a certificate card returned `main`, and the
+   card stopped being hoverable or clickable. A box that does not exist cannot
+   swallow a pointer event. */
+.home-main {
+  display: contents;
+}
+
 .three-canvas {
   width: calc(var(--svw) * 100);
   height: calc(var(--lvh) * 100);
@@ -207,6 +230,24 @@ watch(
 .home {
   &-wrapper {
     transform-origin: center center;
+
+    /* An object panel keeps home alive underneath it — that is the point, the
+       camera is pushing in on the real scene. But the page's own furniture is
+       not part of that shot: at the scrim's 0.96 the black display heading
+       still read through as a ghost across the copy. The canvas stays, the
+       chrome steps out of the way. */
+    &-inspecting {
+      :deep(.intro-hero),
+      :deep(.scroll-icon) {
+        opacity: 0;
+        pointer-events: none;
+      }
+    }
+
+    :deep(.intro-hero),
+    :deep(.scroll-icon) {
+      transition: opacity var(--transition-route-duration) var(--transition-route-ease);
+    }
 
     &-out {
       animation: home-wrapper-out var(--transition-route-duration) var(--transition-route-ease);

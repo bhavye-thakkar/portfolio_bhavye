@@ -24,3 +24,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Claude Code's own workspace. `launch.json` is the dev-server config for its
+# browser preview and `scheduled_tasks.lock` is tool state — useful locally,
+# not part of the project. `.github/workflows/` is deliberately NOT here: that
+# is the CI pipeline and it has to stay tracked.
+.claude

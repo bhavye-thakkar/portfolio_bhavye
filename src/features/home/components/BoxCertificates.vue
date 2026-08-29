@@ -186,7 +186,7 @@ const setCardRef = (el: unknown, index: number) => {
           :target="certificate.url ? '_blank' : undefined"
           :rel="certificate.url ? 'noopener noreferrer' : undefined"
           :aria-label="cardLabel(certificate)"
-          :data-cursor="certificate.url ? 'arrow-external' : undefined"
+          :data-cursor="certificate.url ? 'circle-cyan' : undefined"
           :data-sound="certificate.url ? 'click' : undefined"
           :data-hoversound="certificate.url ? 'hover' : undefined"
         >
@@ -229,7 +229,7 @@ const setCardRef = (el: unknown, index: number) => {
           :target="certificate.url ? '_blank' : undefined"
           :rel="certificate.url ? 'noopener noreferrer' : undefined"
           :aria-label="cardLabel(certificate)"
-          :data-cursor="certificate.url ? 'arrow-external' : undefined"
+          :data-cursor="certificate.url ? 'circle-cyan' : undefined"
           :data-sound="certificate.url ? 'click' : undefined"
           :data-hoversound="certificate.url ? 'hover' : undefined"
         >
@@ -520,6 +520,17 @@ const setCardRef = (el: unknown, index: number) => {
         scale: 0.985 !important;
         transition-duration: 0.06s;
       }
+
+      /* The scanner pass. It reuses the entrance sweep's own element rather
+         than adding a second one: once the card has settled `--scan` is 1, so
+         that pseudo is parked at the right edge at zero opacity and is free.
+         A running animation outranks the declared `left` / `opacity`, so the
+         same bright line simply walks the card again while it is hovered. */
+      @include mixins.hover {
+        &:hover .box-certificates-item-inner::after {
+          animation: certificate-scan 1.6s var(--ease-smooth) infinite;
+        }
+      }
     }
 
     /* The "this opens something" badge. It used to be the shared accent
@@ -637,6 +648,28 @@ const setCardRef = (el: unknown, index: number) => {
       border-radius: var(--radius-sm);
       border: var(--stroke-sm) solid var(--color-cyan-500);
     }
+  }
+}
+
+@keyframes certificate-scan {
+  from {
+    left: 0%;
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.7;
+  }
+  to {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+/* A hover that repeats forever is the one animation on this page a visitor
+   cannot escape by scrolling past it. */
+@media (prefers-reduced-motion: reduce) {
+  .box-certificates-item-linked:hover .box-certificates-item-inner::after {
+    animation: none;
   }
 }
 </style>

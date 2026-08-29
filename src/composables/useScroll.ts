@@ -5,7 +5,6 @@ import { ref, onMounted, onUnmounted, watch } from "vue";
 import { isTransitioning } from "./useProjectTransition";
 
 export const lenis = ref<Lenis | null>(null);
-export const projectLenis = ref<Lenis | null>(null);
 export const velocity = ref(0);
 
 const handleScroll = () => {
@@ -56,7 +55,21 @@ export const useScroll = () => {
 
   onMounted(() => {
     gsap.ticker.add(tick);
-    gsap.ticker.lagSmoothing(0);
+    /**
+     * GSAP's default, not the `lagSmoothing(0)` the Lenis guide suggests.
+     *
+     * With smoothing off, a frame gap is reported at its true length — and a
+     * backgrounded tab stops rAF entirely, so coming back after a minute
+     * hands every ticker a delta of 60 seconds. `deltaRatio(60)` is then 3600,
+     * which is multiplied into `mixer.update(delta / 60)` (the avatar's
+     * animation clock jumps a minute in one step) and into every
+     * `lerp(a, b, k * delta)` in the scene, where a factor far above 1 does not
+     * ease towards the target, it flies past it.
+     *
+     * 500/33 only ever triggers after a real stall — no normal frame is 500ms —
+     * so Lenis stays in step and a tab switch stops corrupting the scene.
+     */
+    gsap.ticker.lagSmoothing(500, 33);
 
     createNewLenis();
   });

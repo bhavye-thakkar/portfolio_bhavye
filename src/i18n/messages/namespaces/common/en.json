@@ -3,6 +3,7 @@
   "about-tagline": "Builds Flutter apps and AI/ML systems, and brings ideas to life at hackathons — solving real problems with simple, scalable tech.",
   "back-to-experience": "Back to experience",
   "back-to-home": "Back to home",
+  "back-to-the-room": "Back to the room",
   "certificates": "Certificates",
   "chapter": "Chapter",
   "chapters": "Chapters",
@@ -17,6 +18,7 @@
   "go-to": "Go to",
   "home": "Home",
   "how-i-got-there": "How I got there",
+  "in-the-room": "In the room",
   "india": "India",
   "job-title": "Web Developer",
   "job-title-ai": "AI/ML Engineer",
@@ -29,6 +31,7 @@
   "my-journey-intro": "Where I've worked, and how each of those doors actually opened.",
   "next-chapter": "Next chapter",
   "next-project": "Next Project",
+  "object-details": "Details",
   "projects": "Projects",
   "response-time": "I read every message and usually reply within 48 hours.",
   "sample-content": "Sample content",
@@ -44,5 +47,6 @@
   "view-certificate": "View {organisation} certificate: {name} (opens in a new tab)",
   "view-experience": "View experience",
   "view-experience-at": "View experience at {company}",
-  "view-project": "View project"
+  "view-project": "View project",
+  "why-this-is-here": "Why this is here"
 }

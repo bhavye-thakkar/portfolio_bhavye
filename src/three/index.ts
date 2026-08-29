@@ -35,6 +35,10 @@ const destroy = () => {
   renderTarget.destroy();
   renderer.destroy();
   objects.destroy();
+  // `init` adds two window listeners and a ticker callback and this never took
+  // them off again, so every remount of Home left a live raycaster behind
+  // hit-testing a scene that no longer existed.
+  raycast.destroy();
   camera.destroy();
   canvas = null;
 };

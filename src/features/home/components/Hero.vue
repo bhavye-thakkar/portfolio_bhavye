@@ -4,6 +4,8 @@ import Banner from "../../../components/Banner.vue";
 import { preloaderVisible } from "../../../composables/usePreloader";
 import { t } from "../../../i18n/utils/translate";
 import AppearingText from "../../../components/AppearingText.vue";
+import Link from "../../../components/Link.vue";
+import { roomObjects } from "../../../content/objects";
 </script>
 
 <template>
@@ -21,10 +23,70 @@ import AppearingText from "../../../components/AppearingText.vue";
         </div>
       </div>
     </div>
+
+    <!-- ── THE 3D HOTSPOTS, FOR EVERYONE ELSE ────────────────────────────
+         The orchid and the painting are clicked with a pointer against a
+         WebGL canvas, which is nothing at all to a keyboard or a screen
+         reader. These are the same two destinations as real links: skipped
+         over silently by a mouse user, announced in the tab order, and
+         drawn on screen the moment one of them takes focus. -->
+    <nav class="hero-objects" :aria-label="t('in-the-room')">
+      <Link
+        v-for="object in roomObjects"
+        :key="object.slug"
+        :to="`/object/${object.slug}`"
+        class="hero-objects-link"
+        data-cursor="circle-black"
+        data-sound="click"
+        data-hoversound="hover"
+        >{{ object.hotspotLabel }}</Link
+      >
+    </nav>
   </div>
 </template>
 
 <style scoped lang="scss">
+/* Off-screen rather than `display: none` or `visibility: hidden`, both of
+   which take an element out of the tab order entirely — which would leave the
+   two objects reachable by mouse only. On focus it comes back on screen as a
+   normal chip, so a keyboard user can see what they have landed on. */
+.hero-objects {
+  position: absolute;
+  top: calc(var(--height-header) + var(--space-sm));
+  left: var(--space-outer);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  z-index: 1;
+
+  &-link {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+
+    &:focus-visible {
+      position: relative;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip-path: none;
+      padding: var(--space-xs) var(--space-sm);
+      background-color: var(--color-beige-500);
+      color: var(--color-text-400);
+      border: var(--stroke-md) solid var(--color-text-400);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      font-weight: 700;
+      outline: none;
+    }
+  }
+}
+
 .hero {
   max-height: calc(var(--lvh) * 100);
   height: calc(var(--lvh) * 100);

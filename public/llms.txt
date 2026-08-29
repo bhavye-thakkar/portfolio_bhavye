@@ -83,6 +83,15 @@ To-Do App (Flutter, Firebase, Dart) has no public repository.
 - [Intel® Applied AI — Intel®, 2022](https://drive.google.com/file/d/1NjFWw2v-8CZT8ImyxrOq4eMZBASpFJM4/view)
 - [Data Science Professional — Oracle, 2025](https://drive.google.com/file/d/1qe64-45D5WFgawEeiUnB24M1HmTlbknh/view?usp=drive_link)
 
+## The room
+
+The portfolio is a 3D workspace. Two objects in it are clickable and open a
+short page explaining why they were chosen — design notes, not claims about
+the author.
+
+- [The Orchid](https://example.com/object/orchid) — a Phalaenopsis modelled procedurally rather than imported; on patience and slow work
+- [The Starry Night](https://example.com/object/starry-night) — Vincent van Gogh, 1889, public domain reproduction; on seeing a familiar pattern differently
+
 ## Profiles
 
 - [GitHub](https://github.com/bhavye-thakkar)

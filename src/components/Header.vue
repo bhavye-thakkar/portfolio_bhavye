@@ -5,7 +5,7 @@ import { computed, ref } from "vue";
 import { t } from "../i18n/utils/translate";
 import { useHeaderTheme } from "../composables/useHeaderTheme";
 import { lenis } from "../composables/useScroll";
-import { projectId, overlayId, experienceId } from "../composables/useRouteObserver";
+import { projectId, detailId, experienceId, objectId } from "../composables/useRouteObserver";
 import { social } from "../content/social";
 import ButtonRound from "./ButtonRound.vue";
 import ArrowRight from "./icons/ArrowRight.vue";
@@ -59,10 +59,16 @@ const classNames = computed(() => {
   };
 });
 
+const backLabel = computed(() => {
+  if (experienceId.value !== null) return t("back-to-experience");
+  if (objectId.value !== null) return t("back-to-the-room");
+  return t("back-to-home");
+});
+
 const getInTouchClassNames = computed(() => {
   return {
     "header-get-in-touch": true,
-    "header-get-in-touch-isProjectPage": overlayId.value !== null,
+    "header-get-in-touch-isProjectPage": detailId.value !== null,
   };
 });
 </script>
@@ -71,11 +77,11 @@ const getInTouchClassNames = computed(() => {
   <header :class="classNames">
     <div class="header-left">
       <ButtonRound
-        v-if="overlayId !== null"
+        v-if="detailId !== null"
         variant="accent"
         @click="handleBackClick"
-        :aria-label="experienceId !== null ? t('back-to-experience') : t('back-to-home')"
-        :class="{ 'header-back': true, 'header-back-isProjectPage': overlayId !== null }"
+        :aria-label="backLabel"
+        :class="{ 'header-back': true, 'header-back-isProjectPage': detailId !== null }"
         data-cursor="circle-white"
         data-sound="click"
         data-hoversound="hover"
@@ -86,7 +92,7 @@ const getInTouchClassNames = computed(() => {
     <div
       :class="{
         'header-logo': true,
-        'header-logo-isProjectPage': overlayId !== null,
+        'header-logo-isProjectPage': detailId !== null,
         'header-logo-clickable': scrolledPastHeroVisible,
         'children-unclickable': true,
       }"

@@ -14,8 +14,8 @@ const mouseY = ref(0);
 const currentX = ref(0);
 const currentY = ref(0);
 const isVisible = ref(false);
-const cursorType = ref<"circle-black" | "arrow" | "arrow-external" | "circle-white" | null>(null);
-const detectedType = ref<"circle-black" | "arrow" | "arrow-external" | "circle-white" | null>(null);
+const cursorType = ref<"circle-black" | "arrow" | "arrow-external" | "circle-white" | "circle-cyan" | null>(null);
+const detectedType = ref<"circle-black" | "arrow" | "arrow-external" | "circle-white" | "circle-cyan" | null>(null);
 
 const lerpSpeed = 0.1;
 
@@ -57,11 +57,15 @@ const tick = () => {
 
 const checkIfHasCursorAttribute = (
   element: Element | null,
-): "circle-black" | "arrow" | "arrow-external" | "circle-white" | null => {
+): "circle-black" | "arrow" | "arrow-external" | "circle-white" | "circle-cyan" | null => {
   if (!element) return null;
   if (element instanceof HTMLElement) {
     const cursor = element.dataset.cursor;
-    if (cursor === "circle-black" || cursor === "arrow" || cursor === "arrow-external" || cursor === "circle-white") {
+    if (cursor === "circle-black" ||
+      cursor === "arrow" ||
+      cursor === "arrow-external" ||
+      cursor === "circle-white" ||
+      cursor === "circle-cyan") {
       return cursor;
     }
   }
@@ -105,6 +109,7 @@ onUnmounted(() => {
     <div ref="cursorScaleRef" class="cursor-scale">
       <div class="cursor cursor-circle-black" :class="{ 'cursor-active': cursorType === 'circle-black' }" />
       <div class="cursor cursor-circle-white" :class="{ 'cursor-active': cursorType === 'circle-white' }" />
+      <div class="cursor cursor-circle-cyan" :class="{ 'cursor-active': cursorType === 'circle-cyan' }" />
       <div class="cursor cursor-arrow" :class="{ 'cursor-active': cursorType === 'arrow' }">
         <ArrowRightLong class="cursor-arrow-icon" />
       </div>
@@ -162,6 +167,19 @@ onUnmounted(() => {
     height: 26px;
     border-radius: 50%;
     border: 4px solid var(--color-white-400);
+  }
+
+  /* The certificate cards' cursor. They are cold glass panels on the dark
+     stage, and the orange `arrow-external` disc that used to sit on them was
+     the site's CTA colour landing in the middle of the hologram HUD. A ring in
+     the same cyan the cards are drawn in reads as part of the scanner rather
+     than as a sticker on top of it. */
+  &-circle-cyan {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 4px solid var(--color-cyan-400);
+    box-shadow: 0 0 10px rgba(52, 191, 255, 0.55);
   }
 
   &-arrow {

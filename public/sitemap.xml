@@ -17,7 +17,13 @@
   Routes come from:
     experience  src/content/experience.ts  (slug per entry)
     projects    src/content/projects/index.ts  (projectIds)
+    objects     src/content/objects.ts  (slug per entry)
   Adding an entry there means adding a url block here.
+
+  The two /object/ URLs are listed because they are real routes with their own
+  <h1>, their own copy and their own canonical — not because they are 3D
+  props. A prop that only opened a modal would have no URL to list and must
+  not be given an invented one.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -38,6 +44,19 @@
     <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://example.com/object/orchid</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://example.com/object/starry-night</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
   </url>
 
   <url>

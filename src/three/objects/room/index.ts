@@ -11,6 +11,7 @@ import { messagePopup } from "./message-popup";
 import { penguin } from "./penguin";
 import { music } from "./music";
 import { orchid } from "./orchid";
+import { hotspots3D } from "./hotspots";
 
 import type { Object3D } from "three";
 
@@ -47,6 +48,10 @@ const init = () => {
 
   orchid.init();
   group.add(orchid.group);
+
+  // After the orchid, because it measures the plant, and after initObjects,
+  // because it needs the frame mesh.
+  hotspots3D.init(objects?.frame);
 };
 
 /**
@@ -125,6 +130,7 @@ const tick = () => {
   penguin.tick();
   music.tick();
   orchid.tick();
+  hotspots3D.tick();
 };
 
 const destroy = () => {
@@ -137,6 +143,7 @@ const destroy = () => {
   penguin.destroy();
   music.destroy();
   orchid.destroy();
+  hotspots3D.destroy();
 };
 
 export const room = { init, destroy, group, chairScrollRotation };

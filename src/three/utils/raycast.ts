@@ -21,7 +21,34 @@ const updatePointer = (clientX: number, clientY: number) => {
   pointer.y = -(clientY / threeSizes.height) * 2 + 1;
 };
 
+/**
+ * ── POINTER EVENTS THAT ARE NOT THE SCENE'S ───────────────────────────────
+ *
+ * These handlers are on `window`, because the 3D canvas sits at `z-index: -1`
+ * under transparent layout divs — the hero copy wrapper is what a click on the
+ * middle of the room actually lands on, so listening on the canvas itself
+ * would miss almost every scene click.
+ *
+ * The cost of that is a click on an overlay ALSO reaching the scene. It bit
+ * the object panel first: element handlers run before window ones and a
+ * microtask checkpoint runs between them, so the panel's own back link closed
+ * the panel and then the same click opened whatever was under the pointer
+ * behind it. Any full-bleed overlay has the same hole.
+ *
+ * So an overlay marks itself `data-scene-blocker` and the scene ignores
+ * pointer events that landed inside one. One rule for hover and click both,
+ * and no dependency on which listener happens to run first.
+ */
+const isBlocked = (target: EventTarget | null) =>
+  target instanceof Element && !!target.closest("[data-scene-blocker]");
+
+let pointerBlocked = false;
+
 const performRaycast = () => {
+  if (pointerBlocked) {
+    hoveringBox = null;
+    return;
+  }
   if (!boxesToCheck.length) return;
 
   // Ensure camera's world matrix is current
@@ -55,6 +82,8 @@ const performRaycast = () => {
 };
 
 const handleClick = (e: MouseEvent) => {
+  if (isBlocked(e.target)) return;
+  pointerBlocked = false;
   updatePointer(e.clientX, e.clientY);
   performRaycast();
   if (!hoveringBox || !hoveringBox.onClick) return;
@@ -62,6 +91,7 @@ const handleClick = (e: MouseEvent) => {
 };
 
 const handleMouseMove = (event: MouseEvent) => {
+  pointerBlocked = isBlocked(event.target);
   updatePointer(event.clientX, event.clientY);
 };
 
