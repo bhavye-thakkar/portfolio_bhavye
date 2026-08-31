@@ -76,37 +76,39 @@ const compileScene = async (camera: Camera, sceneToCompile: Scene) => {
     return;
   }
 
-  return new Promise<void>(async (resolve) => {
-    if (!instance) {
-      return;
+  const invisibleObjects: Object3D[] = [];
+  const instancedWithOriginalCullState: [Object3D, boolean][] = [];
+
+  sceneToCompile.traverse((child) => {
+    if (child.visible === false) {
+      invisibleObjects.push(child);
+      child.visible = true;
     }
 
-    const invisibleObjects: Object3D[] = [];
-    const instancedWithOriginalCullState: [Object3D, boolean][] = [];
-
-    sceneToCompile.traverse((child) => {
-      if (child.visible === false) {
-        invisibleObjects.push(child);
-        child.visible = true;
-      }
-
-      if (child.frustumCulled === true) {
-        instancedWithOriginalCullState.push([child, child.frustumCulled]);
-        child.frustumCulled = false; // Ensure it's rendered
-      }
-    });
-
-    instance.compile(sceneToCompile, camera);
-
-    invisibleObjects.forEach((child) => (child.visible = false));
-    instancedWithOriginalCullState.forEach(([child, originalState]) => {
-      child.frustumCulled = originalState;
-    });
-
-    renderTarget.render();
-
-    resolve();
+    if (child.frustumCulled === true) {
+      instancedWithOriginalCullState.push([child, child.frustumCulled]);
+      child.frustumCulled = false; // Ensure it's rendered
+    }
   });
+
+  /**
+   * `compileAsync` gathers the scene's materials synchronously (so the
+   * visibility juggling above/below stays correct) and then links the
+   * programs via KHR_parallel_shader_compile where the driver offers it —
+   * the main thread stays free instead of freezing for the whole link, which
+   * is what used to hold the preloader up for seconds after the downloads
+   * were already done.
+   */
+  const compiled = instance.compileAsync(sceneToCompile, camera);
+
+  invisibleObjects.forEach((child) => (child.visible = false));
+  instancedWithOriginalCullState.forEach(([child, originalState]) => {
+    child.frustumCulled = originalState;
+  });
+
+  await compiled;
+
+  renderTarget.render();
 };
 
 const destroy = () => {

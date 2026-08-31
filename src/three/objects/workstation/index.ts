@@ -1,5 +1,6 @@
 import {
   BoxGeometry,
+  CanvasTexture,
   CylinderGeometry,
   Group,
   Mesh,
@@ -115,7 +116,7 @@ const roundedBox = (w: number, h: number, d: number, r: number, x: number, y: nu
 };
 
 /** Places a monitor's chassis into the shell/dark/frame buckets. */
-const addMonitor = (shell: Bucket, dark: Bucket, frame: Bucket, side: -1 | 1) => {
+const addMonitor = (dark: Bucket, frame: Bucket, side: -1 | 1) => {
   const x = MONITOR.offsetX * side;
   const yaw = MONITOR.yaw * -side;
   const { z, centerY } = MONITOR;
@@ -141,19 +142,80 @@ const addMonitor = (shell: Bucket, dark: Bucket, frame: Bucket, side: -1 | 1) =>
     bucket.geometries.push(geometry);
   };
 
-  // Bezel first, then a darker rear shell set back from it, so the monitor
-  // reads as a panel with a body rather than one blank slab from behind.
+  // Bezel first, then the rear shell. The back slab is charcoal like the
+  // bezel — the light-grey version fused with the cream desk from the
+  // establishing shot, where the backs of both panels own half the frame.
+  // The monitor reads as one dark device on light furniture, the way the
+  // frame-grey neck and base then read as its stand.
   at(dark, MONITOR.screenWidth + 0.1, MONITOR.screenHeight + 0.1, 0.04, 0, centerY, 0.015);
-  at(frame, MONITOR.screenWidth + 0.04, MONITOR.screenHeight + 0.04, 0.06, 0, centerY, -0.02);
+  at(dark, MONITOR.screenWidth + 0.04, MONITOR.screenHeight + 0.04, 0.06, 0, centerY, -0.02);
   at(dark, MONITOR.screenWidth * 0.66, MONITOR.screenHeight * 0.6, 0.08, 0, centerY, -0.07);
   // neck: a flattened column rather than a slab, and a hinge collar where it
   // meets the panel — the join is what a real arm has and a primitive does not
   at(frame, 0.13, 0.6, 0.085, 0, centerY - MONITOR.screenHeight / 2 - 0.28, -0.05);
   at(dark, 0.19, 0.1, 0.1, 0, centerY - MONITOR.screenHeight / 2 - 0.02, -0.05);
   // base: a shallow plinth on a thinner riser, so it sits ON the desk instead
-  // of being flush with it
+  // of being flush with it. Both in the stand grey — the cream foot plate
+  // vanished into the cream desk top.
   at(frame, 0.34, 0.055, 0.2, 0, DESK_TOP + 0.06, -0.04);
-  at(shell, 0.86, 0.035, 0.36, 0, DESK_TOP + 0.019, -0.02);
+  at(frame, 0.86, 0.035, 0.36, 0, DESK_TOP + 0.019, -0.02);
+};
+
+/**
+ * The key field: rows of rounded keycaps drawn once onto a small canvas and
+ * laid over the keyboard base. What was here before — a featureless lighter
+ * slab — read as a tablet, and the hands resting on it read as resting on
+ * glass. Keys are the difference between "device" and "prop".
+ */
+const buildKeyboard = () => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 160;
+  const context = canvas.getContext("2d");
+  if (!context) return;
+
+  context.fillStyle = "#343a48";
+  context.fillRect(0, 0, 512, 160);
+
+  const key = (x: number, y: number, w: number, h: number) => {
+    context.beginPath();
+    context.roundRect(x, y, w, h, 5);
+    context.fill();
+  };
+
+  context.fillStyle = "#5a6275";
+  const keyH = 26;
+  for (let row = 0; row < 4; row++) {
+    const y = 8 + row * (keyH + 6);
+    let x = 10 + [0, 8, 14, 20][row]!;
+    while (x + 26 < 496) {
+      key(x, y, 26, keyH);
+      x += 32;
+    }
+  }
+  // bottom row: modifiers and a space bar
+  const y = 8 + 4 * (keyH + 6);
+  key(10, y, 40, keyH);
+  key(56, y, 40, keyH);
+  key(102, y, 190, keyH);
+  key(298, y, 40, keyH);
+  key(344, y, 40, keyH);
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.anisotropy = 4;
+
+  const geometry = new PlaneGeometry(1.38, 0.42);
+  geometry.rotateX(-Math.PI / 2);
+  geometry.translate(-0.56, DESK_TOP + 0.046, -0.6);
+
+  const material = new MeshBasicMaterial({ map: texture, transparent: true, toneMapped: false });
+  const mesh = new Mesh(geometry, material);
+  mesh.renderOrder = 12;
+  mesh.frustumCulled = false;
+  group.add(mesh);
+  materials.push(material);
+  disposables.push(geometry, material, texture);
 };
 
 const buildScreen = (side: -1 | 1) => {
@@ -231,13 +293,24 @@ const buildChassis = () => {
     geometries: [],
     material: new MeshBasicMaterial({ color: 0x34bfff, transparent: true, toneMapped: false }),
   };
+  /**
+   * The deck used to share the desk's cream, and from every framing the
+   * island, the desk top and the chair fused into one unbroken pale mass —
+   * the single loudest "everything is the same material" tell in the section.
+   * A cool pale blue-grey keeps the island bright against the dark floor but
+   * lets the warm desk read as furniture standing ON something.
+   */
+  const deckMat: Bucket = {
+    geometries: [],
+    material: new MeshMatcapMaterial({ matcap: matcap(), color: 0xd9dfeb, transparent: true }),
+  };
 
   // ── deck: an elliptical pad on the grid floor, the same island language as
   // the lab pod it replaces
   const deck = new CylinderGeometry(1, 1, 1, 56);
   deck.scale(4.5, 0.42, 3.05);
   deck.translate(0, -0.21, -1.0);
-  shell.geometries.push(deck);
+  deckMat.geometries.push(deck);
 
   const rim = new CylinderGeometry(1, 1, 1, 56, 1, true);
   rim.scale(4.54, 0.1, 3.09);
@@ -313,14 +386,15 @@ const buildChassis = () => {
   frame.geometries.push(roundedBox(DESK_HALF_WIDTH * 2 - 0.9, 0.11, 0.17, 0.03, 0, DESK_TOP - 0.3, DESK_BACK_Z + 0.22));
 
   // ── monitors
-  addMonitor(shell, dark, frame, -1);
-  addMonitor(shell, dark, frame, 1);
+  addMonitor(dark, frame, -1);
+  addMonitor(dark, frame, 1);
 
   // ── keyboard under the left hand, mouse under the right: the seated pose
   // already has him split that way, so a centred full-width board would run
-  // straight through the mouse at x 0.47.
+  // straight through the mouse at x 0.47. The key field itself is a textured
+  // plane added in `buildKeyboard` — a flat slab read as a tablet lying on
+  // the desk from every over-the-shoulder framing.
   dark.geometries.push(box(1.5, 0.045, 0.52, -0.56, DESK_TOP + 0.022, -0.6));
-  frame.geometries.push(box(1.38, 0.012, 0.42, -0.56, DESK_TOP + 0.05, -0.6));
 
   // ── notebook and pen, to his right
   shell.geometries.push(box(0.64, 0.055, 0.46, 1.62, DESK_TOP + 0.03, -0.72, -0.24));
@@ -344,7 +418,7 @@ const buildChassis = () => {
   // grid floor plus the deck rim already say "environment". The plant and the
   // lamp are the only vertical props the bay needs.
 
-  for (const bucket of [shell, frame, dark, accent]) {
+  for (const bucket of [shell, frame, dark, accent, deckMat]) {
     /**
      * `mergeGeometries` returns null — silently — if the inputs disagree on
      * whether they are indexed, and RoundedBoxGeometry is the one primitive
@@ -380,26 +454,39 @@ const init = () => {
 
   screens.init();
   buildChassis();
+  buildKeyboard();
   leftScreen = buildScreen(-1);
   rightScreen = buildScreen(1);
 
   const chair = cloneFromRoom("chair");
-  if (chair) group.add(chair);
+  if (chair) {
+    /**
+     * The clone lands at the room-mapped origin (-0.66, 0, 0), which puts the
+     * seat pan roughly half a metre to HIS left — screenshots from the
+     * chapter beats showed him perched on the seat's front corner with his
+     * hip spilling past its edge. His hips sit at local (-0.08, 1.55, 0.57);
+     * this centres the pan under them. Measured against renders, not derived:
+     * the chair mesh's own origin is not its seat centre.
+     */
+    chair.position.x = -0.14;
+    chair.position.z = 0.12;
+    group.add(chair);
+  }
 
   const mouse = cloneFromRoom("mouse");
   if (mouse) group.add(mouse);
 
   /**
-   * Built rather than cloned — see `plant.ts`. It also moved: at (3.5, -0.1)
-   * it stood level with the desk's front edge, which from the establishing
-   * framing put it between the camera and the bay as a big out-of-focus green
-   * shape. Pushing it back to the monitors' own z line and out past the end of
-   * the desk lands it beside the workstation instead of in front of it, which
-   * is where an office plant actually goes.
+   * Built rather than cloned — see `plant.ts`. Placement history: level with
+   * the desk's front edge it blocked the establishing shot; at local +3.62 it
+   * stood on the avatar's RIGHT in world -X — which no Experience camera ever
+   * frames, so the plant effectively did not exist on the scroll journey.
+   * Local -X maps to world +X: beside the desk's far end near the lamp, in
+   * frame for the establishing shot and both chapter beats.
    */
   const plant = createPlant(matcap());
-  plant.group.position.set(3.62, 0, -1.35);
-  plant.group.rotation.y = -0.5;
+  plant.group.position.set(-4.05, 0, -1.15);
+  plant.group.rotation.y = 0.7;
   plant.group.scale.setScalar(1.24);
   group.add(plant.group);
   materials.push(...plant.materials);

@@ -130,8 +130,8 @@ const forExperience = (slug: string): Meta | null => {
   // The location goes in because this entry actually has one, not to put a city
   // in a meta tag: it is the page's own `location` field, the same string the
   // page renders, and an entry without one simply does not get the clause.
-  // That is the whole of this site's geographic SEO — the Person schema stays
-  // at country level, because nothing published says where he lives.
+  // The only other geographic assertion is the Person schema in index.html
+  // (Ahmedabad, Gujarat, IN) — the city he actually publishes as his base.
   const place = entry.location ? `, ${entry.location}` : "";
   const description = entry.placeholder
     ? `A chapter of ${SUFFIX}'s career journal that has not been filled in yet.`

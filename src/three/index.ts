@@ -20,12 +20,17 @@ const init = (_canvas: HTMLCanvasElement) => {
     renderTarget.init();
     renderer.init(canvas);
 
-    objects.init();
+    objects.initHero();
     raycast.init();
+    objects.initDeferred();
 
     // QA-SHIM temporary, remove before ship
     if (location.search.includes("qa=1")) {
-      (window as any).__qa = { renderer, scene, camera, threeSizes, objects, canvas, sceneWeights, sceneWeightsInOut, waypoints, stageHold };
+      import("./objects/avatar").then(({ avatar }) =>
+        import("./objects/workstation").then(({ workstation }) => {
+          (window as any).__qa = { renderer, scene, camera, threeSizes, objects, canvas, sceneWeights, sceneWeightsInOut, waypoints, stageHold, avatar, workstation };
+        }),
+      );
     }
   });
 };

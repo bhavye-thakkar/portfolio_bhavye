@@ -256,9 +256,12 @@ export const createPlant = (matcap: Texture): PlantParts => {
     materials.push(leafMaterial);
   }
 
-  // ── pot
+  // ── pot: muted clay rather than the deck's own off-white — the pale pot
+  // dissolved into the pale deck and the plant read as leaves growing out of
+  // the floor. One warm note in a cool scene is also what the room's own
+  // corkboard-and-shelf palette does.
   const potGeometry = createPot();
-  const potMaterial = new MeshMatcapMaterial({ matcap, color: 0xe9e2d6, transparent: true });
+  const potMaterial = new MeshMatcapMaterial({ matcap, color: 0xc98d6b, transparent: true });
   const potMesh = new Mesh(potGeometry, potMaterial);
   potMesh.renderOrder = 12;
   potMesh.frustumCulled = false;

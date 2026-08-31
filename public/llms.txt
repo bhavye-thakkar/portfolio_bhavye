@@ -18,7 +18,7 @@ solutions, and brought ideas to life at hackathons. What excites me most is
 solving real problems with simple, scalable tech — and leaving an impact that
 lasts.
 
-Based in India.
+Based in Ahmedabad, Gujarat, India.
 
 ## Skills
 
@@ -89,8 +89,8 @@ The portfolio is a 3D workspace. Two objects in it are clickable and open a
 short page explaining why they were chosen — design notes, not claims about
 the author.
 
-- [The Orchid](https://example.com/object/orchid) — a Phalaenopsis modelled procedurally rather than imported; on patience and slow work
-- [The Starry Night](https://example.com/object/starry-night) — Vincent van Gogh, 1889, public domain reproduction; on seeing a familiar pattern differently
+- [The Orchid](https://example.com/object/orchid) — a blue orchid (Phalaenopsis) grown petal by petal in Three.js; on rarity, patience, and what quietly stays
+- [The Starry Night](https://example.com/object/starry-night) — Vincent van Gogh, 1889, public-domain reproduction; on night, motion, and imagination made visible
 
 ## Profiles
 

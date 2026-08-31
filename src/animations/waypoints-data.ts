@@ -52,15 +52,42 @@ export const points = {
      *      frame it started from.
      *   2  chapter 01, over his left shoulder: both screens readable, him on
      *      the right, the card clear of him on the left.
-     *   3  chapter 02, the mirror of 2 from the other side. Same grammar,
-     *      opposite hand — one deliberate change, not a new place.
+     *   3  chapter 02, the SAME shoulder as 2, raised: 3.8 up becomes 4.6,
+     *      looking further down over him. One deliberate change, and it is a
+     *      lift rather than a step around. It stays at roughly 2's distance
+     *      on purpose — pushing in instead cropped the left monitor out of
+     *      frame, and both screens readable is the whole point of the shot.
+     *
+     * ── BEAT 3 WAS THE MIRROR OF 2, AND THAT IS WHAT MADE IT CIRCLE ──
+     *
+     * It used to sit at x +4.6, the far side of the room from beat 2's -4.4.
+     * Measured as bearings around him the four beats ran -62° → -132° → +130°
+     * → -62°: about 335° of travel, a lap in all but name. Mirroring the
+     * framing is good grammar for one CUT, but these are scrubbed, and a
+     * nine-unit lateral sweep across his back with the desk as the pivot is
+     * just an orbit — the room appeared to spin rather than the visitor to
+     * move through it.
+     *
+     * Both chapter beats now sit on the same bearing (~-131°) and differ in
+     * HEIGHT, so the camera runs out and back along one arc instead of
+     * round a loop: -62° → -132° → -131° → -62°, and the two long moves
+     * retrace each other. Keep any future beat on the -X side for the same
+     * reason; what separates the chapters is elevation, not which hand.
      *
      * Crossing 3 → 1 for the closing is a straight line through roughly
      * (-0.8, 4.6, 6.2): a metre above the monitor tops and two above his head,
      * so the camera cranes over the desk rather than through it.
      */
+    /**
+     * -7.0/5.6 rather than the old -6.2/5.4: the sight line to him used to
+     * pass the near monitor's edge at |x| 2.76 — clear by rule, but the
+     * panel's back still owned the middle third of the frame and hid the
+     * whole desk surface. From here the line crosses the monitor plane at
+     * |x| ≈ 4, so the shot reads desk-first: his face, the key field, both
+     * stands and the deck.
+     */
     "experience-1": {
-      position: { x: -6.2, y: 5.4, z: 10.0 },
+      position: { x: -7.0, y: 5.6, z: 10.0 },
       focus: { x: -0.73, y: 2.4, z: 5.27 },
     },
     "experience-2": {
@@ -68,8 +95,8 @@ export const points = {
       focus: { x: 1.18, y: 2.25, z: 5.24 },
     },
     "experience-3": {
-      position: { x: 4.6, y: 3.8, z: 2.4 },
-      focus: { x: 1.17, y: 2.25, z: 7.82 },
+      position: { x: -4.0, y: 4.6, z: 2.8 },
+      focus: { x: 1.14, y: 2.25, z: 4.99 },
     },
   },
   portrait: {
@@ -107,8 +134,8 @@ export const points = {
       focus: { x: -0.27, y: 1.03, z: 6.16 },
     },
     "experience-3": {
-      position: { x: 5.8, y: 4.4, z: 1.6 },
-      focus: { x: 0.28, y: 1.0, z: 6.17 },
+      position: { x: -5.2, y: 5.3, z: 2.2 },
+      focus: { x: -0.44, y: 1.17, z: 6.05 },
     },
   },
 } as const satisfies Record<

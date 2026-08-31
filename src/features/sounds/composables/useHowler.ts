@@ -1,5 +1,6 @@
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import gsap from "gsap";
+import { resources } from "../../../utils/resources";
 import { lerp } from "../../../utils/math";
 import { Howler } from "howler";
 import { isFeatureEnabled } from "../../../utils/features";
@@ -102,7 +103,11 @@ export const useHowler = () => {
     window.addEventListener("keydown", handleKeyPress);
 
     if (!isTouch.value) {
-      loadAllSounds();
+      // After the 3D assets, not alongside them: audio cannot play before a
+      // user gesture anyway, so it has no business competing with the models
+      // and textures for bandwidth during boot.
+      if (resources.isReady) loadAllSounds();
+      else resources.once("ready", loadAllSounds);
     }
   });
 

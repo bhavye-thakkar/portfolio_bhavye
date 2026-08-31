@@ -10,6 +10,7 @@ import { avatar } from ".";
 import { aboutProgress } from "../../../animations/transitions/about";
 import { mix } from "../../../utils/math";
 import { createNoseGeometry, createSpectaclesGeometries } from "./spectacles";
+import { createWatchGeometries } from "./watch";
 
 import type { Material, BufferGeometry, Object3D, Skeleton } from "three";
 
@@ -61,10 +62,14 @@ const setupGeometry = () => {
     }
   });
 
-  // The spectacles and nose are built at runtime, so they are not in the GLB and
-  // the traverse above misses them — merge them in or the scan shows a bare face.
+  // The spectacles, nose and watch are built at runtime, so they are not in the
+  // GLB and the traverse above misses them — merge them in or the scan shows a
+  // bare face and an empty wrist. The watch especially: the X-ray is the one
+  // view where the whole figure is on screen at arm's length, so a wrist that
+  // is bare there reads as the watch having fallen off between scenes.
   const { frame, lenses } = createSpectaclesGeometries(skeleton!);
-  geometries.push(frame, lenses, createNoseGeometry(skeleton!));
+  const watchParts = createWatchGeometries(skeleton!);
+  geometries.push(frame, lenses, createNoseGeometry(skeleton!), watchParts.body, watchParts.screen);
 
   //geometry = mergeGeometries(geometries).toNonIndexed();
   geometry = mergeGeometries(geometries);

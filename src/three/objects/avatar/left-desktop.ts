@@ -43,9 +43,15 @@ const startInterval = () => {
     const delay = calcDelay();
     gsap.delayedCall(delay, playAnimation);
 
-    // The Experience office reuses this beat — it is the "glances at the other
-    // screen" moment the second workstation exists for.
-    const onStage = sceneWeights.hero > 0.95 || sceneWeights.experience > 0.95;
+    // Hero only. This used to fire during Experience too, and it is why the
+    // establishing shot kept getting caught as the back of his head: the clip
+    // clamps him 70° left for seconds at a time, at random, on whatever beat
+    // the visitor happens to be reading. It also called the HERO room's
+    // message popup and desktop message while that room was nowhere on
+    // stage. Experience's gaze is deterministic now — per-beat, in
+    // avatar/index.ts — and the story page plays this clip itself on the
+    // chapters where the glance IS the beat.
+    const onStage = sceneWeights.hero > 0.95;
     // ...but NOT while a detail page owns the stage. The story page fires this
     // same clip deliberately, on the chapters where looking at the other screen
     // is the beat; a random one landing on top of it makes the avatar look

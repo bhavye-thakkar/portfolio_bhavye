@@ -61,7 +61,17 @@ const setupInAnimation = (about: HTMLElement) => {
       scrollTrigger: {
         trigger: about,
         start: isMobile ? "top bottom" : "-=200px bottom",
-        end: "top top",
+        /**
+         * The whole hand-over — room shrinking away, him standing up out of
+         * the chair, the camera pulling back to the lab — used to fit inside
+         * one viewport of scroll, which is why leaving the hero felt like the
+         * screen being swapped rather than the world moving. Landscape gives
+         * it 165vh; the first About panel only arrives ~205vh in, so the
+         * camera has fully settled before there is anything to read.
+         * Portrait keeps the tight window — thumb-scroll covers distance
+         * much faster and the layout has no room for a slow pull-back.
+         */
+        end: isLandscape ? "+=165%" : "top top",
         scrub: true,
       },
     });

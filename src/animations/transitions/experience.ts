@@ -82,7 +82,13 @@ type ExperienceOptions = {
  * the sticky stage takes to ride out of frame, and it is deliberately empty.
  */
 export const SECTION_VH = {
-  opening: 180,
+  /**
+   * 240 rather than 180: the office assembly now runs into the first ~90vh
+   * of the pinned range (see `setupIn`), so the opening owns enough scroll
+   * for the build to finish full-frame AND for the "My Journey" card to have
+   * a held moment of its own afterwards.
+   */
+  opening: 240,
   chapter: 280,
   settle: 150,
   close: 110,
@@ -141,7 +147,16 @@ const setupIn = (spacer: HTMLElement) => {
       scrollTrigger: {
         trigger: spacer,
         start: "top bottom",
-        end: "top top",
+        /**
+         * 190vh, not the 100vh of "top top": the pod-to-office hand-over —
+         * shrink, assemble, sit, scan — was the single most compressed
+         * moment on the page, a whole set change inside one wheel-page. The
+         * window now runs ~90vh INTO the pinned opening, so the assembly
+         * finishes full-frame under a held camera. The stage is pinned for
+         * all of it either way; the opening card and the first swing start
+         * later than this ends (see SECTION_VH.opening), so nothing overlaps.
+         */
+        end: "+=190%",
         scrub: true,
       },
     });
@@ -244,9 +259,11 @@ const setupBeats = ({ spacer, opening, chapters }: ExperienceOptions) => {
     };
 
     // ── the opening. Who this is and what the set of chapters is, on the
-    // establishing shot the in-timeline already arrived at. The card is pinned
-    // to the avatar, so it hands over before the camera starts to move.
-    enter(opening, cross * 0.4);
+    // establishing shot the in-timeline already arrived at. It enters at 45%
+    // of the opening window — right after the in-timeline's scan has turned
+    // him solid (~90vh in) — so the card announces a finished scene rather
+    // than sliding over a man still materialising.
+    enter(opening, openingEnd * 0.45);
     leave(opening, openingEnd - cross);
 
     let camera: SceneKey = ESTABLISHING;

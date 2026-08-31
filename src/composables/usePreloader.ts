@@ -14,6 +14,20 @@ export const usePreloader = () => {
     });
   });
 
+  /**
+   * The bar tracks the DOWNLOADS and nothing else, which is what makes the
+   * logo sweep read as a sweep.
+   *
+   * It briefly held the last 10% back for the hero's shader compile, on the
+   * theory that "loaded" should mean "paintable". But a shader link blocks
+   * the main thread, and a blocked main thread cannot run this watcher — so
+   * the fill never animated at all: the logo sat as a grey ghost, then
+   * snapped to solid dark in one frame when the thread came back. The honest
+   * gate destroyed the very animation it was pacing.
+   *
+   * Boot is fast now because the SCENE is staged (see three/objects/index.ts),
+   * not because the bar waits for anything.
+   */
   watch(
     resourcesProgress,
     (newProgress) => {
