@@ -25,7 +25,7 @@ const updatePointer = (clientX: number, clientY: number) => {
  * ── POINTER EVENTS THAT ARE NOT THE SCENE'S ───────────────────────────────
  *
  * These handlers are on `window`, because the 3D canvas sits at `z-index: -1`
- * under transparent layout divs — the hero copy wrapper is what a click on the
+ * under transparent layout divs, the hero copy wrapper is what a click on the
  * middle of the room actually lands on, so listening on the canvas itself
  * would miss almost every scene click.
  *

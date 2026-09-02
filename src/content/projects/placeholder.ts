@@ -10,7 +10,7 @@ import type { ProjectContent, ProjectPreview } from "../types";
  * only the content is pending. One shared plate stands in for the artwork so a
  * slot reads as deliberate rather than as a card that failed to load.
  *
- * Nothing here names a real company, product or person — that is the point.
+ * Nothing here names a real company, product or person, that is the point.
  * To make a slot real: drop a file into `en/` named for the slug, write the
  * content the way `garbacircle.ts` does, and swap its row in `previews/en.ts`.
  *
@@ -20,7 +20,7 @@ import type { ProjectContent, ProjectPreview } from "../types";
 
 export const PLACEHOLDER_IMAGE = placeholderImage;
 
-/** "02", "03", … — matches the chapter numbering used across the site. */
+/** "02", "03", …, matches the chapter numbering used across the site. */
 const pad = (index: number) => String(index).padStart(2, "0");
 
 export const placeholderSlug = (index: number) => `project-${pad(index)}`;
@@ -38,7 +38,7 @@ export const placeholderPreview = (index: number): ProjectPreview => ({
 
 /**
  * The detail page. One media block rather than a gallery of the same plate
- * repeated six times — a single frame reads as "not published yet", where a
+ * repeated six times, a single frame reads as "not published yet", where a
  * stack of identical images reads as broken.
  *
  * `tags` is deliberately empty: a stack this project does not have yet would
@@ -50,14 +50,14 @@ export const placeholderProject = (index: number): ProjectContent => ({
   tags: [],
   videoBorder: false,
   description:
-    "This slot is reserved for a case study that has not been written yet.<br/><br/>The card, the opening transition and this layout are all live — only the words and the artwork are still to come.",
+    "This slot is reserved for a case study that has not been written yet.<br/><br/>The card, the opening transition and this layout are all live, only the words and the artwork are still to come.",
   components: [
     {
       type: "media",
       props: {
         type: "image",
         src: placeholderImage,
-        alt: `Project ${pad(index)} — artwork pending`,
+        alt: `Project ${pad(index)}, artwork pending`,
         caption: "Artwork pending",
       },
     },

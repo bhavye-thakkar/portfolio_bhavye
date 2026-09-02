@@ -18,8 +18,8 @@ import { sizes } from "../../../utils/sizes";
 /**
  * ─── THE EXPERIENCE STORY PAGE ────────────────────────────────────────────
  *
- * Same overlay mechanics as a project page — home goes fixed, this takes the
- * document scroll, the header swaps in its back button — but where a project
+ * Same overlay mechanics as a project page, home goes fixed, this takes the
+ * document scroll, the header swaps in its back button, but where a project
  * shows a gallery, this shows the six beats of how the job happened.
  *
  * The 3D stage is not a screenshot behind glass: Home teleports the live canvas
@@ -115,7 +115,7 @@ watch(
       sizes.off("resize", handleResize);
       sizes.on("resize", handleResize);
 
-      // Story to story — the next-chapter link, which replaces the route
+      // Story to story, the next-chapter link, which replaces the route
       // without ever passing through null. Nothing else fires for it, so the
       // pose, the scroll and the observer are reset by hand and the scroll to
       // go back to stays whatever the first entry recorded.
@@ -161,7 +161,7 @@ watch(
   { immediate: true },
 );
 
-// Wait for the transition to settle before taking the scroll — moving it while
+// Wait for the transition to settle before taking the scroll, moving it while
 // home is still in flow would scroll the home page instead.
 watch(
   [experienceVisible, isTransitioning],
@@ -197,7 +197,7 @@ onBeforeUnmount(() => {
         />
 
         <p class="story-masthead-eyebrow">
-          {{ chapterNumber(entryIndex) }} — {{ entry.chapter }}
+          {{ chapterNumber(entryIndex) }}, {{ entry.chapter }}
         </p>
         <p v-if="entry.placeholder || entry.sampleStory" class="story-masthead-slot">
           {{ entry.placeholder ? t("to-be-added") : t("sample-content") }}

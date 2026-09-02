@@ -15,7 +15,7 @@ import { inspect } from "../../../animations/inspect";
  * ─── THE OBJECT PANEL ─────────────────────────────────────────────────────
  *
  * `/object/orchid` and `/object/starry-night`. The camera walks up to the
- * thing in the room and this reads over the top of it — a label beside an
+ * thing in the room and this reads over the top of it, a label beside an
  * exhibit rather than a page that replaced one.
  *
  * That is the whole reason it is built differently from the project and story
@@ -28,13 +28,13 @@ import { inspect } from "../../../animations/inspect";
  *
  *   · Lenis is stopped, so a wheel over the panel cannot scroll the page
  *     behind it and drag the camera off the object mid-read. The wrapper also
- *     carries `data-lenis-prevent` (see App.vue) — stopping Lenis is not
+ *     carries `data-lenis-prevent` (see App.vue), stopping Lenis is not
  *     enough, it still swallows the wheel, and without that attribute the
  *     panel's own scroll never receives one.
  *   · The camera pose is re-read from the live scene every frame rather than
- *     tweened to a value captured on open — see `animations/inspect.ts`.
+ *     tweened to a value captured on open, see `animations/inspect.ts`.
  *   · The wrapper is marked `data-scene-blocker`, or the pointer keeps
- *     hovering — and clicking — scene objects straight through the copy.
+ *     hovering, and clicking, scene objects straight through the copy.
  *   · The panel takes focus on open and Escape closes it, because visually it
  *     is modal even though it is a real URL.
  */
@@ -155,7 +155,7 @@ onBeforeUnmount(() => {
   outline: none;
 
   /* The room behind this is warm cream, so the wash is ink rather than the
-     dark blue used on the About stage — over a cream room a blue tint reads as
+     dark blue used on the About stage, over a cream room a blue tint reads as
      a colour cast, while neutral ink reads as the lights going down.
 
      Portrait clears the top of the frame, landscape clears the right, which is
@@ -238,7 +238,7 @@ onBeforeUnmount(() => {
   padding-top: var(--space-lg);
 }
 
-/* Under the back link with real air between them: a control, then a location —
+/* Under the back link with real air between them: a control, then a location -
    two separate things rather than one stacked block. */
 .object-breadcrumbs {
   margin-top: var(--space-md);
@@ -249,7 +249,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: var(--space-sm);
   /* Portrait holds the copy under the clear top band so the object keeps the
-     opening frame to itself. The topbar above is exempt — it is a control, not
+     opening frame to itself. The topbar above is exempt, it is a control, not
      copy. */
   padding-top: 16vh;
 

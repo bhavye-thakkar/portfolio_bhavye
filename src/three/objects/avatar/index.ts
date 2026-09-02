@@ -47,7 +47,7 @@ const waypointsRotation = new Euler();
  * Extra yaw for HIM ALONE, on top of the waypoint rotation.
  *
  * The workstation group is pinned to `waypointsRotation` every tick, so
- * turning him by writing that rotates the desk and both monitors with him —
+ * turning him by writing that rotates the desk and both monitors with him -
  * which is how the Experience story ended up framing a monitor across his
  * face when a chapter turned him towards the camera. This is applied to his
  * transform only, so the furniture stays where it is.
@@ -186,7 +186,7 @@ const setupMesh = () => {
 
   rightHandBone = mesh.getObjectByName("bone-right-hand") as Bone;
   headBone = mesh.getObjectByName("headBone") as Bone;
-  // spine2 is the upper chest — the highest spine joint, so its share of the
+  // spine2 is the upper chest, the highest spine joint, so its share of the
   // turn moves the shoulders without swinging him off the chair.
   spineBone = mesh.getObjectByName("spine2Bone") as Bone;
 
@@ -197,7 +197,7 @@ const setupMesh = () => {
  * ─── WHERE HE LOOKS AT THE DESK ───────────────────────────────────────────
  *
  * The desk idle was authored for the hero room, where the main monitor sits
- * straight ahead — but the Experience bay has two monitors flanking that
+ * straight ahead, but the Experience bay has two monitors flanking that
  * exact spot, so the base pose stares at the bezel gap between them. Each
  * camera beat features one specific screen, so he turns a little toward that
  * screen, blended with the same weights that drive the camera. Positive
@@ -206,8 +206,8 @@ const setupMesh = () => {
  * ── TWO THINGS THAT MAKE IT READ AS A PERSON LOOKING ──────────────────────
  *
  * 1. **The axis is world-vertical, converted into the bone's parent space,
- *    and PRE-multiplied.** A bone's own axes run along the limb — this rig
- *    carries Blender's Z-up on its root — so post-multiplying a (0,1,0)
+ *    and PRE-multiplied.** A bone's own axes run along the limb, this rig
+ *    carries Blender's Z-up on its root, so post-multiplying a (0,1,0)
  *    axis-angle is not a yaw at all: it comes out as a tilt-and-roll mix,
  *    and the head lolls instead of turning. Expressing world +Y in the
  *    parent's frame and pre-multiplying is a true turn whatever the rig's
@@ -216,7 +216,7 @@ const setupMesh = () => {
  *    second monitor with their chest locked forward; a head that swivels
  *    alone reads as an owl. The upper spine takes a small share and the head
  *    the rest, so the whole upper body acknowledges the screen. The share is
- *    deliberately small — the spine's children include the arms, and his
+ *    deliberately small, the spine's children include the arms, and his
  *    hands have to stay on the keyboard.
  *
  * Off while a story page holds the stage: its chapters play the left-desktop
@@ -244,7 +244,7 @@ const gazeAxis = new Vector3();
  * it last wrote and skips the write when they match. The comparison reads its
  * OWN cache, never the bone, so it cannot see the turn we premultiplied after
  * it ran. On every skipped frame our turn survives and the next frame stacks
- * another on top of it — the head creeps round a few degrees a second until he
+ * another on top of it, the head creeps round a few degrees a second until he
  * is looking backwards over his own shoulder while his body still faces the
  * desk, dragging the shoulders out with it via the spine's share.
  *
@@ -263,7 +263,7 @@ let gazeLive = false;
 /** Puts the gaze bones back to the pose the clip last wrote. */
 const clearGaze = () => {
   if (!gazeLive) return;
-  // Unit quaternions, so `invert` is a conjugate — it undoes the premultiply
+  // Unit quaternions, so `invert` is a conjugate, it undoes the premultiply
   // exactly. Safe to mutate in place: `turnBone` overwrites it before the next
   // clear, and `gazeLive` stops this running twice against one application.
   for (const [bone, applied] of gazeApplied) bone.quaternion.premultiply(applied.invert());
@@ -335,7 +335,7 @@ const tick = () => {
 
   //uniforms.uProgress.value = sceneWeightsInOut.about.in * 1.1 - 0.1;
   // About's scan dissolves him into the hologram; Experience runs it back so he
-  // materialises again at the desk. `mix` here is a plain lerp — see
+  // materialises again at the desk. `mix` here is a plain lerp, see
   // animations/transitions/experience.ts.
   const scan = aboutProgress.value * 1.1 - 0.1;
   uniforms.uProgress.value = mix(scan, -0.1, materialise.value);

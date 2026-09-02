@@ -33,6 +33,12 @@
   --z-index-experience-stage: 60;
   --z-index-layout-project: 70;
   --z-index-header: 90;
+  /* The CV sheet is modal, so it covers the site chrome the way a dialog
+     should, above the header rather than under it. Without this the navbar
+     stays clickable through the scrim, and a nav link then scrolls the page
+     while Lenis is stopped for the panel. Below the preloader, which outranks
+     everything. */
+  --z-index-cv: 95;
   --z-index-preloader: 100;
 
   /* Line Heights */

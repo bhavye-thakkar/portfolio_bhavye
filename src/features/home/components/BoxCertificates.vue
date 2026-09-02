@@ -15,7 +15,7 @@ const pointRight = new Vector3(0.75, 2.37, 6.75);
 
 /**
  * ─── CERTIFICATE LINKS ────────────────────────────────────────────────────
- * The cards, their URLs and their years live in `content/profile.ts` — the
+ * The cards, their URLs and their years live in `content/profile.ts`, the
  * five below are the real destinations the portfolio publishes, not stand-ins.
  * A card with a `url` renders as an `<a>` that opens in a new tab; a card with
  * an empty `url` stays a plain, non-clickable HUD card, so an entry whose link
@@ -27,7 +27,7 @@ const pointRight = new Vector3(0.75, 2.37, 6.75);
  */
 type Certificate = (typeof certificates)[number];
 
-// A linked card renders as <a>, an unlinked one as <div> — keeps the markup
+// A linked card renders as <a>, an unlinked one as <div>, keeps the markup
 // honest so screen readers never announce a dead link.
 const cardTag = (certificate: Certificate) => (certificate.url ? "a" : "div");
 
@@ -201,7 +201,7 @@ const setCardRef = (el: unknown, index: number) => {
               v-if="certificate.image"
               class="box-certificates-item-image"
               :src="certificate.image"
-              :alt="`${certificate.organisation} — ${certificate.name}`"
+              :alt="`${certificate.organisation}, ${certificate.name}`"
               loading="lazy"
             />
           </div>
@@ -244,7 +244,7 @@ const setCardRef = (el: unknown, index: number) => {
               v-if="certificate.image"
               class="box-certificates-item-image"
               :src="certificate.image"
-              :alt="`${certificate.organisation} — ${certificate.name}`"
+              :alt="`${certificate.organisation}, ${certificate.name}`"
               loading="lazy"
             />
           </div>
@@ -506,7 +506,7 @@ const setCardRef = (el: unknown, index: number) => {
       .box-certificates-item-inner {
         /* GSAP owns `transform` here and parks `scale: none` inline alongside
            it, so the hover step uses the independent `scale` property with
-           `!important` — that is what outranks the inline declaration. */
+           `!important`, that is what outranks the inline declaration. */
         scale: calc(1 + var(--hover) * 0.02) !important;
         border-color: color-mix(in srgb, var(--color-text-cyan-400) calc(var(--hover) * 100%), var(--color-cyan-400));
         transition:
@@ -514,7 +514,7 @@ const setCardRef = (el: unknown, index: number) => {
           border-color 0.1s ease-in-out;
       }
 
-      /* Press reads instantly and releases on its own — the new tab opens on
+      /* Press reads instantly and releases on its own, the new tab opens on
          click, so nothing here delays the navigation. */
       &:active .box-certificates-item-inner {
         scale: 0.985 !important;
@@ -534,7 +534,7 @@ const setCardRef = (el: unknown, index: number) => {
     }
 
     /* The "this opens something" badge. It used to be the shared accent
-       button — an orange disc, the site's CTA colour, sitting on a cyan
+       button, an orange disc, the site's CTA colour, sitting on a cyan
        hologram. Now it is an illuminated ring cut from the same glass as the
        card: transparent centre, lit rim, cyan arrow.
 
@@ -565,7 +565,7 @@ const setCardRef = (el: unknown, index: number) => {
         background-color 0.15s ease-in-out;
 
       /* Touch has no hover, so the badge stays put and does the signalling on
-         its own — same trade the project preview cards make. */
+         its own, same trade the project preview cards make. */
       opacity: 1;
       scale: 1;
 

@@ -52,7 +52,7 @@ const tick = () => {
   if (!instance || !shouldBeVisible) return;
 
   // The Experience scene keeps the same grid-floor backdrop, so it needs the
-  // render target refreshed too — its camera moves through three beats.
+  // render target refreshed too, its camera moves through three beats.
   if (sceneWeights.about > 0.001 || sceneWeights.experience > 0.001) {
     renderTarget.render();
   }
@@ -94,7 +94,7 @@ const compileScene = async (camera: Camera, sceneToCompile: Scene) => {
   /**
    * `compileAsync` gathers the scene's materials synchronously (so the
    * visibility juggling above/below stays correct) and then links the
-   * programs via KHR_parallel_shader_compile where the driver offers it —
+   * programs via KHR_parallel_shader_compile where the driver offers it -
    * the main thread stays free instead of freezing for the whole link, which
    * is what used to hold the preloader up for seconds after the downloads
    * were already done.

@@ -117,7 +117,7 @@ watchEffect((onInvalidate) => {
   }
 
   &-certificates {
-    /* autoAlpha in transitions/about.ts flips this back — hidden keeps the
+    /* autoAlpha in transitions/about.ts flips this back, hidden keeps the
        certificate links out of the tab order until the layer is on stage */
     opacity: 0;
     visibility: hidden;

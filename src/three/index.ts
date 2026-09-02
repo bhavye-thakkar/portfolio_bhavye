@@ -27,9 +27,13 @@ const init = (_canvas: HTMLCanvasElement) => {
     // QA-SHIM temporary, remove before ship
     if (location.search.includes("qa=1")) {
       import("./objects/avatar").then(({ avatar }) =>
-        import("./objects/workstation").then(({ workstation }) => {
-          (window as any).__qa = { renderer, scene, camera, threeSizes, objects, canvas, sceneWeights, sceneWeightsInOut, waypoints, stageHold, avatar, workstation };
-        }),
+        import("./objects/workstation").then(({ workstation }) =>
+          import("./objects/envelope").then((envelopeModule) =>
+            import("./utils/raycast").then(({ raycast }) => {
+              (window as any).__qa = { renderer, scene, camera, threeSizes, objects, canvas, sceneWeights, sceneWeightsInOut, waypoints, stageHold, avatar, workstation, envelopeModule, raycast };
+            }),
+          ),
+        ),
       );
     }
   });

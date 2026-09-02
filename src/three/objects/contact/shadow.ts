@@ -32,7 +32,7 @@ const initObjects = () => {
     uniforms.uColorShadow.value = shadowColor;
 
     // the avatar's shadow is baked at his standing spot (world origin), so the
-    // goodbye lifts it out — figure-shadow.ts carries a fresh one along with him
+    // goodbye lifts it out, figure-shadow.ts carries a fresh one along with him
     uniforms.uFigureFrom.value.set(0, 0);
     uniforms.uFigureBlend.value = goodbye.state.shadow;
     uniforms.uFigureRadius.value = FIGURE_RADIUS;

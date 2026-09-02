@@ -86,7 +86,7 @@ const setupActions = () => {
   wave.loop = LoopOnce;
   actions.set("wave", wave);
 
-  //walk — authored from t-idle's standing pose, the rig ships no walk clip
+  //walk, authored from t-idle's standing pose, the rig ships no walk clip
   const walk = mixer.clipAction(createWalkClip(getActionFromMesh("t-idle")));
   walk.loop = LoopRepeat;
   actions.set("walk", walk);
@@ -127,7 +127,7 @@ const play = (name: string, transition: number = 0.5) => {
   if (activeAction === name) return;
   // Nothing is set up until the avatar model has loaded, and a deep link to a
   // story page asks for a chapter's beat well before that. Only an EMPTY map
-  // is treated as "not ready" — once it is populated an unknown name is still
+  // is treated as "not ready", once it is populated an unknown name is still
   // a typo and still throws.
   if (actions.size === 0) return;
   const newAction = actions.get(name);

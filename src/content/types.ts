@@ -12,7 +12,7 @@ export interface ProjectContent {
   description?: string;
   videoBorder?: boolean;
   live?: string;
-  /** application build (store page, APK, TestFlight…) — shown as its own button */
+  /** application build (store page, APK, TestFlight…), shown as its own button */
   app?: string;
   source?: string;
   components?: ProjectComponent[];

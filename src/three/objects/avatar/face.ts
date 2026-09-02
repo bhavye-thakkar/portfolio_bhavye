@@ -128,7 +128,7 @@ const destroy = () => {
 };
 
 /**
- * The Experience story sets this per chapter — the beat where the job is
+ * The Experience story sets this per chapter, the beat where the job is
  * offered gets the proud face, the rest keep the default with its blink.
  * Anything not in FRAME_INDEXES is ignored rather than showing a blank face.
  */

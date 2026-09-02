@@ -28,7 +28,7 @@ import type { BufferGeometry as Geometry, Material } from "three";
 /**
  * Blue Phalaenopsis on the wall shelf, standing where the shelf's own potted
  * plant used to (see `hideShelfPlant` in ./index.ts, which drops that plant from
- * the shelf mesh) — at the open end of the board, beside the books.
+ * the shelf mesh), at the open end of the board, beside the books.
  *
  * Proportions come off the reference photo, measured against the pot width: the
  * pot is 1.27 wide for every 1 tall, the whole plant ~2.55 pot-widths tall, the
@@ -41,7 +41,7 @@ import type { BufferGeometry as Geometry, Material } from "three";
  * Lambert / Physical materials below, which no other object in the scene uses.
  *
  * Every bloom is generated from its own jittered parameters (see `SEED`), so no
- * two flowers share geometry — that irregularity is most of what separates a
+ * two flowers share geometry, that irregularity is most of what separates a
  * plant from duplicated game-asset props. Each one still merges down to a single
  * mesh, so the whole plant is ~16 meshes and 6 materials.
  */
@@ -57,7 +57,7 @@ const SEED = 20260821;
 
 /**
  * Sampled off the reference photo. The blue reads pale at the throat and deepens
- * towards the margins, with slightly deeper veins fanning out from the base —
+ * towards the margins, with slightly deeper veins fanning out from the base -
  * the opposite of the usual "bright centre" instinct, and the main reason the
  * earlier pass looked printed rather than grown.
  */
@@ -98,7 +98,7 @@ let initialized = false;
 
 /* ------------------------------------------------------------------ helpers */
 
-/** mulberry32 — seeded so the plant's irregularity is the same every load. */
+/** mulberry32, seeded so the plant's irregularity is the same every load. */
 const createRandom = (seed: number) => () => {
   seed = (seed + 0x6d2b79f5) | 0;
   let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
@@ -242,7 +242,7 @@ type LeafOptions = {
   width: number;
   /**
    * Arch up before the tip falls away. Without it a leaf leaving the crown at a
-   * downward angle drives straight through the pot wall — real ones rise clear
+   * downward angle drives straight through the pot wall, real ones rise clear
    * of the rim first, which is also what the reference shows.
    */
   lift: number;
@@ -387,7 +387,7 @@ const createStem = (curve: CatmullRomCurve3, from: number, to: number, segments:
   return geometry;
 };
 
-/** A short tapered stalk from `from` to `to` — spike to bloom, and the lip antennae. */
+/** A short tapered stalk from `from` to `to`, spike to bloom, and the lip antennae. */
 const createStalk = (from: Vector3, to: Vector3, radius: number, taper = 0.6): Geometry => {
   const curve = new CatmullRomCurve3([from, from.clone().lerp(to, 0.5), to]);
   return createStem(curve, radius, radius * taper, 4, 5);
@@ -488,7 +488,7 @@ const createContactShadow = () => {
       transparent: true,
       blending: MultiplyBlending,
       // three warns (every frame) without this; the texture is fully opaque, so
-      // it changes nothing numerically — multiply only reads the source colour
+      // it changes nothing numerically, multiply only reads the source colour
       premultipliedAlpha: true,
       depthWrite: false,
     }),
@@ -564,7 +564,7 @@ const BLOOM_PARTS = [
 /**
  * The lip: a hooded column over a small white platform with two purple side
  * lobes, a yellow callus and the two curling antennae Phalaenopsis is known for.
- * At this scale they read as a dark, detailed centre rather than a blank dot —
+ * At this scale they read as a dark, detailed centre rather than a blank dot -
  * which is what stops each bloom looking like a generic five-petal star.
  */
 const createLabellum = (random: () => number): Geometry => {
@@ -899,7 +899,7 @@ const createSpike = (
  * Soft daylight, matching the reference photo: a broad key from the upper left
  * front, a cool fill from the right so the shadowed side is not black, and a
  * faint back light to separate the leaves from the board. Nothing here is
- * emissive — the orchid is lit, not glowing, which is what keeps it reading as a
+ * emissive, the orchid is lit, not glowing, which is what keeps it reading as a
  * real object inside the otherwise stylised room.
  */
 const createLights = () => {
@@ -951,7 +951,7 @@ const init = () => {
   /**
    * Petals are thin and translucent. `sheen` lifts the grazing angles the way
    * light scattering through a petal edge does, and a very low emissive keeps the
-   * shadowed side from going flat — both far cheaper than `transmission`, which
+   * shadowed side from going flat, both far cheaper than `transmission`, which
    * would force a separate render pass for one small object.
    */
   const bloomMaterial = track(

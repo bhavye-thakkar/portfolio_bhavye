@@ -15,7 +15,7 @@ import { t } from "../i18n/utils/translate";
  * and the numerals lean a degree or two toward it, so a page that exists to
  * say "there is nothing here" still has something to look at and something
  * that responds. Both come off ONE pointermove handler writing two CSS
- * variables — no per-frame loop, no reflow: the compositor does the work
+ * variables, no per-frame loop, no reflow: the compositor does the work
  * because only `transform` and a gradient position change.
  *
  * `pointer: fine` gates the lean. On touch there is no cursor to follow, so
@@ -171,7 +171,7 @@ onBeforeUnmount(() => {
     text-shadow: 0 0 26px rgba(52, 191, 255, 0.55);
     margin: var(--space-xs) 0 var(--space-sm);
 
-    /* the lean — a couple of degrees toward the cursor, no more */
+    /* the lean, a couple of degrees toward the cursor, no more */
     @media (pointer: fine) {
       transform: perspective(700px) rotateY(calc((var(--px) - 0.5) * 10deg))
         rotateX(calc((var(--py) - 0.5) * -8deg));
@@ -232,7 +232,7 @@ onBeforeUnmount(() => {
     }
   }
 
-  /* Internal links out of the dead end — a 404 that only offers "home" makes
+  /* Internal links out of the dead end, a 404 that only offers "home" makes
      the visitor start over; these drop them at the section they wanted. */
   &-secondary {
     display: flex;

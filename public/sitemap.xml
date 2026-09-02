@@ -8,10 +8,10 @@
   THE DOMAIN IS A PLACEHOLDER. It matches the <link rel="canonical"> and the
   og:url in index.html, which is the only place this project declares a site
   URL. When the real domain is known, change it here, in index.html and in
-  public/robots.txt — those three and nothing else.
+  public/robots.txt, those three and nothing else.
 
   Every lastmod is the day the content behind that URL was last verified,
-  not the day the file was touched — bumping them without a content change is
+  not the day the file was touched, bumping them without a content change is
   noise a crawler learns to ignore.
 
   Routes come from:
@@ -21,7 +21,7 @@
   Adding an entry there means adding a url block here.
 
   The two /object/ URLs are listed because they are real routes with their own
-  <h1>, their own copy and their own canonical — not because they are 3D
+  <h1>, their own copy and their own canonical, not because they are 3D
   props. A prop that only opened a modal would have no URL to list and must
   not be given an invented one.
 -->

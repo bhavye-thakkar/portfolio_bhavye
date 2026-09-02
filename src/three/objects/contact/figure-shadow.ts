@@ -8,7 +8,7 @@ import { goodbye } from "../avatar/goodbye";
  * A soft contact shadow that travels with the avatar during the goodbye walk.
  *
  * The scene's own shadows are painted into the shadow-catcher texture, but that
- * quad only reaches z ≈ -4.5 at x = 0 — barely a third of the walk — and its
+ * quad only reaches z ≈ -4.5 at x = 0, barely a third of the walk, and its
  * copy of the avatar's shadow is baked at his standing spot. So the catcher's
  * shader erases the baked patch (see shaders/shadow-catcher) and this mesh lays a
  * fresh one down wherever he actually is, on or off the quad.

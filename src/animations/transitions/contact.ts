@@ -55,7 +55,7 @@ const setup = (contact: HTMLElement) => {
   // contact scene facing the visitor. `goodbye.state` stays at its defaults, so
   // avatar/index.ts and contact/shadow.ts read zeroes and behave as they did
   // before it existed.
-  // ponytail: one call rather than unpicking goodbye/walk-clip/figure-shadow —
+  // ponytail: one call rather than unpicking goodbye/walk-clip/figure-shadow -
   // re-enable by restoring this line; delete those three modules to be rid of it.
   void setupGoodbye;
 };
@@ -64,7 +64,7 @@ const setup = (contact: HTMLElement) => {
  * The closing beat: once the visitor has read the contact section the avatar
  * waves, turns and walks off while the scene fades. It plays on its own clock
  * rather than on scrub, so the pause and the turn keep their timing however fast
- * the visitor scrolls — and it rewinds if they scroll back up.
+ * the visitor scrolls, and it rewinds if they scroll back up.
  *
  * Landscape only. Portrait keeps the existing ending untouched.
  */

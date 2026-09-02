@@ -9,7 +9,7 @@ Allow: /
 # tightens the wildcard should have to think about them separately.
 #
 # Most of them do NOT execute JavaScript, so what they can actually read is
-# the static fallback inside #app in index.html and /llms.txt — not the 3D app.
+# the static fallback inside #app in index.html and /llms.txt, not the 3D app.
 
 User-agent: GPTBot
 Allow: /
@@ -41,7 +41,7 @@ Allow: /
 # A machine-readable summary of the public portfolio.
 # /llms.txt
 
-# Placeholder domain — change this in the same edit as index.html's canonical
+# Placeholder domain, change this in the same edit as index.html's canonical
 # and og:url, `site` in src/content/profile.ts, and the <loc> values in
 # sitemap.xml. Until it is real, nothing here can rank.
 Sitemap: https://example.com/sitemap.xml

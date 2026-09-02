@@ -6,14 +6,14 @@ import { WALK_DURATION, walkSpeed } from "./walk-clip";
  * The closing beat of the site: the avatar is standing in the contact scene
  * facing the visitor, then turns and walks off into the distance while the scene
  * fades. Everything here is state that `avatar/index.ts` reads in its contact
- * branch and `contact/shadow.ts` reads for the moving contact shadow — nothing
+ * branch and `contact/shadow.ts` reads for the moving contact shadow, nothing
  * touches the scene graph directly, so the existing tick order is unchanged.
  *
  * Landscape/desktop only; `transitions/contact.ts` never arms it on portrait, so
  * the mobile ending keeps its current behaviour.
  */
 
-/** roughly hip height to sole, in scene units — sets the stride/speed match */
+/** roughly hip height to sole, in scene units, sets the stride/speed match */
 const LEG_LENGTH = 3;
 /** how far he gets before the fade has finished; the floor plane runs well past this */
 const DISTANCE = 12.4;
@@ -55,7 +55,7 @@ const build = () => {
   });
 
   // 1. a beat of stillness, so the turn reads as a decision rather than a reflex.
-  //    ponytail: no wave — the rig's `wave` clip is authored over the intro pose
+  //    ponytail: no wave, the rig's `wave` clip is authored over the intro pose
   //    and blends against contact-idle's folded arms as a fidget, not a goodbye.
   //    The walk-away carries it instead.
   tl.to({}, { duration: 1.4 });

@@ -15,6 +15,9 @@ import { projectVisible, experienceId, experienceVisible, objectId, objectVisibl
 import ObjectDetail from "./features/objects/components/ObjectDetail.vue";
 import NotFound from "./components/NotFound.vue";
 import ExperienceDetail from "./features/experience/components/ExperienceDetail.vue";
+import CvPanel from "./features/cv/components/CvPanel.vue";
+import CvPrompt from "./features/cv/components/CvPrompt.vue";
+import { cvReading } from "./features/cv/state";
 import ProjectBackground from "./features/projects/components/ProjectBackground.vue";
 import { useClickSound } from "./features/sounds/composables/useClickSounds";
 //import { useHoverSound } from "./features/sounds/composables/useHoverSounds";
@@ -74,8 +77,8 @@ const { isTouch } = useAgent();
        being read about. -->
   <!--
     `data-lenis-prevent` is load-bearing, not decoration. Lenis takes wheel and
-    touch events off `window` and calls preventDefault on them — including
-    while it is stopped — so the panel's own `overflow-y: auto` never saw a
+    touch events off `window` and calls preventDefault on them, including
+    while it is stopped, so the panel's own `overflow-y: auto` never saw a
     single one and the content below the fold was unreachable. This attribute
     is Lenis's documented opt-out for a nested scroller: the event is left
     alone entirely for anything inside this element.
@@ -84,7 +87,7 @@ const { isTouch } = useAgent();
     `data-scene-blocker` is STATIC, not bound to `objectVisible`.
 
     Bound, it was removed in the same microtask flush the closing click
-    triggers — element handlers run first, Vue patches the DOM at the
+    triggers, element handlers run first, Vue patches the DOM at the
     checkpoint between listeners, and by the time the scene's window-level
     click handler ran the back link was no longer inside a blocker. The click
     that closed the panel then raycast into the room behind it: from the
@@ -92,7 +95,7 @@ const { isTouch } = useAgent();
     "back" landed on /object/orchid.
 
     The wrapper is `pointer-events: none` while hidden, so nothing can land
-    inside it anyway — the attribute costs nothing when the panel is closed.
+    inside it anyway, the attribute costs nothing when the panel is closed.
   -->
   <div
     class="object-wrapper"
@@ -102,6 +105,32 @@ const { isTouch } = useAgent();
   >
     <ObjectDetail />
   </div>
+
+  <!-- The CV that comes out of the desk envelope. Same shape as the object
+       panel above and for the same reason: home stays live and un-fixed
+       underneath, so there is no scroll to save and nothing to rebuild.
+
+       `data-scene-blocker` and `data-lenis-prevent` are load-bearing for the
+       same two reasons documented on the object wrapper, the first stops the
+       pointer hovering and clicking the envelope straight through the sheet,
+       the second is Lenis's opt-out so this panel's own scroller actually
+       receives a wheel event. Both are STATIC: bound, they would be removed in
+       the same microtask flush as the closing click.
+
+       No `<Header>` in here. The one at the top of this file is the only
+       navbar the site has, and it stays exactly where it is. -->
+  <div
+    class="cv-wrapper"
+    :class="{ 'cv-wrapper-visible': cvReading }"
+    data-scene-blocker
+    data-lenis-prevent
+  >
+    <CvPanel v-if="cvReading" />
+  </div>
+
+  <!-- The bar that appears while the envelope is open in the scene. Always
+       mounted: it is also where the CV store is wired to the scene graph. -->
+  <CvPrompt />
 
   <!-- overlay page -->
   <ProjectBackground />
@@ -133,7 +162,7 @@ const { isTouch } = useAgent();
 
 /* The live three canvas moves in here for the duration of the Experience story
    page. Fixed and full-bleed so it keeps the exact size the renderer already
-   measured — no resize, no second context. */
+   measured, no resize, no second context. */
 .experience-stage {
   position: fixed;
   inset: 0;
@@ -161,7 +190,7 @@ const { isTouch } = useAgent();
   transition: opacity var(--transition-route-duration) var(--transition-route-ease);
 
   /* `relative`, not `static`: this has to leave `fixed` so it scrolls with the
-     document, but z-index is ignored on a static element — and dropping it puts
+     document, but z-index is ignored on a static element, and dropping it puts
      the whole story page underneath the fixed 3D stage, which is opaque. The
      page reads as blank while every DOM probe still says it is visible, because
      the stage is `pointer-events: none` and hit-testing skips what painting
@@ -175,7 +204,7 @@ const { isTouch } = useAgent();
   }
 
   /* Closing is a fade, not a cut. The wrapper is back to `fixed` by now, which
-     would otherwise show the top of the story while it fades — so the content is
+     would otherwise show the top of the story while it fades, so the content is
      held at the offset it was actually scrolled to. Transform lives on the inner
      column, never on an ancestor of the `fixed` scrim. */
   &-closing {
@@ -194,7 +223,7 @@ const { isTouch } = useAgent();
 
    `visibility` rather than `display` so the fade actually runs, and
    `overflow-y: auto` so long copy scrolls inside the panel instead of moving
-   the page — and therefore the camera — behind it. */
+   the page, and therefore the camera, behind it. */
 .object-wrapper {
   position: fixed;
   inset: 0;
@@ -228,9 +257,48 @@ const { isTouch } = useAgent();
   }
 }
 
+/* The CV sheet. Its own scroller, the CV is longer than a viewport on every
+   size, and the page behind it must not move while it is being read. */
+.cv-wrapper {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 var(--space-outer);
+  z-index: var(--z-index-cv);
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity var(--transition-route-duration) var(--transition-route-ease),
+    visibility 0s linear var(--transition-route-duration);
+
+  .cv-sheet {
+    transform: translateY(28px);
+    transition: transform 0.7s var(--transition-route-ease);
+  }
+
+  &-visible {
+    visibility: visible;
+    pointer-events: auto;
+    opacity: 1;
+    transition:
+      opacity var(--transition-route-duration) var(--transition-route-ease),
+      visibility 0s;
+
+    .cv-sheet {
+      transform: translateY(0);
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .object-wrapper,
-  .object-wrapper .object-panel-inner {
+  .object-wrapper .object-panel-inner,
+  .cv-wrapper,
+  .cv-wrapper .cv-sheet {
     transition-duration: 0.01s;
   }
 }

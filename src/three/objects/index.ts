@@ -15,19 +15,19 @@ import { renderer } from "../core/renderer";
  * Building every object and compiling every shader used to happen in ONE
  * synchronous block inside the resources "ready" handler. Downloads finished
  * in under a second and the preloader then sat on a frozen main thread for
- * the whole of that block — the entire "loading takes too long" complaint
+ * the whole of that block, the entire "loading takes too long" complaint
  * was this, not the network.
  *
  * `initHero` is only what the first visible frame needs: the room and the
  * avatar sitting in it. Everything else exists as module-scope groups the
  * timelines can already tween, and assembles one group per frame behind the
- * preloader's fade — ordered by how soon scrolling can reach it (About's
+ * preloader's fade, ordered by how soon scrolling can reach it (About's
  * stage first, Contact's last). The full shader compile runs at the end,
  * async, so a first scroll is warm without ever blocking boot.
  *
  * NOTHING here is allowed to gate the preloader. A shader link blocks the
  * main thread, so anything the preloader waits on is time its own animation
- * cannot run — the fill stopped animating entirely when it waited on a
+ * cannot run, the fill stopped animating entirely when it waited on a
  * hero compile. The hero's materials compile on the first render, the way
  * they always did; the win is that only the hero is in the scene at that
  * point instead of all nine object groups.

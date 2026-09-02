@@ -14,13 +14,13 @@ import type { ClickableBox3 } from "../../types";
  * ─── THE TWO THINGS IN THE ROOM WORTH ASKING ABOUT ────────────────────────
  *
  * The penguin and the speaker are toys: click them and something happens in
- * the room. These two are not — the orchid and the painting each open
+ * the room. These two are not, the orchid and the painting each open
  * `/object/<slug>`, a page that says why they are in the scene at all. Both
  * stay real scene objects; nothing is swapped for an image.
  *
  * Everything here is deliberately restrained. A prop that pulses to advertise
  * itself stops being a prop, so hover is a few per cent of scale on the plant
- * and a little more light on the picture glass — enough to answer "is this
+ * and a little more light on the picture glass, enough to answer "is this
  * clickable", not enough to notice when you are not looking at it.
  *
  * Hover ALSO does the pointing: `raycast` already swaps in the ring cursor and
@@ -33,7 +33,7 @@ const HERO_VISIBLE = 0.5;
 type Hotspot = {
   slug: string;
   box: ClickableBox3;
-  /** Recomputes the world box — the room group is yawed by the hero timeline. */
+  /** Recomputes the world box, the room group is yawed by the hero timeline. */
   measure: (box: Box3) => void;
   hover: number;
   apply: (hover: number) => void;
@@ -47,7 +47,7 @@ let frameMaterial: MeshBasicMaterial | null = null;
 let frameMesh: Mesh | null = null;
 const frameBase = new Color(1, 1, 1);
 // A cool over-white. The room has no lights at all, so "illuminated" has to be
-// a multiplier on the baked texel rather than a light — anything below 1 would
+// a multiplier on the baked texel rather than a light, anything below 1 would
 // read as the frame going dim on hover, which is the opposite signal.
 const frameLit = new Color(1.09, 1.13, 1.2);
 
@@ -58,8 +58,8 @@ const add = (hotspot: Omit<Hotspot, "hover">) => {
   const box = hotspot.box;
   box.onClick = () => {
     // A box that has been collapsed because the hero is off screen cannot be
-    // hit, but the guard is cheap and the failure mode — navigating to an
-    // object page from halfway down the site — is bad.
+    // hit, but the guard is cheap and the failure mode, navigating to an
+    // object page from halfway down the site, is bad.
     if (sceneWeights.hero < HERO_VISIBLE) return;
     router.push(`/object/${hotspot.slug}`);
   };
@@ -121,7 +121,7 @@ const tick = () => {
 
   for (const hotspot of hotspots) {
     // An empty Box3 (min +Inf, max -Inf) never intersects a ray, so collapsing
-    // it is how these stop being clickable once the room has scrolled away —
+    // it is how these stop being clickable once the room has scrolled away -
     // cheaper and harder to get wrong than adding and removing them from the
     // raycaster's list.
     if (visible) hotspot.measure(hotspot.box);

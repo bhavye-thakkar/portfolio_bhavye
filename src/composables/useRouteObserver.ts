@@ -27,7 +27,7 @@ export const isProjectRoute = (path: string) => {
  *
  * It used to be the detail components' job: each one watched its own id and
  * called `router.replace("/")` when it could not find the slug. Which raced
- * `notFound` and won, so an unknown detail URL silently became the home page —
+ * `notFound` and won, so an unknown detail URL silently became the home page -
  * a soft 404, the exact thing NotFound.vue was added to stop. Deciding it here
  * means nothing downstream can see an id it cannot render.
  */
@@ -93,7 +93,7 @@ export const objectId = computed(() => {
 
 /**
  * No `isTransitioning` gate, unlike the two below. Project and Experience
- * REPLACE the home page — home goes `position: fixed` and hidden, so there has
+ * REPLACE the home page, home goes `position: fixed` and hidden, so there has
  * to be a crossfade window where neither is showing. An object panel is a
  * layer OVER a home page that stays live and stays scrolled where it was: the
  * camera pushes in underneath it, so there is nothing to cross-fade and
@@ -115,7 +115,7 @@ export const recentObjectId = computed(() => {
  * the document scroll, and the header swaps its logo for a back button. Only
  * the content differs, so the transition watches this rather than either id.
  *
- * Deliberately NOT including `objectId` — see `objectVisible` above. An object
+ * Deliberately NOT including `objectId`, see `objectVisible` above. An object
  * panel must not start the home-replacement transition, or home scales away
  * underneath a panel you can see straight through.
  */
@@ -133,8 +133,8 @@ export const detailId = computed(() => overlayId.value ?? objectId.value);
  *
  * `/anything-else` used to render the home page: the two id computeds came
  * back null, no overlay opened, and the visitor got the hero at a URL that
- * was not the hero. To a search engine that is a soft 404 — a 200 response
- * with content that does not match the URL — which is worse than a 404,
+ * was not the hero. To a search engine that is a soft 404, a 200 response
+ * with content that does not match the URL, which is worse than a 404,
  * because it gets indexed.
  *
  * The check is against the real slug lists rather than the URL shape, so
@@ -148,7 +148,7 @@ export const isKnownRoute = computed(() => {
 
   // The ids above already answer "is this a slug that exists"; asking them is
   // what keeps that answer in one place. A detail URL with a trailing slash
-  // does not match them and lands here as a 404, which is right — `Link`
+  // does not match them and lands here as a 404, which is right, `Link`
   // strips trailing slashes, so nothing on the site can produce one.
   return projectId.value !== null || experienceId.value !== null || objectId.value !== null;
 });

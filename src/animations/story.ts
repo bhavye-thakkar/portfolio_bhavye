@@ -18,18 +18,18 @@ import type { StoryChapterKey } from "../content/experience";
 /**
  * ─── STORY MODE ───────────────────────────────────────────────────────────
  *
- * The /experience/:slug page reuses the whole Experience stage — same avatar,
- * same workstation, same grid floor — and drives it one pose per chapter
+ * The /experience/:slug page reuses the whole Experience stage, same avatar,
+ * same workstation, same grid floor, and drives it one pose per chapter
  * instead of by scrub. Nothing new is loaded or built.
  *
  * Two things make that safe. `storyActive` tells the home sections to tear
- * their scroll timelines down — the home wrapper goes `position: fixed` while
+ * their scroll timelines down, the home wrapper goes `position: fixed` while
  * this page owns the document scroll, so every cached start/end those triggers
- * hold becomes a lie — and `stageHold` freezes the weight solver. The story
+ * hold becomes a lie, and `stageHold` freezes the weight solver. The story
  * then sets the stage by hand, which also means a cold deep-link lands on the
  * same picture as an in-page click.
  *
- * A chapter is a camera framing plus a beat for the avatar — a turn, sometimes
+ * A chapter is a camera framing plus a beat for the avatar, a turn, sometimes
  * a clip, sometimes an expression. No new clips and no second rig: everything
  * below is composed out of what the avatar already ships with.
  */
@@ -44,7 +44,7 @@ type Pose = {
    *
    * The camera used to do all of the storytelling and he sat through six
    * chapters in one idle loop, which read as a photograph the camera was
-   * circling. These three fields are what make him a participant instead —
+   * circling. These three fields are what make him a participant instead -
    * and they are deliberately small, because the rig has no walk that works
    * seated and no gesture library. What it does have is a root yaw, one
    * "glances at the other screen" clip, the intro wave and a proud face.
@@ -56,13 +56,13 @@ type Pose = {
    *
    * `clip` is a one-shot fired as the chapter arrives, blended in over 0.4s
    * and settling back to the desk idle on its own. Only two chapters get one,
-   * so the strong beats stay strong — the rest are a turn of the head.
+   * so the strong beats stay strong, the rest are a turn of the head.
    *
    * ── ONLY `left-desktop` IS SAFE HERE ────────────────────────────────────
    *
    * `wave` was tried and produced a mangled, arms-out figure with its head out
    * of frame. `updateIntro` weights it `wavingStrength * (1 - tIdleIntensity)`,
-   * and the story stage sets `tIdleIntensity` to 1 — so its weight is pinned at
+   * and the story stage sets `tIdleIntensity` to 1, so its weight is pinned at
    * zero. Cross-fading INTO a zero-weight action fades the desk idle out and
    * puts nothing in its place, and the mixer falls through to the bind pose.
    * Any clip added here has to be one `updateIntro` keeps weighted while
@@ -79,7 +79,7 @@ type Pose = {
  *
  * Three of these poses used to stand him up. His root is the chair, and the
  * desk is measured off his *seated* pose, so standing put his hips through the
- * desk top and left the chair empty underneath him — and getting there meant
+ * desk top and left the chair empty underneath him, and getting there meant
  * cross-fading `desktop-idle` into `t-idle`, which passes through a half-
  * sitting hover that reads as floating. The rig has no stand-up and no walk
  * that could sell the move honestly. So the camera does the storytelling and
@@ -90,7 +90,7 @@ type Pose = {
  * He sits at (0, 0, 6) facing +Z with the desk in front of him, so any camera
  * in front of him has to get past the two monitors. They sit at z 7.78 and
  * cover world x −2.42…−0.22 and 0.22…2.42, and their tops (y 3.03) are *above*
- * his seated head (y 2.5) — height alone never clears them. The ray from a
+ * his seated head (y 2.5), height alone never clears them. The ray from a
  * front camera crosses that plane at
  *
  *   x = cameraX · (7.78 − focusZ) / (cameraZ − focusZ)
@@ -106,29 +106,29 @@ type Pose = {
 const LANDSCAPE: Record<StoryChapterKey, Pose> = {
   // Wide from his front-left: the bay is a place across the room. Clears the
   // right monitor at x −2.86. He is reading about the place on the other
-  // screen — the strongest beat of the six, and the one that establishes that
+  // screen, the strongest beat of the six, and the one that establishes that
   // he moves at all.
   discovery: { position: [-7.6, 3.2, 9.9], focus: [0, 2.3, 6.5], blend: 0, turn: 0.2, clip: "left-desktop" },
-  // Over the right shoulder — the applying-at-a-laptop beat. Behind him, so
+  // Over the right shoulder, the applying-at-a-laptop beat. Behind him, so
   // there is nothing in the way. Squared up to the main screen, writing.
   application: { position: [-5.2, 4.6, 1.2], focus: [0.4, 2.3, 7.0], blend: 0, turn: -0.06 },
   // From across the corner of the desk: the interview table. Clears at x 2.85.
   // Turned out of the desk towards whoever is asking.
   interview: { position: [9.6, 3.6, 8.4], focus: [0.35, 2.3, 6.2], blend: 0, turn: -0.24 },
   // Camera almost level with his eyeline. The one beat allowed to be
-  // triumphant — turned furthest out of the desk, and the only chapter that
+  // triumphant, turned furthest out of the desk, and the only chapter that
   // changes his face. Clears at x −3.02.
   //
   // This pose briefly looked broken while the turn was being written to
   // `waypointsRotation`: the workstation group is pinned to that rotation, so
   // turning him swung both monitors round with him and one landed across his
-  // face. The pose was never the problem — see `avatar.storyTurn`.
+  // face. The pose was never the problem, see `avatar.storyTurn`.
   hired: { position: [-7.0, 2.5, 9.6], focus: [0, 2.35, 6.4], blend: 0, turn: -0.3, face: "proud-0" },
   // Over the other shoulder, second scenario on the monitors: the work itself.
-  // The second and last chapter to get a clip — five chapters away from the
+  // The second and last chapter to get a clip, five chapters away from the
   // first one, so it reads as a beat rather than a loop.
   experience: { position: [3.6, 4.2, 2.4], focus: [-0.6, 2.3, 7.0], blend: 1, turn: 0.26, clip: "left-desktop" },
-  // Back and high — the chapter closes, he settles square to the desk and the
+  // Back and high, the chapter closes, he settles square to the desk and the
   // room gets its scale back. Clears at x 2.83.
   learned: { position: [8.6, 4.6, 10.6], focus: [0, 2.3, 6.4], blend: 1, turn: 0 },
 };
@@ -136,7 +136,7 @@ const LANDSCAPE: Record<StoryChapterKey, Pose> = {
 /**
  * Portrait holds far less width at the same distance, so every camera backs off
  * along its own axis. Same axis means the sight lines that were cleared above
- * stay cleared — and it is one number rather than a second table to keep in
+ * stay cleared, and it is one number rather than a second table to keep in
  * sync, which is how the first pass at this ended up with four chapters framed
  * through a monitor.
  */
@@ -164,7 +164,7 @@ const poseFor = (chapter: StoryChapterKey): Pose => {
  * it in portrait. Framing is kept out of the pose numbers above, which are
  * staging.
  *
- * The offsets are fractions of the frame, not world units — the poses range
+ * The offsets are fractions of the frame, not world units, the poses range
  * from arm's length over a shoulder to across the room, and a fixed world
  * offset that clears the text in the wide shot throws him off-screen in the
  * close one.
@@ -172,7 +172,7 @@ const poseFor = (chapter: StoryChapterKey): Pose => {
  * Shifting the focus by `k × halfHeight` moves the subject by `k / 2` of the
  * FULL frame, since the frame is two half-heights tall. That factor of two is
  * what made portrait wrong: 0.26 lifted him only 13%, landing him at 37% of the
- * frame — under the copy, where the portrait scrim is already 0.94 opaque and
+ * frame, under the copy, where the portrait scrim is already 0.94 opaque and
  * the chapter text runs straight across his face. The scrim is built to keep
  * the top ~24% clear for him, so the lift has to be ~0.6 to put him there.
  */
@@ -185,7 +185,7 @@ const camUp = new Vector3();
 
 /**
  * Exported because `animations/inspect.ts` frames its object panels the same
- * way — one rule for "keep the subject clear of the copy column", not two that
+ * way, one rule for "keep the subject clear of the copy column", not two that
  * drift apart.
  */
 export const framedFocus = (pose: { position: [number, number, number]; focus: [number, number, number] }, out: Vector3) => {
@@ -242,9 +242,15 @@ const setStage = () => {
   workstation.reveal.value = 1;
   workstation.group.scale.set(1, 1, 1);
   // The Experience in-timeline is what shrinks the About lab pod away, and
-  // tearing that timeline down puts it back at full size — with its progress
+  // tearing that timeline down puts it back at full size, with its progress
   // counter sitting in the middle of the office floor.
   lab.group.scale.set(0.001, 0.001, 0.001);
+  // Both of these are owned by the section's X-ray phase. A story opened while
+  // the beats timeline was anywhere inside it would otherwise inherit dark
+  // monitors and a camera pushed off its pose, and the timeline that would
+  // have scrubbed them back is the one this page just tore down.
+  screens.state.dim = 0;
+  waypoints.dolly.value = 0;
 };
 
 const applyStage = (chapter: StoryChapterKey, snapPose: boolean) => {
@@ -276,7 +282,7 @@ const enter = (chapter: StoryChapterKey) => {
   applyStage(chapter, cold);
   // The home sections tear their timelines down on this flush, and a reverted
   // matchMedia puts the values it recorded back. Stamp the stage again once
-  // that has happened — same microtask turn, so nothing paints in between.
+  // that has happened, same microtask turn, so nothing paints in between.
   nextTick(() => {
     applyStage(chapter, cold);
     // Longer than a chapter-to-chapter move (1.1s): this one is the arrival,
@@ -298,7 +304,7 @@ let beatClip: string | null = null;
  * snapping into place once it lands.
  *
  * `duration` is the camera's; the turn takes slightly less so the body has
- * settled by the time the frame does. Nothing here touches his position — he
+ * settled by the time the frame does. Nothing here touches his position, he
  * stays in the chair for all six chapters, and moving the root is what made
  * earlier attempts slide him through the desk.
  */
@@ -328,7 +334,7 @@ const applyBeat = (pose: Pose, duration: number) => {
   // A cold deep link asks for the opening chapter's clip before the avatar
   // model has downloaded, and `play` is a no-op until it has. Recording
   // `beatClip` anyway would mark a beat that never ran as done, so the chapter
-  // would sit in the plain idle for good — the same class of bug the camera
+  // would sit in the plain idle for good, the same class of bug the camera
   // pose had. Wait for the model instead, then run it.
   if (!animations.actions.size) {
     resources.once("ready", () => {
@@ -366,7 +372,7 @@ const reframe = (chapter: StoryChapterKey) => {
 };
 
 /**
- * Hands the stage back. The caller owns what happens next — the home sections
+ * Hands the stage back. The caller owns what happens next, the home sections
  * rebuild their timelines on the following flush, and only then is it worth
  * refreshing ScrollTrigger and restoring the scroll position.
  */

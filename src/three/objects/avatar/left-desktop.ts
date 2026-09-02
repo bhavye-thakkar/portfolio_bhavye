@@ -48,8 +48,8 @@ const startInterval = () => {
     // clamps him 70° left for seconds at a time, at random, on whatever beat
     // the visitor happens to be reading. It also called the HERO room's
     // message popup and desktop message while that room was nowhere on
-    // stage. Experience's gaze is deterministic now — per-beat, in
-    // avatar/index.ts — and the story page plays this clip itself on the
+    // stage. Experience's gaze is deterministic now, per-beat, in
+    // avatar/index.ts, and the story page plays this clip itself on the
     // chapters where the glance IS the beat.
     const onStage = sceneWeights.hero > 0.95;
     // ...but NOT while a detail page owns the stage. The story page fires this

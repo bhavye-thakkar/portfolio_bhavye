@@ -2,7 +2,7 @@ import { CanvasTexture, LinearFilter, SRGBColorSpace } from "three";
 
 /**
  * The two monitor faces of the Experience workstation, drawn on a 2D canvas
- * rather than modelled — a dashboard is text and rectangles, which is exactly
+ * rather than modelled, a dashboard is text and rectangles, which is exactly
  * what a canvas is good at, and it keeps the whole office at zero extra
  * texture downloads.
  *
@@ -11,7 +11,7 @@ import { CanvasTexture, LinearFilter, SRGBColorSpace } from "three";
  * one side, new content on the other.
  *
  * These are set dressing, not a portfolio claim. Nothing here names a product,
- * a client or a dataset — they are original panels that read as "something is
+ * a client or a dataset, they are original panels that read as "something is
  * being built" and "something is being shipped", which is all the office needs
  * them to say. Real work belongs in the story page, in the visitor's own words.
  */
@@ -136,7 +136,7 @@ const buildLeft = (ctx: CanvasRenderingContext2D, phase: number) => {
     label(ctx, v as string, x + 12, 80, 20, INK);
   });
 
-  // Node diagram — two paths through the graph with shared junctions
+  // Node diagram, two paths through the graph with shared junctions
   panel(ctx, 14, 102, 320, 156);
   label(ctx, "SERVICE MAP", 26, 122, 11);
   const route = (points: [number, number][], color: string) => {
@@ -205,7 +205,7 @@ const buildLeft = (ctx: CanvasRenderingContext2D, phase: number) => {
 const buildRight = (ctx: CanvasRenderingContext2D, phase: number) => {
   chrome(ctx, "query.sql / pipeline", "postgres");
 
-  // Faux query — shapes of code, not code
+  // Faux query, shapes of code, not code
   const code: [number, string][] = [
     [0, "select"],
     [1, "route_id, date_trunc('hour', seen_at) as h,"],
@@ -262,7 +262,7 @@ const shipLeft = (ctx: CanvasRenderingContext2D, phase: number) => {
   // Message stream
   panel(ctx, 176, 38, 450, 190);
   const messages = [
-    ["AK", "deploy went out — build is green"],
+    ["AK", "deploy went out, build is green"],
     ["BT", "hooked the hourly job to the new endpoint"],
     ["RS", "throughput view looks right now"],
   ];
@@ -404,7 +404,14 @@ class Screen {
 let left: Screen | null = null;
 let right: Screen | null = null;
 
-const state = { blend: 0 };
+/**
+ * `blend` crosses the two scenarios; `dim` is how far the panels have gone
+ * dark, 0 = on, 1 = off. The X-ray sequence drives `dim`, the monitors going
+ * quiet is the cue that says something is about to happen to the scene, and it
+ * is applied to the screen materials by the workstation tick rather than
+ * redrawn into the canvases, which would cost a repaint per frame.
+ */
+const state = { blend: 0, dim: 0 };
 let lastDrawn = -1;
 let fontsReady = false;
 
@@ -429,7 +436,7 @@ const redraw = (phase: number) => {
 
 /**
  * Called from the workstation tick. Redraws at ~6fps while the scene is on
- * stage and never otherwise — the canvases are the only per-frame cost in the
+ * stage and never otherwise, the canvases are the only per-frame cost in the
  * office and this keeps them off the budget.
  */
 const update = (time: number) => {
@@ -447,6 +454,7 @@ const destroy = () => {
   lastDrawn = -1;
   fontsReady = false;
   state.blend = 0;
+  state.dim = 0;
 };
 
 export const screens = {

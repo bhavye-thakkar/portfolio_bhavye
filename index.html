@@ -6,12 +6,12 @@
 
     <!--
       The domain below is still the project's placeholder. It appears here, in
-      public/sitemap.xml, in public/robots.txt and in public/llms.txt — change
+      public/sitemap.xml, in public/robots.txt and in public/llms.txt, change
       all four in one edit when the real one exists. Nothing else in this head
       is a placeholder: the title, the description and the profile links are
       what the portfolio actually publishes.
     -->
-    <title>Bhavye Thakkar — Data Scientist &amp; Flutter Developer</title>
+    <title>Bhavye Thakkar - Data Scientist &amp; Flutter Developer</title>
     <meta
       name="description"
       content="Portfolio of Bhavye Thakkar, a Data Scientist and Flutter Engineer. AI/ML, computer vision and data analytics work in Python and TensorFlow, and mobile apps built with Flutter."
@@ -19,7 +19,7 @@
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://example.com/" />
 
-    <meta property="og:title" content="Bhavye Thakkar — Data Scientist &amp; Flutter Developer" />
+    <meta property="og:title" content="Bhavye Thakkar - Data Scientist &amp; Flutter Developer" />
     <meta
       property="og:description"
       content="Portfolio of Bhavye Thakkar, a Data Scientist and Flutter Engineer. AI/ML, computer vision and data analytics work in Python and TensorFlow, and mobile apps built with Flutter."
@@ -29,12 +29,12 @@
     <meta property="og:site_name" content="Bhavye Thakkar" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:image" content="https://example.com/meta/og-image.webp" />
-    <meta property="og:image:alt" content="Bhavye Thakkar — Data Scientist and Flutter Engineer" />
+    <meta property="og:image:alt" content="Bhavye Thakkar - Data Scientist and Flutter Engineer" />
     <meta property="profile:first_name" content="Bhavye" />
     <meta property="profile:last_name" content="Thakkar" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Bhavye Thakkar — Data Scientist &amp; Flutter Developer" />
+    <meta name="twitter:title" content="Bhavye Thakkar - Data Scientist &amp; Flutter Developer" />
     <meta
       name="twitter:description"
       content="Portfolio of Bhavye Thakkar, a Data Scientist and Flutter Engineer. AI/ML, computer vision and data analytics work in Python and TensorFlow, and mobile apps built with Flutter."
@@ -49,7 +49,7 @@
       times over. Every value is something the portfolio actually publishes:
 
         · `sameAs` has GitHub and LinkedIn only. The social row also renders
-          an X button, but its URL is a placeholder — pointing a search engine
+          an X button, but its URL is a placeholder, pointing a search engine
           at a profile that does not exist is worse than omitting it.
         · `hasCredential` is the five real certificates, each with the URL the
           card links to.
@@ -145,7 +145,7 @@
             "@type": "ProfilePage",
             "@id": "https://example.com/#webpage",
             "url": "https://example.com/",
-            "name": "Bhavye Thakkar — Data Scientist & Flutter Developer",
+            "name": "Bhavye Thakkar - Data Scientist & Flutter Developer",
             "isPartOf": { "@id": "https://example.com/#website" },
             "about": { "@id": "https://example.com/#person" },
             "mainEntity": { "@id": "https://example.com/#person" },
@@ -179,15 +179,15 @@
       ── THE PRELOADER'S OWN STYLES, INLINE AND ON PURPOSE ─────────────────
 
       This used to live in src/assets/styles/preloader.scss, which ships inside
-      the JS bundle. That meant the preloader — the one thing on the page whose
-      entire job is to look right before anything else has loaded — was the
+      the JS bundle. That meant the preloader, the one thing on the page whose
+      entire job is to look right before anything else has loaded, was the
       last thing to get styled.
 
       Unstyled, `.preloader` is a static div and the SVG inside it has no
       width, so it auto-sizes to the full viewport: a 1400px grey logo on a
       white page. That is what a visitor sees for the whole of a slow first
       paint, and *permanently* if the bundle fails to execute at all (a missing
-      asset import is enough — see src/assets/thumbnails/). The screen that is
+      asset import is enough, see src/assets/thumbnails/). The screen that is
       supposed to hide a broken boot was drawing the broken boot.
 
       So the rules live here, in the same document as the markup, and there is
@@ -270,10 +270,10 @@
       Everything visual on this site is drawn by JavaScript, so without this
       block the page ships ZERO text: an empty mount point, no heading and no
       links. Google runs JS and sees the real app, but the crawlers behind AI
-      answers mostly do not — they were being handed a blank document.
+      answers mostly do not, they were being handed a blank document.
 
       IT LIVES IN A NOSCRIPT BLOCK ON PURPOSE. It was inside #app first, on the
-      theory that Vue clears that container before it mounts. It does — but
+      theory that Vue clears that container before it mounts. It does, but
       only once the bundle has run, and the stylesheet arrives with that same
       bundle in dev, so every refresh painted this as an unstyled document
       first. A parser never renders noscript content when scripting is on, so
@@ -282,7 +282,7 @@
 
       Two rules for editing it:
         · It must stay TRUE to what the rendered page says. This is a no-JS
-          fallback, not a keyword box — text here that the real page does not
+          fallback, not a keyword box, text here that the real page does not
           back up is cloaking, and it is what gets a site penalised.
         · Every fact below is in src/content/profile.ts. Change it there and
           mirror it here and in public/llms.txt.
@@ -290,11 +290,11 @@
     <div id="app"></div>
     <noscript>
     <main>
-      <h1>Bhavye Thakkar — Data Scientist and Flutter Engineer</h1>
+      <h1>Bhavye Thakkar - Data Scientist and Flutter Engineer</h1>
       <p>
         I craft digital products that merge creativity with technology. With hands-on experience in Flutter and
         AI/ML, I've built apps, explored data-driven solutions, and brought ideas to life at hackathons. What
-        excites me most is solving real problems with simple, scalable tech — and leaving an impact that lasts.
+        excites me most is solving real problems with simple, scalable tech, and leaving an impact that lasts.
       </p>
       <p>
         Based in Ahmedabad, Gujarat, India. This portfolio is an interactive 3D experience built with Three.js;
@@ -303,66 +303,64 @@
 
       <h2>Skills</h2>
       <ul>
-        <li>Python — machine learning, deep learning and data analysis</li>
-        <li>TensorFlow — model building and training</li>
-        <li>Pandas, NumPy — data wrangling</li>
-        <li>Matplotlib, Seaborn — data visualisation</li>
-        <li>OpenCV — computer vision</li>
-        <li>Flutter and Dart — cross-platform mobile apps</li>
-        <li>JavaScript — web development</li>
+        <li>Python: machine learning, deep learning and data analysis</li>
+        <li>TensorFlow: model building and training</li>
+        <li>Pandas and NumPy: data wrangling</li>
+        <li>Matplotlib and Seaborn: data visualisation</li>
+        <li>OpenCV: computer vision</li>
+        <li>Flutter and Dart: cross-platform mobile apps</li>
+        <li>JavaScript: web development</li>
       </ul>
 
       <h2>Certificates</h2>
       <ul>
         <li>
           <a href="https://drive.google.com/file/d/1cy62eOolwDnVRfcP5BY2luChQY9k8t66/view"
-            >Artificial Intelligence / Machine Learning (AI/ML) — Edunet Foundation, sponsored by SAP, 2024</a
+            >Artificial Intelligence / Machine Learning (AI/ML): Edunet Foundation, sponsored by SAP, 2024</a
           >
         </li>
         <li>
           <a href="https://drive.google.com/file/d/1A6JV-YtU8XLByb0hWmTmDmGu_kzdhak9/view"
-            >TensorFlow Certification — GeeksforGeeks, 2024</a
+            >TensorFlow Certification: GeeksforGeeks, 2024</a
           >
         </li>
         <li>
           <a href="https://drive.google.com/file/d/1LR1f5aJhqdCBf6lJyazxB8ISPXdW9WrN/view"
-            >Data Analytics — Deloitte, 2025</a
+            >Data Analytics: Deloitte, 2025</a
           >
         </li>
         <li>
           <a href="https://drive.google.com/file/d/1NjFWw2v-8CZT8ImyxrOq4eMZBASpFJM4/view"
-            >Intel® Applied AI — Intel®, 2022</a
+            >Intel® Applied AI: Intel®, 2022</a
           >
         </li>
         <li>
           <a href="https://drive.google.com/file/d/1qe64-45D5WFgawEeiUnB24M1HmTlbknh/view?usp=drive_link"
-            >Data Science Professional — Oracle, 2025</a
+            >Data Science Professional: Oracle, 2025</a
           >
         </li>
       </ul>
 
       <h2>Projects</h2>
       <ul>
-        <li><a href="/project/garbacircle">Garba Circle</a> — Navratri and Garba app</li>
+        <li><a href="/project/garbacircle">Garba Circle</a>: Navratri and Garba app</li>
         <li>
-          <a href="https://github.com/bhavye-thakkar/Expense-tracker">Mobile Finance App</a> — Flutter expense
+          <a href="https://github.com/bhavye-thakkar/Expense-tracker">Mobile Finance App</a>: Flutter expense
           tracking with budget analysis
         </li>
         <li>
-          <a href="https://github.com/bhavye-thakkar/Stock_MArket-prediction-AI-ML">Stock Market Analyzer</a> —
+          <a href="https://github.com/bhavye-thakkar/Stock_MArket-prediction-AI-ML">Stock Market Analyzer</a>:
           stock prediction with machine learning
         </li>
         <li>
           <a href="https://github.com/bhavye-thakkar/house-price-prediction-with-the-help-of-streeamlit"
             >House Price Prediction</a
-          >
-          — regression model behind a Streamlit interface
+          >: regression model behind a Streamlit interface
         </li>
         <li>
           <a href="https://github.com/bhavye-thakkar/note-taking-and-summarization-"
             >Note Taking &amp; Summarization</a
-          >
-          — collaborative notes with automatic summarisation
+          >: collaborative notes with automatic summarisation
         </li>
       </ul>
 
@@ -372,21 +370,21 @@
       </p>
       <ul>
         <li>
-          <a href="/object/orchid">The Orchid</a> — a blue orchid (Phalaenopsis) grown petal by petal in
+          <a href="/object/orchid">The Orchid</a>: a blue orchid (Phalaenopsis) grown petal by petal in
           Three.js; on rarity, patience, and what quietly stays
         </li>
         <li>
-          <a href="/object/starry-night">The Starry Night</a> — Vincent van Gogh, 1889, a public-domain
+          <a href="/object/starry-night">The Starry Night</a>: Vincent van Gogh, 1889, a public-domain
           reproduction; on night, motion, and imagination made visible
         </li>
       </ul>
 
       <h2>Hackathons</h2>
       <ul>
-        <li>InnoNova 24-Hour Hackathon, March 2025 — Team Lead, Top 15 Finalist</li>
-        <li>HackHertz, September 2025 — Team Lead, Finalist</li>
-        <li>Tic Tac Toe 2025, DA-IICT Gandhinagar, April 2025 — Participant</li>
-        <li>Smart India Hackathon 2024 — Participant</li>
+        <li>InnoNova 24-Hour Hackathon, March 2025. Team Lead, Top 15 Finalist</li>
+        <li>HackHertz, September 2025. Team Lead, Finalist</li>
+        <li>Tic Tac Toe 2025, DA-IICT Gandhinagar, April 2025. Participant</li>
+        <li>Smart India Hackathon 2024. Participant</li>
       </ul>
 
       <h2>Contact</h2>

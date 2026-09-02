@@ -12,11 +12,34 @@ import { penguin } from "./penguin";
 import { music } from "./music";
 import { orchid } from "./orchid";
 import { hotspots3D } from "./hotspots";
+import { createEnvelope } from "../envelope";
 
 import type { Object3D } from "three";
 
 const group = new Group();
 const chairScrollRotation = new Euler();
+
+/**
+ * The CV envelope, on the free desk in front of the penguin.
+ *
+ * It is on the hero desk as well as the Experience one because the CV should
+ * not be gated behind eleven screens of scroll: this is the first thing on the
+ * page, and the same prop, the same cyan seal and the same panel. The two are
+ * never on screen at once, `hero` and `experience` are mutually exclusive
+ * scene weights.
+ *
+ * The position is in ROOM-LOCAL space, and it was measured rather than picked:
+ * the desk surface is at y 1.5 (the mouse sits at 1.50 and the speaker at
+ * 1.44), and walking the desk plane through the hero camera's projection puts
+ * this spot in clear white desk between the penguin and the front-left edge.
+ * A child of the room group, because the hero timeline yaws that group as the
+ * page scrolls.
+ *
+ * Slightly smaller than the Experience one: the room is modelled a little
+ * tighter than the office bay, and at full size the envelope read as A4 next to
+ * a mouse.
+ */
+let envelope: ReturnType<typeof createEnvelope> | null = null;
 
 let objects: {
   blackboard: Mesh;
@@ -52,6 +75,21 @@ const init = () => {
   // After the orchid, because it measures the plant, and after initObjects,
   // because it needs the frame mesh.
   hotspots3D.init(objects?.frame);
+
+  // No contact shadow: the room's lighting is baked into its atlas and already
+  // has shadows painted under everything on the desk, so a second, brighter
+  // one reads as a smudge rather than as contact.
+  envelope = createEnvelope({
+    position: [0.35, 1.5, 2.05],
+    yaw: 0.34,
+    scale: 0.85,
+    isOnStage: () => sceneWeights.hero > 0.5,
+    // The room draws in the opaque pass; anything transparent has to come after
+    // it or the desk paints over the prop.
+    renderOrder: 6,
+  });
+  envelope.init();
+  group.add(envelope.group);
 };
 
 /**
@@ -131,11 +169,14 @@ const tick = () => {
   music.tick();
   orchid.tick();
   hotspots3D.tick();
+  envelope?.tick(gsap.ticker.deltaRatio(60));
 };
 
 const destroy = () => {
   gsap.ticker.remove(tick);
   shadow.destroy();
+  envelope?.destroy();
+  envelope = null;
   //group.clear();
   //objects = null;
   desktops.destroy();

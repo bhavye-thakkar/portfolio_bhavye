@@ -9,7 +9,7 @@
  * ── PROVENANCE ────────────────────────────────────────────────────────────
  *
  * Every value below was read off the live portfolio at
- * https://bhavyethakkar.netlify.app on 2026-08-28 — the skills table, the
+ * https://bhavyethakkar.netlify.app on 2026-08-28, the skills table, the
  * certificate links and the project links came out of that site's own page
  * bundles, not out of a summary of them. Nothing here is inferred.
  *
@@ -22,7 +22,7 @@
  *
  *   2. NO WORK EXPERIENCE. The source site has a Work Experience section
  *      (companies, titles, dates). It is deliberately NOT imported and must
- *      not be added here — `content/experience.ts` owns that section and is
+ *      not be added here, `content/experience.ts` owns that section and is
  *      written independently. This file is skills, certificates, projects,
  *      hackathons and contact details only.
  */
@@ -30,7 +30,7 @@
 /**
  * ⚠ PLACEHOLDER DOMAIN. This is the origin the app stamps into per-route
  * canonicals and og:url. It is the same value as index.html's canonical,
- * public/sitemap.xml's <loc>s and public/robots.txt's Sitemap line — those
+ * public/sitemap.xml's <loc>s and public/robots.txt's Sitemap line, those
  * three are static files and have to be changed by hand in the same edit.
  *
  * Nothing ranks until this is the real domain: a canonical pointing at
@@ -51,7 +51,7 @@ export const profile = {
    * The About copy, verbatim from the source site. Kept as one string rather
    * than split into the HUD's shorter lines, which live in the i18n bundle.
    */
-  bio: "I craft digital products that merge creativity with technology. With hands-on experience in Flutter and AI/ML, I've built apps, explored data-driven solutions, and brought ideas to life at hackathons. What excites me most is solving real problems with simple, scalable tech—and leaving an impact that lasts.",
+  bio: "I craft digital products that merge creativity with technology. With hands-on experience in Flutter and AI/ML, I've built apps, explored data-driven solutions, and brought ideas to life at hackathons. What excites me most is solving real problems with simple, scalable tech-and leaving an impact that lasts.",
 } as const;
 
 export const contact = {
@@ -65,7 +65,7 @@ export const profiles = {
   github: "https://github.com/bhavye-thakkar",
   linkedin: "https://www.linkedin.com/in/bhavyethakkar/",
   /**
-   * ⚠ PLACEHOLDER — no X account is published anywhere on the portfolio, so
+   * ⚠ PLACEHOLDER, no X account is published anywhere on the portfolio, so
    * this is the stand-in the social row shipped with and it does not resolve.
    * Put the real handle here, or drop the `x` entry from `social.ts`.
    * It is deliberately kept out of `sameAs` in the page's structured data:
@@ -75,14 +75,40 @@ export const profiles = {
   x: "https://x.com/example",
 } as const;
 
-// There is deliberately no CV entry here. Nothing in the site links to one,
-// and llms.txt does not publish one — adding it back means adding it in both
-// places at once.
+/**
+ * ── EVERY SITE HE PUBLISHES ───────────────────────────────────────────────
+ *
+ * One array, consumed by the Contact section and by `public/llms.txt`. Adding
+ * or retiring an address is one edit here and nowhere else, which is the whole
+ * reason it is not written into a component.
+ *
+ * The FIRST entry is the primary portfolio: it is the address the CV itself
+ * prints, it is where `profile.ts` was sourced from, and the UI gives it its
+ * own heading. The rest are earlier or parallel builds.
+ *
+ * ⚠ URLS ARE VERBATIM. These are the addresses the owner supplied, character
+ * for character; all five answered 200 when they went in. The label is just
+ * the host with the scheme dropped, because that is the only thing that
+ * honestly distinguishes one from another without opening it, and inventing
+ * "the React one" or "the older one" would be a guess about their contents.
+ */
+export const portfolioLinks = [
+  { label: "bhavyethakkar.netlify.app", url: "https://bhavyethakkar.netlify.app/", primary: true },
+  { label: "bhavye.vercel.app", url: "https://bhavye.vercel.app" },
+  { label: "thakkarbhavya.netlify.app", url: "https://thakkarbhavya.netlify.app" },
+  { label: "bhavyathakkar.netlify.app", url: "https://bhavyathakkar.netlify.app" },
+  { label: "thakkarbhavye.netlify.app", url: "https://thakkarbhavye.netlify.app" },
+] as const satisfies { label: string; url: string; primary?: boolean }[];
+
+// The CV lives in `content/cv.ts`, transcribed from the PDF in `public/cv/`.
+// Nothing here duplicates it: that document leads with a different role line
+// and names an employer this file deliberately does not, and the two are
+// allowed to differ, see the header of `content/cv.ts`.
 
 /**
  * The technical skills table from the source site's /skills page, with the
  * proficiency band it publishes for each one. `level` is that page's own
- * percentage — carried across so the number cannot drift from the label.
+ * percentage, carried across so the number cannot drift from the label.
  */
 export const skills = [
   { name: "Python", level: 75, tag: "Intermediate" },
@@ -114,7 +140,7 @@ export const aiMl = [
 /**
  * ── LLM ───────────────────────────────────────────────────────────────────
  *
- * The source site names no LLM technology anywhere — not in the skills table,
+ * The source site names no LLM technology anywhere, not in the skills table,
  * not in the project stacks, not in `knowsAbout`. This single entry is carried
  * over from THIS portfolio's own existing skills panel, which is the only
  * place it is claimed. Nothing has been added to it: inventing a LangChain or
@@ -127,7 +153,7 @@ export const llm = ["Generative AI & LLMs"] as const;
 
 /**
  * The HUD's skills panel, in the order and wording it has always used. This
- * is the portfolio's own list, kept as-is at the owner's instruction — it is
+ * is the portfolio's own list, kept as-is at the owner's instruction, it is
  * NOT the source site's skills table (that is `skills` above, which the
  * metadata and llms.txt publish).
  *
@@ -156,7 +182,7 @@ export const skillHighlights = [
 
 /**
  * Certificates, with the real destination behind each one. Every `url` is the
- * exact link the source site points at — none of them is reconstructed, and
+ * exact link the source site points at, none of them is reconstructed, and
  * none of them is a `#`. A card with an empty `url` renders as a plain card
  * rather than a dead link, so a future entry without a link is still safe.
  *
@@ -219,7 +245,7 @@ export const certificates = [
  * Circle is the one written-up case study and the rest are reserved slots by
  * design. Promoting one of these into a slot needs a real write-up and real
  * artwork, and the source site publishes a one-line description and a repo
- * link — turning that into a case study would mean writing fiction.
+ * link, turning that into a case study would mean writing fiction.
  *
  * So they live here with their verified links, which is what llms.txt
  * publishes and what a future promotion starts from. `demo` is null wherever
@@ -284,7 +310,7 @@ export const sourceProjects = [
  */
 export const hackathons = [
   {
-    name: "InnoNova — 24-Hour Hackathon",
+    name: "InnoNova, 24-Hour Hackathon",
     organisation: "Innovation Hub",
     date: "March 2025",
     role: "Team Lead",

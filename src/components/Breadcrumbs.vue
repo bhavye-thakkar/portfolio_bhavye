@@ -12,7 +12,7 @@ import Link from "./Link.vue";
  *    home page rather than floating on their own.
  *
  * The matching `BreadcrumbList` structured data is emitted from
- * `composables/useHead.ts` — one source, so the markup and the schema cannot
+ * `composables/useHead.ts`, one source, so the markup and the schema cannot
  * disagree about where the visitor is.
  */
 defineProps<{

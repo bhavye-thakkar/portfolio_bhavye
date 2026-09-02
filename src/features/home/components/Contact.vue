@@ -4,6 +4,7 @@ import { transitions } from "../../../animations";
 import { storyActive } from "../../../animations/story";
 import { t } from "../../../i18n/utils/translate";
 import Social from "../../../components/Social.vue";
+import PortfolioLinks from "../../../components/PortfolioLinks.vue";
 
 const contactElement = ref<HTMLElement | null>(null);
 
@@ -28,11 +29,19 @@ watchEffect((onInvalidate) => {
            icons asks for a message without saying whether one comes back. -->
       <p class="contact-promise">{{ t("response-time") }}</p>
       <Social variant="background" />
+      <!-- Every address this portfolio lives at, from one array in
+           `content/profile.ts`. Below the icon row because it is a footnote to
+           the invitation, not a second call to action. -->
+      <PortfolioLinks class="contact-portfolio" />
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
+.contact-portfolio {
+  padding-top: var(--space-md);
+}
+
 .contact {
   width: 100%;
   max-width: calc(var(--svw) * 100);

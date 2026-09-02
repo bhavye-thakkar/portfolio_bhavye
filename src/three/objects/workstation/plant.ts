@@ -28,8 +28,8 @@ import type { Material, Texture } from "three";
  *
  * WHAT MAKES IT NOT LOOK GENERATED:
  *
- *  · Every blade is a solid lens in cross-section — four points around, not a
- *    plane — so the edge has thickness from any angle and the keel catches
+ *  · Every blade is a solid lens in cross-section, four points around, not a
+ *    plane, so the edge has thickness from any angle and the keel catches
  *    the matcap the way a real leaf catches light.
  *  · No two blades are the same. Height, width, lean, the direction they
  *    arch, how much they twist and their exact green all come off one seeded
@@ -38,7 +38,7 @@ import type { Material, Texture } from "three";
  *  · Colour is per-vertex, dark at the soil and lighter at the tips, so one
  *    material covers the whole fan and still has variation across it.
  *  · A multiply-blended contact shadow sits under the pot. Nothing in this
- *    scene casts a real shadow — there are no lights — so without it the pot
+ *    scene casts a real shadow, there are no lights, so without it the pot
  *    hovers, which is the single loudest "dropped in" tell.
  *
  * Cost: three meshes, three materials, ~1.4k triangles.
@@ -205,11 +205,13 @@ export type PlantParts = {
 };
 
 /**
- * `matcap` is the office's shared white matcap — the plant tints it per-vertex
- * rather than carrying a texture of its own, so the whole thing costs no extra
- * downloads.
+ * Two matcaps from `./materials.ts`: the blades are waxy and the terracotta
+ * pot is not, and shading both with one profile was part of why the bay read
+ * as a single substance. Neither carries a texture of its own, the leaf
+ * colour is per-vertex and the pot is a tint, so the plant still costs no
+ * extra downloads.
  */
-export const createPlant = (matcap: Texture): PlantParts => {
+export const createPlant = (leafMatcap: Texture, potMatcap: Texture): PlantParts => {
   const group = new Group();
   const disposables: (BufferGeometry | Material | Texture)[] = [];
   const materials: Material[] = [];
@@ -247,7 +249,7 @@ export const createPlant = (matcap: Texture): PlantParts => {
   blades.forEach((b) => b.dispose());
 
   if (leafGeometry) {
-    const leafMaterial = new MeshMatcapMaterial({ matcap, vertexColors: true, transparent: true });
+    const leafMaterial = new MeshMatcapMaterial({ matcap: leafMatcap, vertexColors: true, transparent: true });
     const leafMesh = new Mesh(leafGeometry, leafMaterial);
     leafMesh.renderOrder = 12;
     leafMesh.frustumCulled = false;
@@ -256,12 +258,12 @@ export const createPlant = (matcap: Texture): PlantParts => {
     materials.push(leafMaterial);
   }
 
-  // ── pot: muted clay rather than the deck's own off-white — the pale pot
+  // ── pot: muted clay rather than the deck's own off-white, the pale pot
   // dissolved into the pale deck and the plant read as leaves growing out of
   // the floor. One warm note in a cool scene is also what the room's own
   // corkboard-and-shelf palette does.
   const potGeometry = createPot();
-  const potMaterial = new MeshMatcapMaterial({ matcap, color: 0xc98d6b, transparent: true });
+  const potMaterial = new MeshMatcapMaterial({ matcap: potMatcap, color: 0xc98d6b, transparent: true });
   const potMesh = new Mesh(potGeometry, potMaterial);
   potMesh.renderOrder = 12;
   potMesh.frustumCulled = false;
@@ -282,8 +284,8 @@ export const createPlant = (matcap: Texture): PlantParts => {
     const shadowMesh = new Mesh(shadow.geometry, shadowMaterial);
     /**
      * AFTER the office, not before it. A multiply blend multiplies against
-     * whatever is already in the colour buffer, so at renderOrder 11 — ahead
-     * of the deck at 12 — this multiplied the dark blue background and then
+     * whatever is already in the colour buffer, so at renderOrder 11, ahead
+     * of the deck at 12, this multiplied the dark blue background and then
      * the deck painted over the middle of it, leaving a hard blue rectangle
      * on the floor. Drawing last means it multiplies the cream deck, which is
      * the surface the shadow is supposed to be on.

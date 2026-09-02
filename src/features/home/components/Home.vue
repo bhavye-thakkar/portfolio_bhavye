@@ -151,7 +151,7 @@ watch(
            the content" had nothing to skip to, and the only <main> on the site
            was the one inside the noscript fallback. It wraps everything except
            the footer, and carries `.layout`'s own flex rules so it changes no
-           geometry — the scroll offsets every ScrollTrigger is measured
+           geometry, the scroll offsets every ScrollTrigger is measured
            against have to stay exactly where they were. -->
       <main class="home-main">
       <div class="intro-wrapper" ref="introRef">
@@ -161,7 +161,7 @@ watch(
           :style="{ '--contact-bottom': `${contactBottom}px` }"
         >
           <!-- The Experience story page borrows this exact element rather than
-               spinning up a second renderer — a teleport moves the node, and a
+               spinning up a second renderer, a teleport moves the node, and a
                moved canvas keeps its WebGL context and its ResizeObserver. -->
           <Teleport to="#experience-stage" :disabled="experienceId === null">
             <canvas
@@ -201,7 +201,7 @@ watch(
 
    That is not a tidiness preference, it is the fix. `.intro-sticky` sits at
    `z-index: -1`, which puts every ancestor's own content layer ABOVE the HUD
-   panels inside it — which is why `.intro-wrapper` already has
+   panels inside it, which is why `.intro-wrapper` already has
    `pointer-events: none`. A wrapper with a box re-created that exact bug one
    level higher: hit-testing at a certificate card returned `main`, and the
    card stopped being hoverable or clickable. A box that does not exist cannot
@@ -231,7 +231,7 @@ watch(
   &-wrapper {
     transform-origin: center center;
 
-    /* An object panel keeps home alive underneath it — that is the point, the
+    /* An object panel keeps home alive underneath it, that is the point, the
        camera is pushing in on the real scene. But the page's own furniture is
        not part of that shot: at the scrim's 0.96 the black display heading
        still read through as a ghost across the copy. The canvas stays, the
@@ -289,7 +289,7 @@ watch(
 }
 
 /* Height comes from `sectionHeightVh` so the spacer and the timeline are built
-   from one set of numbers — adding a company to content/experience.ts lengthens
+   from one set of numbers, adding a company to content/experience.ts lengthens
    the section rather than squeezing the existing chapters. */
 .experience-spacer {
   max-height: calc(var(--lvh) * var(--span));

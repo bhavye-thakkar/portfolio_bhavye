@@ -92,15 +92,15 @@ const handleTimelineCreated = (timeline: gsap.core.Timeline, delay: number) => {
 };
 
 /**
- * One Skills card. The first five are the card's opening view — the list scrolls
+ * One Skills card. The first five are the card's opening view, the list scrolls
  * inside the card for the rest, so the card keeps its original size.
  */
 const VISIBLE_ROWS = 5;
 
 /**
  * The list moved to `content/profile.ts` so the skills, the certificates and
- * llms.txt all come out of one file. The panel itself — its scroll container,
- * its reveal timeline, its layout — is untouched; only the source of the
+ * llms.txt all come out of one file. The panel itself, its scroll container,
+ * its reveal timeline, its layout, is untouched; only the source of the
  * words changed.
  */
 const services = skillHighlights;
@@ -269,7 +269,7 @@ const handleListScroll = () => {
     gap: var(--space-xs);
 
     /* Only the list scrolls; the card and its title stay put. The rows inherit
-       this font-size, so `1lh` here is exactly one row — deriving the height
+       this font-size, so `1lh` here is exactly one row, deriving the height
        from a guessed line-height ratio clipped the fifth row by ~2px once
        ProFontWindows had loaded. */
     font-size: var(--row-font);

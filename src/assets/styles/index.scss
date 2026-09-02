@@ -35,14 +35,14 @@ html {
 }
 
 /* An object panel is a fixed layer with its own `overflow-y: auto`, so while one
-   is open the page's scrollbar sat right beside the panel's — two bars, and the
+   is open the page's scrollbar sat right beside the panel's, two bars, and the
    page one inert, because Lenis is stopped for the duration.
 
    Taking it away rather than reserving its strip with `scrollbar-gutter`: a
    reserved-but-empty gutter is a pale 15px seam down the outside of the panel,
    which looks more like a rendering fault than a scrollbar does. Without it the
    panel covers the full viewport. The cost is that the page behind reflows by
-   the bar's width as the panel opens — under a half-second fade, over a page
+   the bar's width as the panel opens, under a half-second fade, over a page
    the panel is already covering. */
 html:has(.object-wrapper-visible) {
   overflow-y: hidden !important;
@@ -82,7 +82,7 @@ html:has(.object-wrapper-visible) {
  *
  * Headings, labels, nav items and controls are chrome: clicking one should do
  * the thing, not drop an I-beam into it or drag-select half a company name.
- * Body copy — the story chapters, the project write-ups — is left alone and
+ * Body copy, the story chapters, the project write-ups, is left alone and
  * stays selectable, which is the whole reason this is a list rather than a
  * blanket rule on `body`.
  *

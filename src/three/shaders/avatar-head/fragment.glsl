@@ -10,7 +10,7 @@ varying vec2 vUv;
  * Hair and skin share one atlas, but they sit either side of a wide gap in
  * luminance (hair tops out around 0.62, skin starts around 0.70), so the hair
  * can be re-tinted without touching the face. HAIR_TINT multiplies the sampled
- * colour — lower it to darken, shift the channels to warm or cool it.
+ * colour, lower it to darken, shift the channels to warm or cool it.
  */
 #define HAIR_TINT vec3(0.34, 0.28, 0.25)
 #define HAIR_LUM_LOW 0.62

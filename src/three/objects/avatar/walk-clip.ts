@@ -19,9 +19,9 @@ import type { AnimationClip as Clip, KeyframeTrack } from "three";
  *    so a partial clip inherits the tail of the pose it crossfaded from.
  */
 
-/** samples per cycle — enough for the mixer to interpolate a smooth loop */
+/** samples per cycle, enough for the mixer to interpolate a smooth loop */
 const SAMPLES = 24;
-/** one full cycle is two steps — slow, for a relaxed walk-away */
+/** one full cycle is two steps, slow, for a relaxed walk-away */
 const DURATION = 1.35;
 
 const TAU = Math.PI * 2;

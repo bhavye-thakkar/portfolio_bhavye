@@ -7,7 +7,7 @@ import { contact, profiles } from "./profile";
  *
  * ⚠ The X entry is a PLACEHOLDER. The source portfolio publishes an email, a
  * GitHub and a LinkedIn and no X account, so there is no verified handle to
- * point it at — `profiles.x` is `https://x.com/example` and goes nowhere.
+ * point it at, `profiles.x` is `https://x.com/example` and goes nowhere.
  * Swap in the real handle in `profile.ts`, or delete the entry, before this
  * ships; it is the one link on the site that does not resolve.
  */

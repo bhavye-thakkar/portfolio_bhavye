@@ -18,13 +18,13 @@ import { objectBySlug } from "../content/objects";
  *
  * The Experience story replaces the home page: home goes `position: fixed`,
  * the story takes the document scroll, and every ScrollTrigger on the page is
- * left measuring a layout that is no longer there — hence the teardown flag,
+ * left measuring a layout that is no longer there, hence the teardown flag,
  * the stage-setting by hand and the scroll restore.
  *
  * None of that happens here. The object panel is a layer over a home page
  * that stays exactly where it is, with Lenis stopped so it cannot scroll
  * underneath. Both objects only exist in the hero shot, which is where the
- * page already is when they are clicked, so the stage needs no setting — only
+ * page already is when they are clicked, so the stage needs no setting, only
  * the camera moves.
  *
  * The one thing that IS needed is `stageHold`: the waypoint solver rebuilds
@@ -82,7 +82,7 @@ const poseFor = (slug: string): Pose | null => {
   direction.normalize();
 
   // Portrait holds far less width at the same distance, so it stands further
-  // back along the same line — one number, not a second table of poses.
+  // back along the same line, one number, not a second table of poses.
   const distance = entry.framing.distance * (sizes.isLandscape ? 1 : 1.45);
 
   return {
@@ -100,7 +100,7 @@ let isActive = false;
  * ── THE POSE IS RE-EVALUATED EVERY FRAME, NOT BAKED INTO A TWEEN ──────────
  *
  * The first version tweened `waypoints` to a pose computed once, at the moment
- * the panel opened. On a click that is fine — the hotspot boxes have been
+ * the panel opened. On a click that is fine, the hotspot boxes have been
  * measured for thousands of frames by then. On a COLD DEEP LINK it was not:
  * `/object/orchid` asks for the camera while the room group is still at
  * identity, so the box came back in local coordinates, the camera flew to a
@@ -110,7 +110,7 @@ let isActive = false;
  *
  * So there is no tween. A ticker reads the live box every frame and eases the
  * camera toward it. Whenever the room's transform settles, the target simply
- * becomes correct and the camera follows — no ordering to get right, and
+ * becomes correct and the camera follows, no ordering to get right, and
  * `reframe` on an orientation change comes free.
  */
 const target = new Vector3();
@@ -131,10 +131,10 @@ let returning = false;
 /**
  * `gsap.ticker.add` does not de-duplicate, and reopening a panel while the
  * previous one is still easing home would have registered `tick` a second
- * time — two camera solvers fighting over the same vector, forever.
+ * time, two camera solvers fighting over the same vector, forever.
  */
 let ticking = false;
-/** Set when the camera has nowhere to move FROM — a cold deep link. */
+/** Set when the camera has nowhere to move FROM, a cold deep link. */
 let snapNext = false;
 
 /** Where the camera was standing when the panel opened, so closing goes back. */
@@ -222,7 +222,7 @@ const exit = () => {
   activeSlug = null;
 
   // A cold deep link closed before it ever framed anything has no hero shot
-  // recorded — the solver's own answer is better than the origin.
+  // recorded, the solver's own answer is better than the origin.
   if (returnPosition.lengthSq() < 0.001) {
     stageHold.value = false;
     stopTick();

@@ -20,7 +20,7 @@ export const usePreloader = () => {
    *
    * It briefly held the last 10% back for the hero's shader compile, on the
    * theory that "loaded" should mean "paintable". But a shader link blocks
-   * the main thread, and a blocked main thread cannot run this watcher — so
+   * the main thread, and a blocked main thread cannot run this watcher, so
    * the fill never animated at all: the logo sat as a grey ghost, then
    * snapped to solid dark in one frame when the thread came back. The honest
    * gate destroyed the very animation it was pacing.

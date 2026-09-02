@@ -30,7 +30,7 @@ const transform = new Group();
  * The entry never shows an empty stage: the hologram stands in for the avatar
  * the whole way through, and only turns solid at the end. The exit has to be
  * able to do the same in reverse, which means the hologram must outlive
- * About — hence both this and the visibility rule in `tick`.
+ * About, hence both this and the visibility rule in `tick`.
  */
 const dissolve = { value: 0 };
 
@@ -63,7 +63,7 @@ const setupGeometry = () => {
   });
 
   // The spectacles, nose and watch are built at runtime, so they are not in the
-  // GLB and the traverse above misses them — merge them in or the scan shows a
+  // GLB and the traverse above misses them, merge them in or the scan shows a
   // bare face and an empty wrist. The watch especially: the X-ray is the one
   // view where the whole figure is on screen at arm's length, so a wrist that
   // is bare there reads as the watch having fallen off between scenes.
@@ -110,7 +110,7 @@ const tick = () => {
   hologramUniforms.uTime.value = gsap.ticker.time;
   //hologramUniforms.uProgress.value = sceneWeightsInOut.about.in * 1.1 - 0.1;
   // -0.1 is the unformed end of the scan for this material, the same way it is
-  // the solid end for the avatar's — same idiom, opposite meaning.
+  // the solid end for the avatar's, same idiom, opposite meaning.
   hologramUniforms.uProgress.value = mix(aboutProgress.value * 1.1 - 0.1, -0.1, dissolve.value);
 
   if (!mesh) return;

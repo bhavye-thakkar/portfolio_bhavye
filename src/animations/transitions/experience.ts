@@ -6,6 +6,7 @@ import { avatarHologram } from "../../three/objects/avatar/hologram";
 import { lab } from "../../three/objects/lab";
 import { workstation } from "../../three/objects/workstation";
 import { screens } from "../../three/objects/workstation/screens";
+import { waypoints } from "../waypoints";
 
 import type { SceneKey } from "../types";
 
@@ -15,8 +16,8 @@ import type { SceneKey } from "../types";
  * One continuous move, not a new page. About hands the stage over mid-scroll:
  * the lab pod shrinks away, the avatar lowers out of the standing t-idle into
  * the seated desk idle, the office assembles around him on the same grid floor
- * and the scan turns him solid again. Then it is a career journal — one
- * chapter per company — and at the end the whole thing runs backwards and the
+ * and the scan turns him solid again. Then it is a career journal, one
+ * chapter per company, and at the end the whole thing runs backwards and the
  * stage rides out into Projects.
  *
  * ── ONE BEAT PER PHASE ────────────────────────────────────────────────────
@@ -28,12 +29,14 @@ import type { SceneKey } from "../types";
  *   chapter 0 experience-2   over one shoulder
  *   chapter 1 experience-3   over the other
  *   settle    experience-1   back to the establishing shot
+ *   x-ray     experience-1   the same shot, pushed in along its own sight line
+ *   close     experience-1   held
  *
  * The previous version rotated two framings *per company* and added a closing
  * swing on top, so a single company produced three camera moves and a wheel
  * notch could look like the scene had changed by itself. Within a chapter the
  * camera now holds and the change of state is carried by the monitors, which
- * wipe from one scenario to the other at the middle of the window — a
+ * wipe from one scenario to the other at the middle of the window, a
  * deliberate beat that cannot be mistaken for a jump.
  *
  * ── WHERE EACH THING IS ALLOWED TO HAPPEN ─────────────────────────────────
@@ -42,17 +45,18 @@ import type { SceneKey } from "../types";
  * of its wrapper, whose last child is this section's spacer. So the final
  * 100vh of scroll is the stage physically riding up out of the viewport, and
  * anything choreographed there is watched through a shrinking letterbox. That
- * is what the old closing did — the office came apart in a strip two hundred
+ * is what the old closing did, the office came apart in a strip two hundred
  * pixels tall, which is why it read as a wash-out rather than as an ending.
  *
  * So the whole story, the un-build included, lives in the pinned range:
  *
  *   spacer -100vh .. 0     in      (overlaps About's out exactly)
- *   spacer    0   .. -100  beats   opening, chapters, settle, close  [pinned]
+ *   spacer    0   .. -100  beats   opening, chapters, settle, x-ray, close
+ *                                                                    [pinned]
  *   spacer -100   .. end   out     the stage rides out; nothing animates
  *
  * Everything below is written for N companies. `content/experience.ts` is the
- * only place another one has to be added — the spacer height, the scroll
+ * only place another one has to be added, the spacer height, the scroll
  * windows and the camera beats all divide themselves up again.
  */
 
@@ -64,10 +68,12 @@ type Panel = { element: HTMLElement; timeline: gsap.core.Timeline | null };
 
 type ExperienceOptions = {
   spacer: HTMLElement;
-  /** "My journey" — pinned to the avatar while the camera is still. */
+  /** "My journey", pinned to the avatar while the camera is still. */
   opening: Panel;
   /** One per company, in order. */
   chapters: Panel[];
+  /** The readout that comes up over the held X-ray. */
+  xray: Panel;
 };
 
 /**
@@ -78,7 +84,7 @@ type ExperienceOptions = {
  * `settle` is the final Experience state: the last card has gone, the office
  * is still standing, and the camera has craned back to the shot the section
  * opened on. `close` is the un-build, and it is the last thing that happens
- * while the stage is still pinned. `exit` is not a choice — it is the 100lvh
+ * while the stage is still pinned. `exit` is not a choice, it is the 100lvh
  * the sticky stage takes to ride out of frame, and it is deliberately empty.
  */
 export const SECTION_VH = {
@@ -90,7 +96,25 @@ export const SECTION_VH = {
    */
   opening: 240,
   chapter: 280,
-  settle: 150,
+  settle: 110,
+  /**
+   * ── THE X-RAY ────────────────────────────────────────────────────────────
+   *
+   * A phase of its own, and the second longest in the section.
+   *
+   * It used to be the first 33vh of the close: the scan crossed him, and
+   * before it had finished he was already standing up while the office came
+   * apart around him. The single most striking image in the section, the
+   * whole rig lit from inside, existed for about a third of a wheel-page and
+   * was over before a visitor could look at it.
+   *
+   * The length is spent, not padded (see `xrayAt` below for the split):
+   * preparation, a scan that is slow enough to follow up the body, a genuine
+   * HOLD where nothing moves but the hologram's own stripes and a very slow
+   * camera push, an information beat, and a hand-over. Every sub-range has
+   * something in it, no empty scroll.
+   */
+  xray: 280,
   close: 110,
   exit: 100,
 } as const;
@@ -100,8 +124,38 @@ export const sectionHeightVh = (count: number) =>
   SECTION_VH.opening +
   SECTION_VH.chapter * Math.max(count, 1) +
   SECTION_VH.settle +
+  SECTION_VH.xray +
   SECTION_VH.close +
   SECTION_VH.exit;
+
+/**
+ * ── WHERE THE SCAN IS ACTUALLY VISIBLE ────────────────────────────────────
+ *
+ * `avatar.materialise` is not a linear dissolve. The shader turns it into a
+ * scan line at world height
+ *
+ *   y = (1 - 1.1 · materialise) · 4.7 - 0.2
+ *
+ * and only the part of that run which crosses VISIBLE avatar does anything on
+ * screen. Two things bound it, both measured off rendered frames rather than
+ * off the rig:
+ *
+ *   · the desk top is at y 1.50 and the establishing camera looks over it, so
+ *     everything below that is hidden, the line only appears at materialise
+ *     ≈ 0.58;
+ *   · his hair reaches y ≈ 3.3 seated, NOT the 2.5 the head bone sits at. A
+ *     line at 2.64 stops on his eyebrows, which is exactly what the first pass
+ *     did: the body went holographic and the head stayed solid through the
+ *     whole hold.
+ *
+ * So the sweep runs 0.70 → 0.18 (y 0.78 → 3.57), which starts just under the
+ * desk line and finishes clear above the hair, and the phase before it covers
+ * the invisible run 1 → 0.70 quickly. Getting this band wrong is why the old
+ * pacing felt instant even when the tween was not: half of it was spent moving
+ * a line nobody could see.
+ */
+const SCAN_START = 0.7;
+const SCAN_END = 0.18;
 
 /**
  * The establishing shot. The opening holds on it and the closing comes back to
@@ -125,14 +179,14 @@ const setup = (options: ExperienceOptions) => {
  * ── THE OPENING ───────────────────────────────────────────────────────────
  *
  * The order matters more than the durations. He is still a hologram here, and
- * the rig has no sit-down clip — `seated` cross-fades the standing t-idle into
+ * the rig has no sit-down clip, `seated` cross-fades the standing t-idle into
  * the seated desk idle, and the half-way pose of that blend has his hips at
  * roughly desk height with his legs half-extended under it.
  *
  * That pose is fine once the desk is opaque: from every Experience framing the
  * desk top is between the camera and his lower half, so it hides the legs and
  * all that reads is a figure settling into the chair. It is only wrong while
- * the desk is still fading in — a 40%-opaque desk shows the legs straight
+ * the desk is still fading in, a 40%-opaque desk shows the legs straight
  * through itself, which is what made the old opening look like a man sitting
  * on top of his own desk.
  *
@@ -148,8 +202,8 @@ const setupIn = (spacer: HTMLElement) => {
         trigger: spacer,
         start: "top bottom",
         /**
-         * 190vh, not the 100vh of "top top": the pod-to-office hand-over —
-         * shrink, assemble, sit, scan — was the single most compressed
+         * 190vh, not the 100vh of "top top": the pod-to-office hand-over -
+         * shrink, assemble, sit, scan, was the single most compressed
          * moment on the page, a whole set change inside one wheel-page. The
          * window now runs ~90vh INTO the pinned opening, so the assembly
          * finishes full-frame under a held camera. The stage is pinned for
@@ -161,7 +215,7 @@ const setupIn = (spacer: HTMLElement) => {
       },
     });
 
-    // About's HUD layer has no exit of its own — its story simply ends at the
+    // About's HUD layer has no exit of its own, its story simply ends at the
     // certificates. Hand the stage over by fading the whole layer out; the
     // scrub reverses this on the way back up.
     tl.fromTo(".about-content", { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.2, ease: "none" }, 0.05);
@@ -190,12 +244,12 @@ const setupIn = (spacer: HTMLElement) => {
     // Then he takes the chair, with the desk already solid in front of him.
     tl.fromTo(avatar.seated, { value: 0 }, { value: 1, duration: 0.32, ease: "power2.inOut" }, 0.44);
 
-    // Last: the scan sweeps him back to solid — About's dissolve in reverse.
+    // Last: the scan sweeps him back to solid, About's dissolve in reverse.
     tl.fromTo(avatar.materialise, { value: 0 }, { value: 1, duration: 0.3, ease: "power2.inOut" }, 0.7);
   });
 };
 
-const setupBeats = ({ spacer, opening, chapters }: ExperienceOptions) => {
+const setupBeats = ({ spacer, opening, chapters, xray }: ExperienceOptions) => {
   beatsMm = createMatchMedia((_context, { isLandscape }) => {
     const tl = gsap.timeline({
       duration: 1,
@@ -209,15 +263,19 @@ const setupBeats = ({ spacer, opening, chapters }: ExperienceOptions) => {
     });
 
     const count = Math.max(chapters.length, 1);
-    const beatsVh = SECTION_VH.opening + SECTION_VH.chapter * count + SECTION_VH.settle + SECTION_VH.close;
+    const beatsVh =
+      SECTION_VH.opening + SECTION_VH.chapter * count + SECTION_VH.settle + SECTION_VH.xray + SECTION_VH.close;
     const openingEnd = SECTION_VH.opening / beatsVh;
     const span = SECTION_VH.chapter / beatsVh;
     const settleStart = openingEnd + span * count;
-    const closeStart = settleStart + SECTION_VH.settle / beatsVh;
+    const settleSpan = SECTION_VH.settle / beatsVh;
+    const xrayStart = settleStart + settleSpan;
+    const xraySpan = SECTION_VH.xray / beatsVh;
+    const closeStart = xrayStart + xraySpan;
     const closeSpan = 1 - closeStart;
 
     // How long a card takes to cross in or out, as a share of one company's
-    // window rather than of the whole section — so the pacing per chapter is
+    // window rather than of the whole section, so the pacing per chapter is
     // the same however many companies there are, and a card can never flick
     // past in a single wheel notch.
     const cross = span * 0.2;
@@ -245,7 +303,7 @@ const setupBeats = ({ spacer, opening, chapters }: ExperienceOptions) => {
     /**
      * Crosses the camera from one waypoint to the next. The weight solver
      * averages every active waypoint, so a cross is a straight line between
-     * the two positions — `out` is reset on the incoming side so a framing can
+     * the two positions, `out` is reset on the incoming side so a framing can
      * be arrived at more than once, which the closing relies on.
      */
     const swing = (from: SceneKey, to: SceneKey, at: number, duration: number) => {
@@ -260,8 +318,8 @@ const setupBeats = ({ spacer, opening, chapters }: ExperienceOptions) => {
 
     // ── the opening. Who this is and what the set of chapters is, on the
     // establishing shot the in-timeline already arrived at. It enters at 45%
-    // of the opening window — right after the in-timeline's scan has turned
-    // him solid (~90vh in) — so the card announces a finished scene rather
+    // of the opening window, right after the in-timeline's scan has turned
+    // him solid (~90vh in), so the card announces a finished scene rather
     // than sliding over a man still materialising.
     enter(opening, openingEnd * 0.45);
     leave(opening, openingEnd - cross);
@@ -278,7 +336,7 @@ const setupBeats = ({ spacer, opening, chapters }: ExperienceOptions) => {
       swing(camera, beat, Math.max(0, start - swingDur * 0.55), swingDur);
       camera = beat;
 
-      // The chapter's own second state. No camera move — the screens change
+      // The chapter's own second state. No camera move, the screens change
       // under a held shot, which is a beat rather than a cut.
       tl.to(
         screens.state,
@@ -291,13 +349,79 @@ const setupBeats = ({ spacer, opening, chapters }: ExperienceOptions) => {
     });
 
     // ── the final Experience state. The cards are done and the camera cranes
-    // back to the shot the section opened on — over the desk rather than
-    // through it, see the note in waypoints-data — then holds there so the
+    // back to the shot the section opened on, over the desk rather than
+    // through it, see the note in waypoints-data, then holds there so the
     // office gets its scale back before anything comes apart.
-    swing(camera, ESTABLISHING, settleStart, (SECTION_VH.settle / beatsVh) * 0.62);
+    swing(camera, ESTABLISHING, settleStart, settleSpan * 0.62);
     // Both scenarios have been up by now; the section closes on the one it
     // opened on.
-    tl.to(screens.state, { blend: 0, duration: (SECTION_VH.settle / beatsVh) * 0.4 }, settleStart);
+    tl.to(screens.state, { blend: 0, duration: settleSpan * 0.4 }, settleStart);
+
+    /**
+     * ── THE X-RAY ───────────────────────────────────────────────────────────
+     *
+     * Five beats over `SECTION_VH.xray`, and the point of splitting them out
+     * is that the middle one does nothing on purpose:
+     *
+     *   0.00 – 0.14  PREPARATION  the monitors go dark, the camera starts a
+     *                             slow push, and the scan line rises to just
+     *                             under his feet. He is still solid.
+     *   0.14 – 0.48  REVEAL       the line crosses him, feet to head. This is
+     *                             the whole visible sweep, see SCAN_START /
+     *                             SCAN_END, and it owns a third of the phase
+     *                             rather than a third of a wheel notch.
+     *   0.48 – 0.88  HOLD + INFO  nothing is tweened on the figure at all. The
+     *                             hologram's stripes run off `uTime` in its
+     *                             own shader, so the frame is alive without
+     *                             the scroll having to drive it, and the only
+     *                             scrubbed values are the camera creeping in
+     *                             and the readout card, which arrives at 0.60
+     *                             - a fifth of the phase after he is fully an
+     *                             X-ray, so the image lands before the words.
+     *   0.88 – 1.00  HAND-OVER    the card leaves and the push eases back out,
+     *                             so the close starts from a settled frame.
+     *
+     * The camera never changes waypoint here. `waypoints.dolly` slides it
+     * along the sight line the settle already arrived at, which cannot break
+     * the monitor clearance the framing depends on, see the note on `dolly`.
+     */
+    const xrayAt = (fraction: number) => xrayStart + xraySpan * fraction;
+
+    tl.fromTo(
+      screens.state,
+      { dim: 0 },
+      { dim: 1, duration: xraySpan * 0.16, ease: "power2.in", immediateRender: false },
+      xrayAt(0),
+    );
+    tl.fromTo(
+      avatar.materialise,
+      { value: 1 },
+      { value: SCAN_START, duration: xraySpan * 0.14, ease: "power1.in", immediateRender: false },
+      xrayAt(0),
+    );
+    tl.fromTo(
+      avatar.materialise,
+      { value: SCAN_START },
+      { value: SCAN_END, duration: xraySpan * 0.34, ease: "none", immediateRender: false },
+      xrayAt(0.14),
+    );
+    // Deliberately linear and deliberately slow: an eased scan slows down at
+    // the head and speeds through the torso, which is the opposite of what a
+    // scan should read like.
+    tl.fromTo(
+      waypoints.dolly,
+      { value: 0 },
+      { value: isLandscape ? 0.05 : 0.028, duration: xraySpan * 0.14, ease: "power1.inOut", immediateRender: false },
+      xrayAt(0),
+    );
+    // Portrait already frames him tight, the same 13% push there crops his
+    // head against the left edge, so it takes half.
+    const push = isLandscape ? 0.13 : 0.07;
+    tl.to(waypoints.dolly, { value: push, duration: xraySpan * 0.74, ease: "none" }, xrayAt(0.14));
+    tl.to(waypoints.dolly, { value: push * 0.46, duration: xraySpan * 0.12, ease: "power1.inOut" }, xrayAt(0.88));
+
+    enter(xray, xrayAt(0.6));
+    leave(xray, xrayAt(0.88));
 
     /**
      * ── THE CLOSE ───────────────────────────────────────────────────────────
@@ -305,11 +429,13 @@ const setupBeats = ({ spacer, opening, chapters }: ExperienceOptions) => {
      * The opening backwards, property for property, in the reverse order:
      *
      *   scan solid ← office assembles ← he sits ← lab pod shrinks
-     *   scan away  → office un-builds → he stands
+     *   he stands  → office un-builds → hologram scans away
      *
-     * The camera does not move: it is already on the establishing shot, which
-     * is the opening's last frame, so the section closes on the picture it
-     * opened on and the stage rides out from there.
+     * He arrives here already an X-ray, so the close no longer owns the
+     * dissolve of the solid body, that is the phase above. The camera does
+     * not move: it is already on the establishing shot, which is the opening's
+     * last frame, so the section closes on the picture it opened on and the
+     * stage rides out from there.
      *
      * `immediateRender: false` on every one of these. A `fromTo` otherwise
      * stamps its from-value the moment it is added, which would undo the
@@ -317,39 +443,49 @@ const setupBeats = ({ spacer, opening, chapters }: ExperienceOptions) => {
      */
     const closeAt = (fraction: number) => closeStart + closeSpan * fraction;
 
+    tl.to(waypoints.dolly, { value: 0, duration: closeSpan * 0.4, ease: "power1.out" }, closeAt(0));
+    /**
+     * The last of the scan, and it is invisible on purpose.
+     *
+     * The line is at a fixed WORLD height, and he is about to stand up, his
+     * head rises from y ≈ 3.3 to well over 4, straight back up through a line
+     * parked at 3.57, and the solid head pops back on over a holographic body.
+     * Running the value out to 0 puts the line at 4.5, above the standing
+     * figure, so he stays an X-ray for the whole of the close.
+     */
     tl.fromTo(
       avatar.materialise,
-      { value: 1 },
-      { value: 0, duration: closeSpan * 0.3, ease: "power2.inOut", immediateRender: false },
+      { value: SCAN_END },
+      { value: 0, duration: closeSpan * 0.34, ease: "none", immediateRender: false },
       closeAt(0),
     );
     // He stands while the desk is still solid, so it goes on hiding his legs
-    // through the half-way pose — the opening's rule, run backwards.
+    // through the half-way pose, the opening's rule, run backwards.
     tl.fromTo(
       avatar.seated,
       { value: 1 },
-      { value: 0, duration: closeSpan * 0.32, ease: "power2.inOut", immediateRender: false },
-      closeAt(0.24),
+      { value: 0, duration: closeSpan * 0.36, ease: "power2.inOut", immediateRender: false },
+      closeAt(0),
     );
     tl.fromTo(
       workstation.group.scale,
       { x: 1, y: 1, z: 1 },
-      { x: 0.94, y: 0.94, z: 0.94, duration: closeSpan * 0.4, ease: "power2.in", immediateRender: false },
-      closeAt(0.56),
+      { x: 0.94, y: 0.94, z: 0.94, duration: closeSpan * 0.38, ease: "power2.in", immediateRender: false },
+      closeAt(0.34),
     );
     tl.fromTo(
       workstation.reveal,
       { value: 1 },
-      { value: 0, duration: closeSpan * 0.38, ease: "power2.in", immediateRender: false },
-      closeAt(0.56),
+      { value: 0, duration: closeSpan * 0.36, ease: "power2.in", immediateRender: false },
+      closeAt(0.34),
     );
-    // He is standing and alone on the grid floor again — the frame About handed
-    // over — and only then does the hologram scan away.
+    // He is standing and alone on the grid floor again, the frame About handed
+    // over, and only then does the hologram scan away.
     tl.fromTo(
       avatarHologram.dissolve,
       { value: 0 },
-      { value: 1, duration: closeSpan * 0.28, ease: "power1.in", immediateRender: false },
-      closeAt(0.72),
+      { value: 1, duration: closeSpan * 0.32, ease: "power1.in", immediateRender: false },
+      closeAt(0.68),
     );
   });
 };

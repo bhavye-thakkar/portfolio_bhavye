@@ -18,7 +18,7 @@ import { experiences, chapterNumber } from "../../../content/experience";
  * Two kinds of panel, and only ever one on screen. The opening card is pinned
  * to the avatar and names the journey; after that one editorial chapter card
  * per company holds the frame while the camera walks behind it. The card is the
- * door into the story page — everything about how the job actually happened
+ * door into the story page, everything about how the job actually happened
  * lives at /experience/:slug, not here.
  */
 
@@ -39,6 +39,7 @@ const props = defineProps<{
 }>();
 
 const openingRef = ref<HTMLDivElement | null>(null);
+const xrayRef = ref<HTMLDivElement | null>(null);
 const chapterRefs = ref<HTMLDivElement[]>([]);
 const setChapterRef = (el: unknown, index: number) => {
   if (el) chapterRefs.value[index] = el as HTMLDivElement;
@@ -65,13 +66,14 @@ const buildPanelTimeline = (key: string) => {
 watchEffect((onInvalidate) => {
   const spacer = props.spacerRef;
   const opening = openingRef.value;
+  const xray = xrayRef.value;
   const chapters = chapterRefs.value.filter(Boolean);
 
   // The story page takes the document scroll and puts this wrapper in
   // `position: fixed`; these triggers would be measuring nothing. They rebuild
   // when it closes.
   if (storyActive.value) return;
-  if (!spacer || !opening || chapters.length !== experiences.length) return;
+  if (!spacer || !opening || !xray || chapters.length !== experiences.length) return;
   // Wait until the text children have handed their timelines over, otherwise
   // the panels animate in silent.
   if (!panelTimelines.value.opening) return;
@@ -83,6 +85,7 @@ watchEffect((onInvalidate) => {
       element,
       timeline: buildPanelTimeline(`chapter-${index}`),
     })),
+    xray: { element: xray, timeline: buildPanelTimeline("xray") },
   });
 
   onInvalidate(() => {
@@ -112,6 +115,32 @@ watchEffect((onInvalidate) => {
             <p class="experience-opening-count">
               {{ experiences.length }} {{ experiences.length === 1 ? t("chapter") : t("chapters") }}
             </p>
+          </div>
+        </div>
+
+        <!-- The readout that comes up over the held X-ray. Same anchor, same
+             card language as the opening, this is the section's own voice,
+             not a new UI, and it is what the extra scroll in the X-ray phase
+             is spent on rather than empty distance.
+
+             Inside the SAME ProjectedElement as the opening card, not a second
+             one. A ProjectedElement is `width: 100%` in portrait and a flex
+             item here, so two of them halve each other, and each carries a
+             transform, which makes it the containing block for the card inside
+             it, so the halving lands straight on the card. The two cards are
+             never on screen together, so one wrapper is enough. -->
+        <div ref="xrayRef" class="experience-opening experience-xray">
+          <p class="experience-opening-eyebrow">{{ t("xray-readout") }}</p>
+          <div class="experience-opening-card">
+            <h2 class="experience-opening-title">
+              <AppearingText
+                :text="t('xray-title')"
+                :steps="1"
+                :duration="0.4"
+                @timeline:created="(tl: gsap.core.Timeline) => registerText('xray', tl, 0)"
+              />
+            </h2>
+            <p class="experience-opening-copy">{{ t("xray-copy") }}</p>
           </div>
         </div>
       </ProjectedElement>
@@ -345,6 +374,20 @@ watchEffect((onInvalidate) => {
   }
 }
 
+/* The X-ray readout shares the opening card's wrapper and its anchor point.
+   In flow it would sit BELOW the opening card, both are always in the DOM,
+   only their opacity differs, so it is taken out of flow and laid over it.
+   Portrait already positions both against the wrapper, so only landscape,
+   where the opening card is `position: relative` inside a 0 x 0 box, needs
+   saying. */
+.experience-xray {
+  @include mixins.landscape {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+}
+
 /* ── chapter card: fixed anchor, because the camera is the thing moving ──── */
 .experience-chapter {
   visibility: hidden;
@@ -542,7 +585,7 @@ watchEffect((onInvalidate) => {
   }
 }
 
-/* Reduced motion: the panels are already visible by default in the DOM sense —
+/* Reduced motion: the panels are already visible by default in the DOM sense -
    GSAP only ever moves them, so there is nothing to gate. Kill the travel. */
 @media (prefers-reduced-motion: reduce) {
   .experience-opening,

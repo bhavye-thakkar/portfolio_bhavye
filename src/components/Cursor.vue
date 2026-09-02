@@ -32,7 +32,7 @@ const tick = () => {
       currentX.value = mouseX.value;
       currentY.value = mouseY.value;
     }
-    cursorType.value = "circle-black";
+    cursorType.value = hoveringBox.cursor ?? "circle-black";
   } else if (detectedType.value) {
     if (!isVisible.value) {
       isVisible.value = true;

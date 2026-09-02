@@ -6,7 +6,7 @@ export const isTransitioning = ref(false);
 
 /**
  * True only while an Experience story page is on its way out, so it can fade
- * instead of blinking off. Driven by the same timer as `isTransitioning` — one
+ * instead of blinking off. Driven by the same timer as `isTransitioning`, one
  * clock for the whole route transition rather than a second one to fall out of
  * sync with.
  */

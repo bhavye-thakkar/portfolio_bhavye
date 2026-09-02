@@ -48,7 +48,7 @@ const props = defineProps<{
     padding: 22vh 0;
   }
 
-  /* The number is the only thing that reacts to the chapter becoming active —
+  /* The number is the only thing that reacts to the chapter becoming active -
      the copy must never depend on a class to be readable. */
   &-number {
     font-size: var(--font-size-title-sm);

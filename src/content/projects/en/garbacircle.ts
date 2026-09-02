@@ -3,7 +3,7 @@ import { PLACEHOLDER_IMAGE } from "../placeholder";
 import type { ProjectContent } from "../../types";
 
 /**
- * The only project with its real write-up. Everything below is true — the
+ * The only project with its real write-up. Everything below is true, the
  * title, the copy, the stack, the links and the feature list. The one stand-in
  * is the visual: the shared placeholder plate holds the hero slot until the
  * Garba Circle captures exist.
@@ -25,7 +25,7 @@ export default {
   videoBorder: false,
   // ─── LINKS ──────────────────────────────────────────────────────────────
   // `live` is the website, `app` is the application build. The app is still on
-  // pre-register, so there is no store page yet — drop the Play/App Store URL
+  // pre-register, so there is no store page yet, drop the Play/App Store URL
   // into `app` and its button appears next to Live View.
   live: "https://garbacircle.in",
   app: "",
@@ -37,7 +37,7 @@ export default {
       props: {
         type: "image",
         src: PLACEHOLDER_IMAGE,
-        alt: "Garba Circle — artwork pending",
+        alt: "Garba Circle, artwork pending",
         caption: "Artwork pending",
       },
     },

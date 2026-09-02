@@ -1,4 +1,5 @@
 import gsap from "gsap";
+import { cv, cvStage } from "../features/cv/state";
 import Lenis from "lenis";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ref, onMounted, onUnmounted, watch } from "vue";
@@ -35,10 +36,11 @@ export const useScroll = () => {
 
     lenis.value.on("scroll", handleScroll);
 
-    // QA-SHIM temporary, remove before ship — same gate as three/index.ts
+    // QA-SHIM temporary, remove before ship, same gate as three/index.ts
     if (location.search.includes("qa=1")) {
       const qa = window as unknown as Record<string, unknown>;
       qa.__lenis = lenis.value;
+      qa.__cv = { cvStage, cv };
       qa.__gsap = gsap;
       qa.__ScrollTrigger = ScrollTrigger;
       // Headless/inactive tabs never fire rAF, so scrubbed timelines never
@@ -58,7 +60,7 @@ export const useScroll = () => {
     /**
      * GSAP's default, not the `lagSmoothing(0)` the Lenis guide suggests.
      *
-     * With smoothing off, a frame gap is reported at its true length — and a
+     * With smoothing off, a frame gap is reported at its true length, and a
      * backgrounded tab stops rAF entirely, so coming back after a minute
      * hands every ticker a delta of 60 seconds. `deltaRatio(60)` is then 3600,
      * which is multiplied into `mixer.update(delta / 60)` (the avatar's
@@ -66,7 +68,7 @@ export const useScroll = () => {
      * `lerp(a, b, k * delta)` in the scene, where a factor far above 1 does not
      * ease towards the target, it flies past it.
      *
-     * 500/33 only ever triggers after a real stall — no normal frame is 500ms —
+     * 500/33 only ever triggers after a real stall, no normal frame is 500ms -
      * so Lenis stays in step and a tab switch stops corrupting the scene.
      */
     gsap.ticker.lagSmoothing(500, 33);

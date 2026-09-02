@@ -1,4 +1,4 @@
 import { placeholderProject } from "../placeholder";
 
-/** Reserved slot — see `content/projects/placeholder.ts`. */
+/** Reserved slot, see `content/projects/placeholder.ts`. */
 export default placeholderProject(5);

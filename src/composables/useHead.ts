@@ -9,14 +9,14 @@ import { profile, site } from "../content/profile";
  * ─── PER-ROUTE HEAD ───────────────────────────────────────────────────────
  *
  * This is a single-page app that changes its URL with `history.pushState` and
- * never changed anything else. Every route — the home page, five project
- * pages, two experience stories — served the same `<title>`, the same
+ * never changed anything else. Every route, the home page, five project
+ * pages, two experience stories, served the same `<title>`, the same
  * description and the same canonical, which is to say eight URLs that a
  * search engine cannot tell apart. The canonical was the worst of it: every
  * deep page was declaring itself a duplicate of the home page, which is an
  * instruction not to index it.
  *
- * So: one watcher, three tags. No library — `document.title` and two
+ * So: one watcher, three tags. No library, `document.title` and two
  * `setAttribute` calls do the whole job, and a head manager would be four
  * dependencies to avoid writing them.
  *
@@ -54,7 +54,7 @@ const setMeta = (selector: string, attribute: string, value: string, create: () 
 
 /**
  * `BreadcrumbList` for the detail routes, matching the trail `Breadcrumbs.vue`
- * renders. One tag, replaced in place — the home page removes it rather than
+ * renders. One tag, replaced in place, the home page removes it rather than
  * leaving a stale trail behind after a client-side navigation back.
  */
 const BREADCRUMB_ID = "route-breadcrumb";
@@ -99,7 +99,7 @@ const apply = ({ title, description, url, breadcrumb }: Meta) => {
     return el;
   });
 
-  // Open Graph and Twitter mirror the same three values — a card that says
+  // Open Graph and Twitter mirror the same three values, a card that says
   // something different from the page is its own kind of wrong.
   const og: [string, string][] = [
     ["og:title", title],
@@ -131,14 +131,14 @@ const forExperience = (slug: string): Meta | null => {
   // in a meta tag: it is the page's own `location` field, the same string the
   // page renders, and an entry without one simply does not get the clause.
   // The only other geographic assertion is the Person schema in index.html
-  // (Ahmedabad, Gujarat, IN) — the city he actually publishes as his base.
+  // (Ahmedabad, Gujarat, IN), the city he actually publishes as his base.
   const place = entry.location ? `, ${entry.location}` : "";
   const description = entry.placeholder
     ? `A chapter of ${SUFFIX}'s career journal that has not been filled in yet.`
     : `${entry.role} at ${entry.company}${place}${entry.duration ? `, ${entry.duration}` : ""}. How the role came about, in six chapters.`;
 
   return {
-    title: `${entry.company} — Experience | ${SUFFIX}`,
+    title: `${entry.company}, Experience | ${SUFFIX}`,
     description,
     url: `${site}/experience/${slug}`,
     breadcrumb: [
@@ -160,7 +160,7 @@ const forObject = (slug: string): Meta | null => {
   if (!entry) return null;
 
   return {
-    title: `${entry.title} — ${entry.eyebrow} | ${SUFFIX}`,
+    title: `${entry.title}, ${entry.eyebrow} | ${SUFFIX}`,
     description: entry.description,
     url: `${site}/object/${slug}`,
     breadcrumb: [
@@ -177,7 +177,7 @@ const loadProjectMeta = async () => {
   const module = await previews.en();
   for (const preview of module.default) {
     projectMeta.set(preview.slug, {
-      title: `${preview.title} — Project | ${SUFFIX}`,
+      title: `${preview.title}, Project | ${SUFFIX}`,
       description: `${preview.title}: ${preview.description}. A project by ${SUFFIX}, ${profile.role}.`,
       url: `${site}/project/${preview.slug}`,
       breadcrumb: [
@@ -194,11 +194,11 @@ const update = async () => {
   const fallback = readBase();
 
   // A dead end should say so in the tab and in a search result, and it must
-  // not claim a canonical of its own — pointing it at the home page is what
+  // not claim a canonical of its own, pointing it at the home page is what
   // tells a crawler there is nothing here worth indexing separately.
   if (notFound.value) {
     apply({
-      title: `Page not found — ${SUFFIX}`,
+      title: `Page not found, ${SUFFIX}`,
       description: "There is no page at this address.",
       url: `${site}/`,
     });
@@ -217,7 +217,7 @@ const update = async () => {
 
   if (projectId.value) {
     // The previews are a lazy chunk. Show the base head until it lands rather
-    // than blocking, then correct it — crawlers read the settled DOM.
+    // than blocking, then correct it, crawlers read the settled DOM.
     await loadProjectMeta();
     if (!projectId.value) return;
     apply(projectMeta.get(projectId.value) ?? fallback);

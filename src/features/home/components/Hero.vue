@@ -47,7 +47,7 @@ import { roomObjects } from "../../../content/objects";
 
 <style scoped lang="scss">
 /* Off-screen rather than `display: none` or `visibility: hidden`, both of
-   which take an element out of the tab order entirely — which would leave the
+   which take an element out of the tab order entirely, which would leave the
    two objects reachable by mouse only. On focus it comes back on screen as a
    normal chip, so a keyboard user can see what they have landed on. */
 .hero-objects {
