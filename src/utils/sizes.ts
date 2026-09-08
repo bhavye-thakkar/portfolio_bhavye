@@ -87,7 +87,10 @@ class Sizes extends EventEmitter<{
     this.width = Math.max(window.innerWidth, document.documentElement.clientWidth);
     this.height = window.innerHeight;
     this.aspectRatio = this.width / this.height;
-    this.pixelRatio = Math.min(window.devicePixelRatio, 2);
+    // Nothing reads this today; the renderer's cap lives in three/utils/sizes.ts
+    // and is 1.5 for fill-rate reasons explained there. Kept equal so the two
+    // never disagree if something does start reading it.
+    this.pixelRatio = Math.min(window.devicePixelRatio, 1.5);
     this.setViewportUnits();
 
     this.breakpoint = getBreakpoint(this.width) as keyof typeof BREAKPOINTS;

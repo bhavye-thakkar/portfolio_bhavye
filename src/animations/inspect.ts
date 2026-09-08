@@ -201,10 +201,10 @@ const enter = (slug: string) => {
    * ── ONLY THE HERO SHOT CAN BE FRAMED ──────────────────────────────────
    *
    * Every pose here is derived from the hero waypoint, which is the only one
-   * that looks at the room. The Timex is also on the Experience desk, and that
-   * scene is somewhere else entirely: taking the stage from there would freeze
-   * the section's own timeline and then ease the camera across the world to a
-   * watch nobody can see, with the office still on screen the whole way.
+   * that looks at the room. An object route can still be entered from
+   * anywhere on the page (a deep link, the browser's back button), and taking
+   * the stage from another section would freeze that section's own timeline
+   * and then ease the camera across the world to an object nobody can see.
    *
    * So from anywhere but the room the panel simply opens over the scene as it
    * stands, which is a perfectly good answer, and closing it gives the section

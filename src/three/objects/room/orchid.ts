@@ -22,6 +22,7 @@ import {
 } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import gsap from "gsap";
+import { scene } from "../../core/scene";
 
 import type { BufferGeometry as Geometry, Material } from "three";
 
@@ -31,10 +32,10 @@ import type { BufferGeometry as Geometry, Material } from "three";
  * the shelf mesh), at the open end of the board, beside the books.
  *
  * Proportions come off the reference photo, measured against the pot width: the
- * pot is 1.27 wide for every 1 tall, the whole plant ~2.55 pot-widths tall, the
- * leaf spread ~1.55 pot-widths, one open bloom ~0.5 pot-widths across. Everything
- * below is built around a pot 0.96 wide and scaled by SCALE, so those ratios
- * survive a move or a resize.
+ * pot is 1.35 wide for every 1 tall (see `POT_PROFILE`), the whole plant ~2.55
+ * pot-widths tall, the leaf spread ~1.55 pot-widths, one open bloom ~0.5
+ * pot-widths across. Everything below is built around a pot 0.96 wide and
+ * scaled by SCALE, so those ratios survive a move or a resize.
  *
  * The room is lit entirely by a baked atlas (MeshBasicMaterial), so the orchid
  * carries its own lights. They live inside this group and only reach the
@@ -85,6 +86,28 @@ const PALETTE = {
 };
 
 const group = new Group();
+/**
+ * The orchid's lights, parented to the SCENE ROOT rather than to `group`.
+ *
+ * ── WHY THE LIGHTS ARE NOT IN THE PLANT'S OWN GROUP ───────────────────────
+ *
+ * three.js puts the number of visible lights into every shader program's
+ * cache key, lit or not. With the lights inside the room group, the count was
+ * 4 in the hero and 0 the moment the room hid, so the first frame of About,
+ * Experience and Contact relinked every program on screen: the avatar's four
+ * shaders, the office's matcaps, Contact's boxes. Each link blocks the main
+ * thread, and the last of them landed exactly on the stand-up walk out of
+ * Experience, which is where a laptop showed a visible stall. Measured in
+ * headless Chrome: hiding this group in the hero alone added four programs.
+ *
+ * At the root the lights are always visible, the count is always 4, the boot
+ * precompile links the one real variant of everything, and no scene change
+ * compiles anything. Nothing else in the scene is lit, so the only material
+ * that ever reads these lights is still the orchid's. `tick` copies the
+ * plant's world transform onto this group each frame so the light directions
+ * stay what they were tuned to be, relative to the plant.
+ */
+const lights = new Group();
 const scratch = new Object3D();
 
 let materials: Material[] = [];
@@ -396,32 +419,38 @@ const createStalk = (from: Vector3, to: Vector3, radius: number, taper = 0.6): G
 /* --------------------------------------------------------------------- parts */
 
 /**
- * Rounded bowl off the reference: a small flat foot, the shoulder swelling to
- * its widest just above halfway, then drawing in to a slightly everted lip.
+ * A round ball pot, measured off the owner's reference (2026-09-08): a narrow
+ * foot at 38% of the widest point, a quick swell to the equator at 55% of the
+ * height, then a shoulder that curves back in to a plain rounded rim at 73%.
+ * No flared lip, that was the one thing the old bowl had that the reference
+ * does not. Squatter too: 0.74 tall for 1 wide against the old 0.79.
+ *
+ * The widest point stays at 0.478 so the leaf spread, the soil disc and the
+ * contact shadow all still fit without retuning.
  */
 const POT_PROFILE = [
   [0, 0],
-  [0.2, 0],
-  [0.255, 0.012],
-  [0.315, 0.042],
-  [0.372, 0.095],
-  [0.418, 0.165],
-  [0.452, 0.245],
-  [0.472, 0.325],
-  [0.478, 0.4],
-  [0.472, 0.475],
-  [0.455, 0.545],
-  [0.43, 0.61],
-  [0.404, 0.665],
-  [0.385, 0.705],
-  [0.376, 0.732],
-  [0.382, 0.745],
-  [0.372, 0.752],
-  [0.352, 0.746],
-  [0.346, 0.7],
+  [0.18, 0],
+  [0.24, 0.01],
+  [0.31, 0.04],
+  [0.375, 0.09],
+  [0.425, 0.16],
+  [0.458, 0.24],
+  [0.474, 0.32],
+  [0.478, 0.39],
+  [0.472, 0.46],
+  [0.455, 0.53],
+  [0.428, 0.595],
+  [0.395, 0.65],
+  [0.365, 0.69],
+  [0.352, 0.705],
+  [0.348, 0.71],
+  [0.335, 0.706],
+  [0.33, 0.67],
 ];
-const POT_HEIGHT = 0.752;
-const CROWN_Y = 0.74;
+const POT_HEIGHT = 0.71;
+/** Just under the rim, so the leaves fan out of the pot rather than off its top. */
+const CROWN_Y = 0.7;
 
 const createPot = (material: Material) => {
   const profile = POT_PROFILE.map(([x, y]) => new Vector2(x!, y!));
@@ -919,7 +948,11 @@ const createLights = () => {
   rim.position.set(0.6, 2.2, -2.8);
   rim.target.position.set(0, 1.2, 0);
 
-  group.add(hemisphere, key, key.target, fill, fill.target, rim, rim.target);
+  // See the note on `lights`: scene root, not `group`, so the visible light
+  // count never changes. The positions above are in the plant's own frame and
+  // `tick` keeps this group on the plant's world transform.
+  lights.add(hemisphere, key, key.target, fill, fill.target, rim, rim.target);
+  scene.instance.add(lights);
 };
 
 /* ---------------------------------------------------------------- lifecycle */
@@ -991,7 +1024,14 @@ const init = () => {
 
 /** Barely-there sway: slow, low amplitude, no two parts in phase. */
 const tick = () => {
-  if (reducedMotion || !initialized) return;
+  if (!initialized) return;
+  // Keep the root-parented lights on the plant. `matrixWorld` is last frame's
+  // (the renderer updates it after this ticker runs), one frame of lag on a
+  // light direction is invisible. Before the reduced-motion return on purpose:
+  // the lights have to follow the plant whether or not it sways.
+  group.matrixWorld.decompose(lights.position, lights.quaternion, lights.scale);
+
+  if (reducedMotion) return;
   const time = gsap.ticker.time;
 
   spikes.forEach((spike, i) => {
@@ -1022,6 +1062,8 @@ const destroy = () => {
   leaves = null;
   group.clear();
   group.scale.setScalar(1);
+  scene.instance.remove(lights);
+  lights.clear();
   initialized = false;
 };
 

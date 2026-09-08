@@ -3,19 +3,17 @@ import { computed, ref } from "vue";
 /**
  * ─── THE CV'S THREE STATES ────────────────────────────────────────────────
  *
- *   closed   the envelope is shut on the desk
- *   open     the flap is up and the sheet has risen out of it and settled.
- *            This is a PHYSICAL state: it happens in the 3D scene, at desk
- *            scale, with the camera where it was. A small prompt offers to
- *            read it.
+ *   closed   the CV lies flat on its pile on the desk
+ *   open     the top sheet has lifted off the pile and tipped up to face the
+ *            camera. This is a PHYSICAL state: it happens in the 3D scene, at
+ *            desk scale, with the camera where it was. A small prompt offers
+ *            to read it.
  *   reading  the readable panel is up over the scene.
  *
  * The middle one is the whole point. The first version went straight from a
- * click to a full-screen document, which meant the envelope was a button with
- * a nice animation playing behind a modal nobody could see, and the sheet read
- * as a large flat paper dropped onto the desk rather than as something that
- * came out of an envelope. Now the click opens the envelope and nothing else;
- * reading is a second, deliberate step.
+ * click to a full-screen document, which meant the prop was a button with a
+ * nice animation playing behind a modal nobody could see. Now the click picks
+ * the sheet up and nothing else; reading is a second, deliberate step.
  *
  * ── WHY THIS IS A MODULE REF AND NOT A ROUTE ──────────────────────────────
  *
@@ -34,8 +32,8 @@ export type CvStage = "closed" | "open" | "reading";
 
 export const cvStage = ref<CvStage>("closed");
 
-/** The envelope is open in the scene in both of the non-closed states. */
-export const cvEnvelopeOpen = computed(() => cvStage.value !== "closed");
+/** The sheet is lifted in the scene in both of the non-closed states. */
+export const cvDocumentOpen = computed(() => cvStage.value !== "closed");
 export const cvPromptVisible = computed(() => cvStage.value === "open");
 export const cvReading = computed(() => cvStage.value === "reading");
 
@@ -50,11 +48,11 @@ export const cv = {
   read: () => {
     cvStage.value = "reading";
   },
-  /** Closing the reader leaves the sheet standing in the envelope. */
+  /** Closing the reader leaves the sheet lifted where the visitor left it. */
   close: () => {
     if (cvStage.value === "reading") cvStage.value = "open";
   },
-  /** All the way back: the sheet slides in and the flap comes down. */
+  /** All the way back: the sheet settles onto the pile. */
   dismiss: () => {
     cvStage.value = "closed";
   },

@@ -28,9 +28,9 @@ const init = (_canvas: HTMLCanvasElement) => {
     if (location.search.includes("qa=1")) {
       import("./objects/avatar").then(({ avatar }) =>
         import("./objects/workstation").then(({ workstation }) =>
-          import("./objects/envelope").then((envelopeModule) =>
+          import("./objects/cv-document").then((cvDocumentModule) =>
             import("./utils/raycast").then(({ raycast }) => {
-              (window as any).__qa = { renderer, scene, camera, threeSizes, objects, canvas, sceneWeights, sceneWeightsInOut, waypoints, stageHold, avatar, workstation, envelopeModule, raycast };
+              (window as any).__qa = { renderer, scene, camera, threeSizes, objects, canvas, sceneWeights, sceneWeightsInOut, waypoints, stageHold, avatar, workstation, cvDocumentModule, raycast };
             }),
           ),
         ),

@@ -17,9 +17,9 @@ import type { BufferGeometry, Material, Object3D, Skeleton } from "three";
  *     purpose: a round case with a bright white disc is the one silhouette
  *     that reads as a dress watch from the hero camera, and the Timex already
  *     owns "a watch with a light face" in this portfolio.
- *   · at work (Experience, and the story pages) the TIMEX: the same watch that
- *     lies on the hero desk, drawn from the same dial canvas (`../timex-dial`),
- *     on a black strap. Steel case, bezel, crown, lugs.
+ *   · at work (Experience, and the story pages) the TIMEX: a round steel
+ *     three-hander on a black strap, its face drawn by `../timex-dial`. Steel
+ *     case, bezel, crown, lugs.
  *
  * `setTimex` swaps them. It is driven off `avatar.seated`, which only the
  * Experience timeline raises, and which is already at 1 before the materialise
@@ -163,10 +163,9 @@ export const createWatchGeometries = (skeleton: Skeleton): { body: BufferGeometr
 };
 
 /**
- * The Timex, for the wrist. Same proportions as the desk one (`../desk-watch`),
- * built in this frame rather than cloned from it, because that one is a flat
- * prop with a strap that curls onto a desk and this one has to wrap an arm.
- * The dial is a disc with UVs, which is what the canvas is painted onto.
+ * The Timex, for the wrist. Built in this frame like the smartwatch, so the
+ * strap wraps the arm. The dial is a disc with UVs, which is what the canvas
+ * is painted onto.
  */
 export const createWristTimexGeometries = (
   skeleton: Skeleton,

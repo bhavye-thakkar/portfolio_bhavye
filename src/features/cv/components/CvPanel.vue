@@ -9,7 +9,7 @@ import Plus from "../../../components/icons/Plus.vue";
 /**
  * ─── THE CV SHEET ─────────────────────────────────────────────────────────
  *
- * What comes out of the envelope. It is a transcription of the owner's own
+ * What the CV on the desk opens into. It is a transcription of the owner's own
  * PDF, same sections, same order, same two-column shape, same words, so a
  * visitor who reads it here and a visitor who downloads the file get the same
  * document. `content/cv.ts` is the only source; nothing on this page is
@@ -28,7 +28,7 @@ import Plus from "../../../components/icons/Plus.vue";
  *     own `overflow-y: auto` would never receive one and everything below the
  *     fold would be unreachable.
  *   · `data-scene-blocker`, or the pointer keeps hovering and clicking scene
- *     objects straight through the sheet, including the envelope that opened
+ *     objects straight through the sheet, including the document that opened
  *     it.
  *   · Focus moves here on open and Escape closes it, because it is modal.
  *   · NO second header. `App.vue` mounts exactly one `<Header>`; this covers it
@@ -137,7 +137,7 @@ onBeforeUnmount(() => {
           {{ t("open-full-cv") }}
         </a>
         <!-- Back to the DESK, not to nothing: closing the reader leaves the
-             sheet standing in the envelope where the visitor left it. -->
+             sheet lifted where the visitor left it. -->
         <button type="button" class="cv-action cv-action-ghost" data-sound="click" @click="cv.close()">
           {{ t("back-to-the-desk") }}
         </button>
@@ -171,7 +171,7 @@ onBeforeUnmount(() => {
 }
 
 /* The document. Paper-coloured on purpose, this is the sheet that came out of
-   the envelope, so it is the one surface on the site that is not HUD. */
+   the desk, so it is the one surface on the site that is not HUD. */
 .cv-sheet {
   position: relative;
   width: 100%;

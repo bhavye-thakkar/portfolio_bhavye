@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { watch } from "vue";
 import { t } from "../../../i18n/utils/translate";
-import { cv, cvEnvelopeOpen, cvPromptVisible } from "../state";
-import { setEnvelopesOpen } from "../../../three/objects/envelope";
+import { cv, cvDocumentOpen, cvPromptVisible } from "../state";
+import { setCvDocumentsOpen } from "../../../three/objects/cv-document";
 
 /**
- * ─── THE BAR THAT APPEARS WHILE THE ENVELOPE IS OPEN ──────────────────────
+ * ─── THE BAR THAT APPEARS WHILE THE CV IS LIFTED ──────────────────────────
  *
  * The middle state needs an affordance or it is a dead end: the sheet is
- * standing out of the envelope on the desk and there is nothing to say the
- * visitor can read it, or put it back.
+ * tipped up off the desk and there is nothing to say the visitor can read it,
+ * or put it back down.
  *
  * It is a bar rather than a label projected next to the prop, because there are
- * two envelopes in two different scenes with two different cameras, and a
+ * two documents in two different scenes with two different cameras, and a
  * fixed bar is the same in both and the same on a phone. It is also the only
  * piece of chrome in the interaction, which is the point: the click on the prop
  * does the 3D, this does the words.
@@ -20,14 +20,14 @@ import { setEnvelopesOpen } from "../../../three/objects/envelope";
  * ── AND IT OWNS THE HAND-OVER TO THE SCENE ────────────────────────────────
  *
  * This component is always mounted, so it is where the store meets the scene
- * graph: one watcher drives every envelope's opening animation off
- * `cvEnvelopeOpen`. The reader used to do that, which meant the animation only
+ * graph: one watcher drives every document's lift animation off
+ * `cvDocumentOpen`. The reader used to do that, which meant the animation only
  * ran while a modal was covering it.
  */
 watch(
-  cvEnvelopeOpen,
+  cvDocumentOpen,
   (isOpen) => {
-    setEnvelopesOpen(isOpen ? 1 : 0, isOpen ? 0.95 : 0.6);
+    setCvDocumentsOpen(isOpen ? 1 : 0, isOpen ? 0.95 : 0.6);
   },
   { immediate: true },
 );
@@ -36,7 +36,7 @@ watch(
 <template>
   <Transition name="cv-prompt">
     <div v-if="cvPromptVisible" class="cv-prompt" data-scene-blocker>
-      <p class="cv-prompt-label">{{ t("cv-in-the-envelope") }}</p>
+      <p class="cv-prompt-label">{{ t("cv-on-the-desk") }}</p>
       <div class="cv-prompt-actions">
         <button type="button" class="cv-prompt-button" data-sound="click" data-hoversound="hover" @click="cv.read()">
           {{ t("read-the-cv") }}

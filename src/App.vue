@@ -108,13 +108,13 @@ const { isTouch } = useAgent();
     <ObjectDetail />
   </div>
 
-  <!-- The CV that comes out of the desk envelope. Same shape as the object
+  <!-- The CV picked up off the desk. Same shape as the object
        panel above and for the same reason: home stays live and un-fixed
        underneath, so there is no scroll to save and nothing to rebuild.
 
        `data-scene-blocker` and `data-lenis-prevent` are load-bearing for the
        same two reasons documented on the object wrapper, the first stops the
-       pointer hovering and clicking the envelope straight through the sheet,
+       pointer hovering and clicking the document straight through the sheet,
        the second is Lenis's opt-out so this panel's own scroller actually
        receives a wheel event. Both are STATIC: bound, they would be removed in
        the same microtask flush as the closing click.
@@ -130,7 +130,7 @@ const { isTouch } = useAgent();
     <CvPanel v-if="cvReading" />
   </div>
 
-  <!-- The bar that appears while the envelope is open in the scene. Always
+  <!-- The bar that appears while the CV is lifted in the scene. Always
        mounted: it is also where the CV store is wired to the scene graph. -->
   <CvPrompt />
 

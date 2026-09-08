@@ -5,10 +5,10 @@
   anchors within `/` and are deliberately NOT listed as separate pages; the
   detail routes are, because they render their own page and their own <h1>.
 
-  THE DOMAIN IS A PLACEHOLDER. It matches the <link rel="canonical"> and the
-  og:url in index.html, which is the only place this project declares a site
-  URL. When the real domain is known, change it here, in index.html and in
-  public/robots.txt, those three and nothing else.
+  The domain is the real canonical, https://bhavyethakkar.netlify.app/. It is
+  declared in five places that have to change together: here, index.html
+  (canonical, og:url, JSON-LD), public/robots.txt, public/llms.txt and `site`
+  in src/content/profile.ts.
 
   Every lastmod is the day the content behind that URL was last verified,
   not the day the file was touched, bumping them without a content change is
@@ -55,12 +55,6 @@
   <url>
     <loc>https://bhavyethakkar.netlify.app/object/starry-night</loc>
     <lastmod>2026-08-29</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.4</priority>
-  </url>
-  <url>
-    <loc>https://bhavyethakkar.netlify.app/object/timex</loc>
-    <lastmod>2026-09-03</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>

@@ -22,6 +22,14 @@
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://bhavyethakkar.netlify.app/" />
 
+    <!--
+      Google Search Console ownership. This is the HTML-tag verification
+      method, so it has to stay in the served <head> of the site root: Google
+      re-checks it periodically and drops the property if it disappears.
+      Harmless to expose, it proves ownership and grants nothing.
+    -->
+    <meta name="google-site-verification" content="ftyrrWQdem0RDC_u3KxgDZjlHom6hLwjGkLxm0YmwdM" />
+
     <meta property="og:title" content="Bhavye Thakkar - Data Scientist &amp; Flutter Developer" />
     <meta
       property="og:description"
@@ -51,11 +59,10 @@
       it is about and the site are linked by @id instead of asserted three
       times over. Every value is something the portfolio actually publishes:
 
-        · `sameAs` is GitHub, LinkedIn and the portfolio's other deployed
-          addresses (`portfolioLinks` in content/profile.ts). The social row
-          also renders an X button, but its URL is a placeholder, and pointing
-          a search engine at a profile that does not exist is worse than
-          omitting it.
+        · `sameAs` is GitHub, LinkedIn, X and the portfolio's other deployed
+          addresses (`profiles` and `portfolioLinks` in content/profile.ts).
+          The X handle was a placeholder until 2026-09-09 and was kept out of
+          this list until the owner supplied the real one.
         · `hasCredential` is the five real certificates, each with the URL the
           card links to.
         · There is deliberately no `worksFor` and no `alumniOf`. The
@@ -86,6 +93,7 @@
             "sameAs": [
               "https://github.com/bhavye-thakkar",
               "https://www.linkedin.com/in/bhavyethakkar/",
+              "https://x.com/bhavye_thakkar",
               "https://bhavye.vercel.app",
               "https://thakkarbhavya.netlify.app",
               "https://bhavyathakkar.netlify.app",
@@ -392,7 +400,7 @@
 
       <h2>The room</h2>
       <p>
-        Three objects in the 3D workspace open a page of their own explaining why they are in the scene.
+        Two objects in the 3D workspace open a page of their own explaining why they are in the scene.
       </p>
       <ul>
         <li>
@@ -403,10 +411,6 @@
           <a href="/object/starry-night">The Starry Night</a>: Vincent van Gogh, 1889, a public-domain
           reproduction; on night, motion, and imagination made visible
         </li>
-        <li>
-          <a href="/object/timex">The Timex</a>: a Timex wristwatch, reference T1000Q70200-YY (AR), on the desk
-          at home and on his wrist at work
-        </li>
       </ul>
 
       <h2>Contact</h2>
@@ -414,6 +418,7 @@
         <li><a href="mailto:thakkarbhavye1425@gmail.com">thakkarbhavye1425@gmail.com</a></li>
         <li><a href="https://github.com/bhavye-thakkar">GitHub</a></li>
         <li><a href="https://www.linkedin.com/in/bhavyethakkar/">LinkedIn</a></li>
+        <li><a href="https://x.com/bhavye_thakkar">X</a></li>
       </ul>
 
       <p><a href="/llms.txt">Machine-readable summary of this portfolio</a></p>

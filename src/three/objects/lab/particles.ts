@@ -2,7 +2,7 @@ import { BufferGeometry, Points, ShaderMaterial, BufferAttribute, Color } from "
 import vertexShader from "../../shaders/lab-particles/vertex.glsl";
 import fragmentShader from "../../shaders/lab-particles/fragment.glsl";
 import gsap from "gsap";
-import { renderTarget } from "../../core/renderTarget";
+import { renderTarget, SCALE as RENDER_TARGET_SCALE } from "../../core/renderTarget";
 import { lab } from ".";
 import { aboutProgress } from "../../../animations/transitions/about";
 
@@ -125,7 +125,11 @@ const init = () => {
 const tick = () => {
   if (!material) return;
   material.uniforms.uTime!.value = gsap.ticker.time;
-  material.uniforms.uScaleMultiplier!.value = 0.75 + 0.25 * aboutProgress.value;
+  // `gl_PointSize` is in pixels of the target being drawn into, and these
+  // points draw into the half-resolution backdrop target, which the composite
+  // then upscales to the screen. Without this factor every particle came out
+  // twice its size on screen the moment that target shrank.
+  material.uniforms.uScaleMultiplier!.value = (0.75 + 0.25 * aboutProgress.value) * RENDER_TARGET_SCALE;
 
   points?.position.copy(lab.group.position);
 };

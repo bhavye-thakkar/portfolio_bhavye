@@ -1,6 +1,5 @@
 import { CanvasTexture, LinearFilter, SRGBColorSpace } from "three";
 import { resources } from "../../../utils/resources";
-import { getDesktopAtlas } from "../room/desktop-atlas";
 
 /**
  * ─── THE EXPERIENCE MONITORS SHOW HOME'S SCREENS ──────────────────────────
@@ -36,8 +35,8 @@ import { getDesktopAtlas } from "../room/desktop-atlas";
  *   LEFT HALF  (x 0..512)    the code editor, tiling vertically, 64 lines at
  *                            16px. The room shows the top third of it and
  *                            scrolls; so does this.
- *   RIGHT HALF (x 512..1024) the CV, painted over the chat app by
- *                            `room/desktop-atlas.ts`, the page in the top half.
+ *   RIGHT HALF (x 512..1024) the chat app, its top half. The bottom half is the
+ *                            message bubble the hero room flashes over it.
  */
 
 /** 16:9, matching MONITOR.screenWidth / screenHeight in `./index.ts`. */
@@ -64,13 +63,8 @@ const CROPS: Record<Side, { x: number; y: number; pan: number }> = {
   right: { x: 518, y: 6, pan: 34 },
 };
 
-/**
- * The room's own monitor artwork, with the CV on it. Null until resources have
- * loaded; the raw file if the composite could not be drawn.
- */
+/** The room's own monitor artwork. Null until the texture has decoded. */
 const atlas = (): CanvasImageSource | null => {
-  const composed = getDesktopAtlas();
-  if (composed) return composed;
   const image = resources.items["desktops-texture"]?.image;
   // An Image that has not decoded yet has width 0, and drawing it throws.
   return image && image.width ? image : null;

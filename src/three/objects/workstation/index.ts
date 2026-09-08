@@ -20,7 +20,7 @@ import { room } from "../room";
 import { sceneWeights } from "../../../animations/scenes";
 import { screens } from "./screens";
 import { createContactShadow, disposeMatcaps, getMatcap } from "./materials";
-import { createEnvelope, disposeEnvelopeAssets } from "../envelope";
+import { createCvDocument, disposeCvDocumentAssets } from "../cv-document";
 
 import type { BufferGeometry, Material, Texture } from "three";
 import type { MaterialKind } from "./materials";
@@ -70,7 +70,7 @@ import type { MaterialKind } from "./materials";
  * here once; Home has none, so it went.
  *
  * Geometry is still merged down to one mesh per material, the whole office is
- * a handful of draw calls plus the two screens, the envelope and the plant.
+ * a handful of draw calls plus the two screens, the CV and the plant.
  */
 
 const DESK_TOP = 1.5;
@@ -90,9 +90,9 @@ const MONITOR = {
 
 /** Notebook and lamp positions, referenced by both geometry and shadows. */
 /**
- * The notebook and the CV envelope swapped places. The notebook's old spot at
+ * The notebook and the CV document swapped places. The notebook's old spot at
  * x 1.52 is the one part of the near half of the desk that the establishing
- * shot actually holds in frame, see the projection note in `envelope.ts` -
+ * shot actually holds in frame, see the projection note in `cv-document.ts` -
  * and the interactive prop needs that more than a passive one does. Out here
  * the notebook is partly cropped by the bottom edge, which reads as the desk
  * continuing past the frame rather than as a mistake.
@@ -112,7 +112,7 @@ let disposables: (BufferGeometry | Material | Texture)[] = [];
  */
 let screenMaterials: MeshBasicMaterial[] = [];
 /** Built in `init`, because the factory registers a hit box as a side effect. */
-let envelope: ReturnType<typeof createEnvelope> | null = null;
+let cvDocument: ReturnType<typeof createCvDocument> | null = null;
 
 type Bucket = { geometries: BufferGeometry[]; material: Material };
 
@@ -649,22 +649,23 @@ const init = () => {
   disposables.push(...plant.disposables);
 
   /**
-   * The CV envelope, on the near right of the desk. Its position was measured
+   * The CV document, on the near right of the desk. Its position was measured
    * against the establishing shot's projection rather than chosen, see the
-   * note in `objects/envelope.ts`. It swapped places with the notebook to get
+   * note in `objects/cv-document.ts`. It swapped places with the notebook to get
    * there.
    */
-  envelope = createEnvelope({
+  cvDocument = createCvDocument({
     position: [1.52, DESK_TOP, -0.8],
     yaw: 0.26,
     isOnStage: () => sceneWeights.experience > 0.5,
     shadow: true,
   });
-  envelope.init();
-  group.add(envelope.group);
+  cvDocument.init();
+  group.add(cvDocument.group);
 
   // ponytail: no Timex on this desk. He is wearing it here, see
-  // `avatar/watch.ts`; the desk copy is on the hero desk, where it is off.
+  // `avatar/watch.ts`. (There is no desk copy anywhere any more; the hero
+  // room's went on 2026-09-09.)
 
   group.visible = false;
   scene.instance.add(group);
@@ -679,9 +680,9 @@ const tick = () => {
   if (!visible) {
     // The props collapse their own hit boxes when off stage, but only when
     // ticked. A scroll that jumps straight over the fade (an anchor, a route
-    // change) skipped that, and left the office's envelope and watch as ghost
-    // cyan hover targets over the hero desk.
-    envelope?.tick(0);
+    // change) skipped that, and left the office's CV as a ghost cyan hover
+    // target over the hero desk.
+    cvDocument?.tick(0);
     return;
   }
 
@@ -705,12 +706,12 @@ const tick = () => {
     material.depthWrite = lit > 0.9;
   }
 
-  // After the sweep above, not before it: the envelope owns its own materials
+  // After the sweep above, not before it: the CV owns its own materials
   // so that hover and the opening animation can drive the seal and the sheet
   // independently of the office's single reveal value.
   const delta = gsap.ticker.deltaRatio(60);
-  envelope?.setOpacity(opacity);
-  envelope?.tick(delta);
+  cvDocument?.setOpacity(opacity);
+  cvDocument?.tick(delta);
 
   screens.update(gsap.ticker.time);
 };
@@ -718,9 +719,9 @@ const tick = () => {
 const destroy = () => {
   gsap.ticker.remove(tick);
   screens.destroy();
-  envelope?.destroy();
-  envelope = null;
-  disposeEnvelopeAssets();
+  cvDocument?.destroy();
+  cvDocument = null;
+  disposeCvDocumentAssets();
   disposables.forEach((item) => item.dispose());
   disposables = [];
   materials = [];

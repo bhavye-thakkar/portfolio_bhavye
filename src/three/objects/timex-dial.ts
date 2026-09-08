@@ -1,25 +1,18 @@
-import { CanvasTexture, SRGBColorSpace } from "three";
-
-import type { Texture } from "three";
-
 /**
  * ─── THE TIMEX DIAL ───────────────────────────────────────────────────────
  *
- * One canvas, shared by everything that shows the face: the Timex lying on the
- * hero desk (`desk-watch.ts`) and the one on the avatar's wrist in Experience
- * (`avatar/watch.ts`). It lives on its own so the avatar does not have to
- * import the desk prop, and its router, raycast and inspect wiring, to get at
- * a picture.
+ * The face of the watch he wears in Experience (`avatar/watch.ts`), drawn once
+ * onto a canvas. It lives on its own rather than inside the watch builder so
+ * the avatar module stays geometry and skinning, and so the drawing can be
+ * shared again if the watch ever appears somewhere else. (It did: a copy lay on
+ * the hero desk until 2026-09-09, when the owner had it removed.)
  *
  * ── THE DIAL IS DARK, AND THAT IS A LEGIBILITY DECISION ───────────────────
  *
  * It was cream with dark hands first, which is a perfectly good watch and was
- * invisible: the desk it lies on is 0xfbf9f6, so a pale dial inside a bright
- * steel bezel on a white laminate is three whites in a row, and from the hero
- * shot the whole prop came out as a light smudge with a strap attached. Dark
- * face, light markers: one dark disc on a white desk is a watch from any
- * distance, which is the only job the dial has at prop size. The detail on it
- * exists for the close-up the object page pushes in to.
+ * invisible against a pale sleeve and a white desk: three whites in a row. Dark
+ * face, light markers: one dark disc is a watch from any distance, which is the
+ * only job the dial has at prop size.
  *
  * Drawn at 256² and seen at maybe forty pixels across. Everything on it is
  * sized for that: a minute track that reads as texture rather than as sixty
@@ -28,19 +21,14 @@ import type { Texture } from "three";
  * every photograph ever taken has its hands, because it frames the name and
  * leaves the face open.
  *
- * ── TWO TEXTURES, ONE CANVAS ──────────────────────────────────────────────
- *
- * The desk prop samples this through a `MeshBasicMaterial`, which wants an
- * sRGB texture; the avatar samples it raw in its own shader, which wants the
- * bytes untouched (the same convention as the head texture). One texture
- * cannot be both, and two textures that share a `source` share one upload, so
- * each side makes its own `CanvasTexture` from `getDialCanvas()`.
+ * The avatar samples this raw in its own shader (the same convention as the
+ * head texture), so the caller makes its own `CanvasTexture` from the canvas
+ * and sets the colour space it needs.
  */
 const DIAL_BASE = "#20242c";
 const DIAL_MARK = "#e8edf5";
 
 let canvas: HTMLCanvasElement | null = null;
-let texture: Texture | null = null;
 
 const draw = (ctx: CanvasRenderingContext2D, size: number) => {
   const c = size / 2;
@@ -123,18 +111,4 @@ export const getDialCanvas = (): HTMLCanvasElement => {
   const ctx = canvas.getContext("2d");
   if (ctx) draw(ctx, size);
   return canvas;
-};
-
-/** The desk prop's sRGB texture of it, shared by every desk instance. */
-export const getDialTexture = (): Texture => {
-  if (texture) return texture;
-  texture = new CanvasTexture(getDialCanvas());
-  texture.colorSpace = SRGBColorSpace;
-  texture.anisotropy = 4;
-  return texture;
-};
-
-export const disposeDialTexture = () => {
-  texture?.dispose();
-  texture = null;
 };

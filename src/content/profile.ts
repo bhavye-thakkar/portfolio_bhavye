@@ -66,15 +66,8 @@ export const contact = {
 export const profiles = {
   github: "https://github.com/bhavye-thakkar",
   linkedin: "https://www.linkedin.com/in/bhavyethakkar/",
-  /**
-   * ⚠ PLACEHOLDER, no X account is published anywhere on the portfolio, so
-   * this is the stand-in the social row shipped with and it does not resolve.
-   * Put the real handle here, or drop the `x` entry from `social.ts`.
-   * It is deliberately kept out of `sameAs` in the page's structured data:
-   * pointing search engines at a profile that does not exist is worse than
-   * listing one fewer profile.
-   */
-  x: "https://x.com/example",
+  /** The owner's own handle (supplied 2026-09-09); also in index.html's `sameAs` and llms.txt. */
+  x: "https://x.com/bhavye_thakkar",
 } as const;
 
 /**

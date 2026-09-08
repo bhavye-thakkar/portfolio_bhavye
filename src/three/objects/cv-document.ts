@@ -9,40 +9,44 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshMatcapMaterial,
-  CircleGeometry,
-  Shape,
-  ShapeGeometry,
+  PlaneGeometry,
   SRGBColorSpace,
   Vector3,
 } from "three";
-import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import gsap from "gsap";
 import { getMatcap, createContactShadow } from "./workstation/materials";
 import { raycast } from "../utils/raycast";
 import { lerp } from "../../utils/math";
 import { cv, cvStage } from "../../features/cv/state";
+import { cvHeader, cvSections } from "../../content/cv";
 
 import type { Material, Texture } from "three";
 import type { ClickableBox3 } from "../types";
 
 /**
- * ─── THE CV ENVELOPE ──────────────────────────────────────────────────────
+ * ─── THE CV ON THE DESK ───────────────────────────────────────────────────
  *
- * A stuffed envelope lying on a desk. Click it and the flap swings open, a
- * sheet rises out of the mouth, and the readable CV opens over the scene.
+ * A short stack of paper with the CV on top, lying where a printout lands
+ * when you put it down. Click it and the top sheet lifts off the pile and tips
+ * up to face you; a small prompt then offers the readable copy.
+ *
+ * ── WHY A SHEET AND NOT AN ENVELOPE ───────────────────────────────────────
+ *
+ * This used to be a sealed envelope. Nobody could tell what was in it. The
+ * owner's instruction (2026-09-08) was blunt and right: a visitor should look
+ * at the desk and see that it is a CV, not deduce it. So the document is face
+ * up, typeset from `content/cv.ts` with his name at the top, and the only
+ * thing the click does is pick it up. Nothing is hidden and then revealed;
+ * what you see lying there is what you get.
  *
  * ── ONE BUILDER, TWO DESKS ────────────────────────────────────────────────
  *
  * There are two of these and they are the same object: one on the hero room's
  * desk, so a visitor who never scrolls past the first screen can still find the
- * CV, and one on the Experience workstation, where it belongs to the office the
- * section builds. They are never both on screen, `hero` and `experience` are
- * mutually exclusive scene weights, so `setOpenAll` simply plays the opening
- * move on both and whichever one the visitor is looking at is the one they see.
- *
- * That is why this is a factory rather than the singleton it started as. Each
- * instance owns its own geometry, its own hit box and its own hover state; the
- * only shared things are the baked matcaps, which are cached.
+ * CV, and one on the Experience workstation. They are never both on screen,
+ * `hero` and `experience` are mutually exclusive scene weights, so
+ * `setCvDocumentsOpen` plays the move on both and whichever the visitor is
+ * looking at is the one they see.
  *
  * ── WHY IT IS A PROP AND NOT A BUTTON ─────────────────────────────────────
  *
@@ -53,7 +57,7 @@ import type { ClickableBox3 } from "../types";
  * orange arrow means "this opens a case study".
  */
 
-export type EnvelopeOptions = {
+export type CvDocumentOptions = {
   /** Where it lies, in the parent group's own space. */
   position: [number, number, number];
   yaw: number;
@@ -79,126 +83,145 @@ export type EnvelopeOptions = {
   renderOrder?: number;
 };
 
-const WIDTH = 0.72;
-const DEPTH = 0.5;
 /**
- * 8.5cm at desk scale, not 5. A stuffed envelope has a shoulder you can see
- * from across a room, and at 5 this prop's side wall was about two pixels from
- * either camera: it read as a printed rectangle lying on the laminate rather
- * than as an object with something in it. This is the single biggest reason it
- * used to look like a loose sheet of paper.
+ * Portrait, A4 proportions (1 : 1.414). The envelope this replaces was a
+ * landscape 0.72 x 0.5; this covers about the same desk area, turned the way a
+ * document lies, so both measured positions still land on clear desk.
  */
-const THICKNESS = 0.085;
+const WIDTH = 0.48;
+const DEPTH = 0.68;
+/** A few sheets, enough for an edge you can see from either camera. */
+const CARD = 0.012;
+const UNDER_SHEET = 0.007;
+/**
+ * How far the top sheet tips up when opened, off the desk. Not upright: a
+ * sheet standing to attention reads as a sign. Around 55 degrees is a page
+ * held up to be read, and it keeps the print facing both cameras.
+ */
+const TILT = 0.95;
+const LIFT = 0.05;
+
+const PAPER = new Color(0xf4f6f9);
+const PAPER_HOVER = new Color(0xffffff);
 
 /**
- * How far along its own hinge axis the sheet sits, tucked in and fully out.
+ * The printed side. THE CV, typeset from the same `content/cv.ts` the
+ * readable panel uses, not a picture of one. It is set at 512 x 724, which is
+ * A4 at 72dpi and a touch more: from either desk camera it reads as a document
+ * with a name, a role line and headed sections, which is exactly the "yes, that
+ * is a CV" the prop exists for. The legible copy is still the panel.
  *
- * ── THESE TWO NUMBERS ARE NOT FREE ────────────────────────────────────────
- *
- * The sheet is opaque now (see `sheetMaterial`), so what hides it at rest is
- * the pocket it is inside, and that only works if it actually FITS. The hinge
- * sits at z = DEPTH·0.34 = 0.17 and the sheet is DEPTH·0.98 long, so at
- * SHEET_IN = 0.34 it spans z ∈ [-0.245, +0.245] inside a pocket that runs
- * [-0.25, +0.25]: fully in, with a couple of millimetres to spare at each end.
- *
- * SHEET_OUT lands the card's bottom edge back at the mouth once it has tipped
- * up, so it settles half out and leaning, which is how a card sits in an
- * envelope someone has just opened. Pushing it higher makes it hover with
- * nothing underneath.
- *
- * Change the sheet's size and both of these have to be re-derived.
+ * Built once and shared: both documents show the same sheet.
  */
-const SHEET_IN = 0.34;
-const SHEET_OUT = 0.51;
-/**
- * Where the sheet settles, as an angle off the desk. Not upright: a card
- * standing to attention out of an envelope reads as a sign, and it is twice
- * the screen height for no extra information.
- */
-const SHEET_SETTLE = 1.14;
+let pageTexture: Texture | null = null;
 
-const SHELL = new Color(0xf3ecdf);
-const SHELL_HOVER = new Color(0xfbfdff);
+const TEXTURE_W = 512;
+const TEXTURE_H = 724;
 
-/**
- * The printed side of the sheet. Not the CV, the CV is the readable HTML
- * panel, just enough type-coloured structure that the paper reads as a
- * document from two metres away rather than as a white card.
- *
- * Built once and shared: both envelopes show the same sheet.
- */
-let sheetTexture: Texture | null = null;
+const wrap = (ctx: CanvasRenderingContext2D, text: string, width: number): string[] => {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let line = "";
+  for (const word of words) {
+    const next = line ? `${line} ${word}` : word;
+    if (ctx.measureText(next).width > width && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = next;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+};
 
-const getSheetTexture = (): Texture | null => {
-  if (sheetTexture) return sheetTexture;
+const getPageTexture = (): Texture | null => {
+  if (pageTexture) return pageTexture;
 
   const canvas = document.createElement("canvas");
-  canvas.width = 256;
-  canvas.height = 340;
-  const context = canvas.getContext("2d");
-  if (!context) return null;
+  canvas.width = TEXTURE_W;
+  canvas.height = TEXTURE_H;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
 
-  // Cooler than the desk it stands on. A warm white sheet on a warm white
+  const font = "Urbanist, system-ui, sans-serif";
+  // Cooler than the desks it lies on. A warm white sheet on a warm white
   // laminate is one value, and the sheet vanished into it.
-  context.fillStyle = "#f2f5f9";
-  context.fillRect(0, 0, 256, 340);
+  ctx.fillStyle = "#f4f6f9";
+  ctx.fillRect(0, 0, TEXTURE_W, TEXTURE_H);
 
-  context.fillStyle = "#1d2b3a";
-  context.fillRect(26, 30, 132, 13);
-  context.fillStyle = "#7d8b99";
-  context.fillRect(26, 50, 92, 6);
-  context.fillStyle = "#34bfff";
-  context.fillRect(26, 68, 204, 2);
+  const left = 40;
+  const width = TEXTURE_W - 80;
+  const bottom = TEXTURE_H - 30;
+  let y = 62;
+  ctx.textBaseline = "alphabetic";
 
-  // Blocks of ragged-right rules, so it scans as set text instead of a grid.
-  let y = 86;
-  for (let block = 0; block < 5; block++) {
-    context.fillStyle = "#2b3a49";
-    context.fillRect(26, y, 62, 5);
-    y += 13;
-    context.fillStyle = "#b9c2cb";
-    for (let line = 0; line < 3 + (block % 2); line++) {
-      context.fillRect(26, y, 150 + ((block * 37 + line * 61) % 54), 4);
-      y += 10;
+  // Name large enough to read from across the room; that is the whole tell.
+  // Oversized for a real CV (a printed name is ~4% of the page width, this is
+  // ~9%), because from either desk camera the sheet is a strip forty pixels
+  // wide and the name is the one line that has to survive that.
+  ctx.fillStyle = "#1d2b3a";
+  ctx.font = `800 44px ${font}`;
+  ctx.fillText(cvHeader.name, left, y + 8);
+  y += 40;
+  ctx.fillStyle = "#5b6b7a";
+  ctx.font = `600 18px ${font}`;
+  ctx.fillText(cvHeader.role, left, y);
+  y += 22;
+  ctx.fillStyle = "#7d8b99";
+  ctx.font = `400 12px ${font}`;
+  ctx.fillText(`${cvHeader.email}   ${cvHeader.address}`, left, y);
+  y += 14;
+  // The one cyan note on the sheet, the site's interactive colour.
+  ctx.fillStyle = "#34bfff";
+  ctx.fillRect(left, y, width, 4);
+  y += 26;
+
+  for (const section of cvSections) {
+    if (y > bottom - 34) break;
+    ctx.fillStyle = "#2b3a49";
+    ctx.font = `800 13px ${font}`;
+    ctx.fillText(section.label.toUpperCase(), left, y);
+    y += 16;
+    for (const entry of section.entries) {
+      if (y > bottom - 18) break;
+      ctx.fillStyle = "#1d2b3a";
+      ctx.font = `700 12px ${font}`;
+      ctx.fillText(entry.title, left, y);
+      y += 14;
+      if (entry.subtitle) {
+        ctx.fillStyle = "#7d8b99";
+        ctx.font = `400 11px ${font}`;
+        ctx.fillText(entry.subtitle, left, y);
+        y += 13;
+      }
+      ctx.fillStyle = "#3c4652";
+      ctx.font = `400 10.5px ${font}`;
+      for (const bullet of entry.bullets ?? []) {
+        for (const line of wrap(ctx, bullet, width - 14)) {
+          if (y > bottom) break;
+          ctx.fillText(`• ${line}`, left + 4, y);
+          y += 12.5;
+        }
+      }
+      y += 6;
     }
-    y += 9;
+    y += 10;
   }
 
-  sheetTexture = new CanvasTexture(canvas);
-  sheetTexture.colorSpace = SRGBColorSpace;
-  sheetTexture.anisotropy = 4;
-  return sheetTexture;
+  pageTexture = new CanvasTexture(canvas);
+  pageTexture.colorSpace = SRGBColorSpace;
+  pageTexture.anisotropy = 8;
+  return pageTexture;
 };
 
 /**
- * An isosceles triangle lying in the XZ plane, base along X at z = 0 and apex
- * `depth` away in the direction of `sign`. The flap and the front seam are the
- * same shape pointing opposite ways.
- *
- * `sign` is baked into the shape rather than applied afterwards as
- * `scale(1, 1, -1)`: a negative scale mirrors the winding, so every face
- * becomes back-facing, and a DoubleSide matcap material then shades them off
- * the FLIPPED normal, which is the bottom of the matcap disc, i.e. dark.
- */
-const createTriangle = (width: number, depth: number, sign: 1 | -1 = 1) => {
-  const shape = new Shape();
-  shape.moveTo((-width / 2) * sign, 0);
-  shape.lineTo((width / 2) * sign, 0);
-  shape.lineTo(0, -depth * sign);
-  shape.closePath();
-  const geometry = new ShapeGeometry(shape);
-  // (x, y) → (x, 0, -y), so the apex at -depth·sign lands at +Z·sign.
-  geometry.rotateX(-Math.PI / 2);
-  return geometry;
-};
-
-/**
- * Written out rather than inferred with `ReturnType<typeof createEnvelope>`:
+ * Written out rather than inferred with `ReturnType<typeof createCvDocument>`:
  * the factory pushes itself into `instances`, so inferring the type from the
  * factory that references the list that is typed by the inference is a cycle
  * TypeScript refuses.
  */
-export type Envelope = {
+export type CvDocument = {
   init: () => void;
   destroy: () => void;
   tick: (delta: number) => void;
@@ -210,24 +233,23 @@ export type Envelope = {
 };
 
 /** Every instance built, so the CV panel can open them without knowing which. */
-const instances: Envelope[] = [];
+const instances: CvDocument[] = [];
 
-export const createEnvelope = (options: EnvelopeOptions): Envelope => {
+export const createCvDocument = (options: CvDocumentOptions): CvDocument => {
   const order = options.renderOrder ?? 12.6;
 
   const group = new Group();
   /** Everything above the desk, so hover lifts the prop as one piece. */
   const body = new Group();
-  const flap = new Group();
+  /** Hinged along the far edge; rotating it tips the top sheet up. */
   const paper = new Group();
 
   let disposables: (BufferGeometry | Material | Texture)[] = [];
   /** Every material the prop owns, so a scene fade can be applied to it. */
   let materials: Material[] = [];
-  let shellMaterial: MeshMatcapMaterial | null = null;
-  let sealMaterial: MeshBasicMaterial | null = null;
-  let sheetMaterial: MeshBasicMaterial | null = null;
-  /** Kept out of `materials` so the sheet's own reveal can drive it. */
+  let cardMaterial: MeshMatcapMaterial | null = null;
+  let clipMaterial: MeshBasicMaterial | null = null;
+  /** Kept out of `materials` so the tilt's own reveal can drive it. */
   let leanShadow: MeshBasicMaterial | null = null;
 
   const box = new Box3() as ClickableBox3;
@@ -236,220 +258,130 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
 
   /** Eased toward 1 while the pointer is over it. */
   let hover = 0;
-  /** 0 closed, 1 fully opened. Driven by `setOpen`, not by hover. */
+  /** 0 flat on the pile, 1 lifted and tipped up. Driven by `setOpen`, not hover. */
   const open = { value: 0 };
   /** The scene's own reveal, mirrored here, see `setOpacity`. */
   let opacity = 1;
 
   const build = () => {
-    // DoubleSide because the flap shares this material and its underside is in
-    // full view once it is open. The pocket is a closed solid, so it costs
-    // nothing.
-    const shell = new MeshMatcapMaterial({
+    const paperMaterial = new MeshMatcapMaterial({
       matcap: getMatcap("matte"),
-      color: SHELL.getHex(),
+      color: PAPER.getHex(),
       transparent: true,
       side: DoubleSide,
     });
-    shellMaterial = shell;
-    materials.push(shell);
-    disposables.push(shell);
-
-    // ── the pocket. A rounded slab, not a plane: no thickness at the edge is
-    // most of why a desk prop reads as a primitive.
-    const pocket = new RoundedBoxGeometry(WIDTH, THICKNESS, DEPTH, 2, 0.012);
-    pocket.translate(0, THICKNESS / 2, 0);
-    const pocketMesh = new Mesh(pocket, shell);
-    pocketMesh.renderOrder = order;
-    pocketMesh.frustumCulled = false;
-    body.add(pocketMesh);
-    disposables.push(pocket);
-
-    // ── the front seam: the V the front panel folds into, hinged at the near
-    // edge and pointing back. A hair proud of the pocket so it catches the
-    // matcap on its own rather than z-fighting.
-    //
-    // The paper colour is a real step down from the shell rather than the hair
-    // it was (0xe7ddca against 0xf3ecdf, which is under two per cent of value
-    // and vanished at prop size). A fold you cannot see is a fold that is not
-    // there, and with no fold visible the whole thing was a rectangle.
-    const seam = createTriangle(WIDTH * 0.97, DEPTH * 0.84);
-    seam.translate(0, THICKNESS + 0.0015, -DEPTH / 2 + 0.004);
-    const seamMaterial = new MeshMatcapMaterial({
-      matcap: getMatcap("matte"),
-      color: 0xd6c7ab,
-      transparent: true,
-    });
-    const seamMesh = new Mesh(seam, seamMaterial);
-    seamMesh.renderOrder = order + 0.02;
-    seamMesh.frustumCulled = false;
-    body.add(seamMesh);
-    materials.push(seamMaterial);
-    disposables.push(seam, seamMaterial);
-
+    cardMaterial = paperMaterial;
+    materials.push(paperMaterial);
+    disposables.push(paperMaterial);
 
     /**
-     * ── THE PAPER INSIDE ────────────────────────────────────────────────────
+     * ── THE PILE ────────────────────────────────────────────────────────────
      *
-     * A three-millimetre band of the card's own cool white, sitting in the gap
-     * just past the closed flap's tip. It is the answer to "how do I know this
-     * has anything in it": an envelope with a visible sheet edge is an envelope,
-     * one without is a rectangle. It is also why the opening move now reads as
-     * a reveal, the thing that comes out was already there.
-     *
-     * Not part of the sheet: the sheet is inside the pocket and depth-tested
-     * against it, so it cannot show anywhere the pocket does not let it. This
-     * is the edge you would actually see.
+     * Two sheets under the top one, each a few degrees off square and a little
+     * offset, because a printout put down on a desk is never a single aligned
+     * page. They stay on the desk when the top sheet lifts, which is what makes
+     * the lift read as picking one page OFF a stack rather than as a card
+     * levitating.
      */
-    const mouthMaterial = new MeshMatcapMaterial({
-      matcap: getMatcap("matte"),
-      color: 0xeef2f7,
-      transparent: true,
+    const underSheets = [
+      { yaw: -0.05, x: 0.012, z: -0.006 },
+      { yaw: 0.035, x: -0.008, z: 0.01 },
+    ];
+    underSheets.forEach((sheet, i) => {
+      const geometry = new BoxGeometry(WIDTH, UNDER_SHEET, DEPTH);
+      geometry.rotateY(sheet.yaw);
+      geometry.translate(sheet.x, UNDER_SHEET / 2 + i * UNDER_SHEET, sheet.z);
+      const mesh = new Mesh(geometry, paperMaterial);
+      mesh.renderOrder = order + i * 0.01;
+      mesh.frustumCulled = false;
+      body.add(mesh);
+      disposables.push(geometry);
     });
-    const mouth = new BoxGeometry(WIDTH * 0.84, 0.009, 0.014);
-    mouth.translate(0, THICKNESS - 0.002, -DEPTH * 0.352);
-    const mouthMesh = new Mesh(mouth, mouthMaterial);
-    mouthMesh.renderOrder = order + 0.01;
-    mouthMesh.frustumCulled = false;
-    body.add(mouthMesh);
-    materials.push(mouthMaterial);
-    disposables.push(mouth, mouthMaterial);
-
-    // ── the flap. Hinged along the FAR edge and pointing toward the camera
-    // when closed, so opening it swings the tip up and away rather than into
-    // frame.
-    //
-    // Its own material, half a step under the shell. A flap in exactly the
-    // shell's white has no edge where it lands on the body, so closed, the top
-    // of this prop was one unbroken plane of cream.
-    const flapMaterial = new MeshMatcapMaterial({
-      matcap: getMatcap("matte"),
-      color: 0xe9dfcd,
-      transparent: true,
-      side: DoubleSide,
-    });
-    materials.push(flapMaterial);
-    disposables.push(flapMaterial);
-
-    const flapGeometry = createTriangle(WIDTH * 0.97, DEPTH * 0.86, -1);
-    const flapMesh = new Mesh(flapGeometry, flapMaterial);
-    flapMesh.renderOrder = order + 0.04;
-    flapMesh.frustumCulled = false;
-    flap.add(flapMesh);
-    /**
-     * A liner a hair under the flap, in the seam's darker paper.
-     *
-     * Open, the face pointed at the camera is the flap's UNDERSIDE, and in the
-     * same white as the shell it read as a pale shard standing on a pale desk
-     * rather than as the inside of an envelope. Real envelopes are lined for
-     * exactly this reason. It also costs nothing: same triangle, one material
-     * already in the list.
-     */
-    const linerGeometry = createTriangle(WIDTH * 0.93, DEPTH * 0.82, -1);
-    linerGeometry.translate(0, -0.0025, 0);
-    const linerMesh = new Mesh(linerGeometry, seamMaterial);
-    linerMesh.renderOrder = order + 0.03;
-    linerMesh.frustumCulled = false;
-    flap.add(linerMesh);
-    flap.position.set(0, THICKNESS + 0.002, DEPTH / 2);
-    body.add(flap);
-    disposables.push(flapGeometry, linerGeometry);
+    const pileTop = UNDER_SHEET * underSheets.length;
 
     /**
-     * ── THE SEAL ────────────────────────────────────────────────────────────
+     * ── THE TOP SHEET ───────────────────────────────────────────────────────
      *
-     * The one cyan note on the prop, and where the eye lands: the site's
-     * interactive language is cyan, so anyone who has clicked the orchid
-     * already knows what this dot means.
-     *
-     * A DISC, and a child of the flap. The square read as a UI chip printed on
-     * the paper, and as a child of the body it stayed lying on the desk while
-     * the flap it was supposedly holding shut swung away above it. On the flap
-     * it goes with it, which is what a seal does.
+     * A thin box for the edge, and a plane a hair above it carrying the print.
+     * A box's one material would wrap the CV round every face; the plane keeps
+     * it on the top where a document's print is. `depthWrite` on so the
+     * transparent plane still sorts against the card under it.
      */
-    const seal = new CircleGeometry(0.052, 20);
-    seal.rotateX(-Math.PI / 2);
-    seal.translate(0, 0.0025, -DEPTH * 0.6);
-    sealMaterial = new MeshBasicMaterial({
-      color: 0x34bfff,
-      transparent: true,
-      toneMapped: false,
-      depthWrite: false,
-    });
-    const sealMesh = new Mesh(seal, sealMaterial);
-    sealMesh.renderOrder = order + 0.08;
-    sealMesh.frustumCulled = false;
-    flap.add(sealMesh);
-    materials.push(sealMaterial);
-    disposables.push(seal, sealMaterial);
+    const page = new Group();
+    const card = new BoxGeometry(WIDTH, CARD, DEPTH);
+    card.translate(0, CARD / 2, 0);
+    const cardMesh = new Mesh(card, paperMaterial);
+    cardMesh.renderOrder = order + 0.03;
+    cardMesh.frustumCulled = false;
+    page.add(cardMesh);
+    disposables.push(card);
 
-    // ── the sheet. Hinged at the envelope's mouth: `paper.rotation.x` of
-    // -PI/2 lays it flat inside (invisible, opacity 0), and opening stands it
-    // up.
-    const texture = getSheetTexture();
-    /**
-     * A thin BOX, not a plane. A document seen edge-on at the moment it clears
-     * the flap is the frame that sells it as an object, and a plane has no
-     * edge at all. 5mm at this scale.
-     *
-     * ── IT FITS IN THE ENVELOPE, AND THAT IS THE POINT ──────────────────────
-     *
-     * It used to be DEPTH·1.42 long, half a metre of card in a half-metre
-     * pocket, so at rest it stuck out fifteen centimetres past the back and
-     * five past the front. The only thing hiding that was `opacity: 0`, and the
-     * cost of that trick is exactly the thing this pass exists to fix: the
-     * sheet did not come OUT of anything, it faded up in mid-air on its way
-     * past. That is the "teleported into position" the brief calls out.
-     *
-     * At DEPTH·0.98 it is a card that fits, so it can be hidden by the pocket
-     * instead of by a number, which means it can be OPAQUE THE WHOLE TIME:
-     * invisible while it is inside, visible the instant it clears the top face,
-     * with nothing anywhere that fades. `depthWrite` has to be on for that to
-     * work, a transparent material that skips the depth buffer draws straight
-     * over the pocket it is supposed to be inside.
-     */
-    const sheet = new BoxGeometry(WIDTH * 0.9, DEPTH * 0.98, 0.005);
-    sheetMaterial = new MeshBasicMaterial({
-      map: texture,
+    const print = new PlaneGeometry(WIDTH * 0.985, DEPTH * 0.985);
+    print.rotateX(-Math.PI / 2);
+    print.translate(0, CARD + 0.0015, 0);
+    const printMaterial = new MeshBasicMaterial({
+      map: getPageTexture(),
       transparent: true,
       toneMapped: false,
       side: DoubleSide,
       depthWrite: true,
     });
-    const sheetMesh = new Mesh(sheet, sheetMaterial);
-    sheetMesh.renderOrder = order + 0.06;
-    sheetMesh.frustumCulled = false;
+    const printMesh = new Mesh(print, printMaterial);
+    printMesh.renderOrder = order + 0.04;
+    printMesh.frustumCulled = false;
+    page.add(printMesh);
+    materials.push(printMaterial);
+    disposables.push(print, printMaterial);
+
     /**
-     * Turned to face the OTHER way.
+     * ── THE CLIP ────────────────────────────────────────────────────────────
      *
-     * The hinge sweep tips the sheet's top up and toward the camera, which is
-     * what it should do, but that carries the face with it: the printed side
-     * ended up pointing up and away, so what settled out of the envelope was
-     * the back of a blank sheet. Half a turn puts the print where the camera
-     * is. The artwork is abstract rules rather than real text, so mirroring it
-     * costs nothing.
+     * A cyan tab on the top edge of the sheet, a page marker. It is the one
+     * bright note on the prop and where the eye lands: the site's interactive
+     * language is cyan, so anyone who has clicked the orchid already knows
+     * what this colour means. A child of the page, so it lifts with it.
      */
-    sheetMesh.rotation.y = Math.PI;
-    // Offset along the hinge's own axis, so rotating the group raises it. The
-    // tick slides this from tucked-in to clear, which is the "emerges" beat.
-    sheetMesh.position.set(0, DEPTH * SHEET_IN, 0);
-    paper.add(sheetMesh);
-    paper.position.set(0, THICKNESS * 0.6, DEPTH * 0.34);
-    paper.rotation.x = -Math.PI / 2;
+    const clip = new BoxGeometry(0.075, CARD + 0.008, 0.028);
+    clip.translate(WIDTH * 0.3, (CARD + 0.008) / 2 - 0.002, -DEPTH / 2 + 0.006);
+    clipMaterial = new MeshBasicMaterial({
+      color: 0x34bfff,
+      transparent: true,
+      toneMapped: false,
+    });
+    const clipMesh = new Mesh(clip, clipMaterial);
+    clipMesh.renderOrder = order + 0.06;
+    clipMesh.frustumCulled = false;
+    page.add(clipMesh);
+    materials.push(clipMaterial);
+    disposables.push(clip, clipMaterial);
+
+    /**
+     * The page hangs off the hinge at the far edge, so rotating `paper` about
+     * X raises the near edge toward the camera.
+     *
+     * The half turn is what puts the NAME on the edge that rises. A plane's
+     * texture top lands on local -z once it is laid flat, which is the hinge
+     * side; without this the sheet stood up with the name at the desk and the
+     * bullets in the air, which the first render of it did, and which was
+     * caught in review rather than by eye. Both desk cameras sit on the -z
+     * side of the prop, so after the turn the print faces them when tilted.
+     */
+    page.position.set(0, 0, DEPTH / 2);
+    page.rotation.y = Math.PI;
+    paper.add(page);
+    paper.position.set(0, pileTop, -DEPTH / 2);
     body.add(paper);
-    materials.push(sheetMaterial);
-    disposables.push(sheet, sheetMaterial);
 
     group.add(body);
 
     /**
-     * A second pool, under where the sheet leans. Without it the one thing in
-     * the scene that is standing UP off the desk was the only thing not
-     * casting anything, and on a white desk a white sheet with no shadow is
-     * very hard to read as an object at all. Its opacity follows the sheet.
+     * A second pool, under where the sheet leans once lifted. Without it the
+     * one thing on the desk standing UP was the only thing not casting
+     * anything, and on a white desk a white sheet with no shadow is very hard
+     * to read as an object at all. Its opacity follows the tilt.
      */
     if (options.shadow) {
-      const lean = createContactShadow(WIDTH * 1.35, DEPTH * 1.5, 0, 0.0035, -DEPTH * 0.32, 0.42);
+      const lean = createContactShadow(WIDTH * 1.4, DEPTH * 1.2, 0, 0.0035, DEPTH * 0.1, 0.4);
       if (lean) {
         leanShadow = lean.mesh.material as MeshBasicMaterial;
         group.add(lean.mesh);
@@ -459,9 +391,9 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
 
     // ── the thing that stops it hovering above the desk. It draws at 12.5,
     // ahead of every part above, so a multiply blend can only ever darken the
-    // surface it is cast on, never the envelope standing in it.
+    // surface it is cast on, never the paper standing in it.
     if (options.shadow) {
-      const shadow = createContactShadow(WIDTH * 1.55, DEPTH * 1.7, 0.015, 0.003, 0.025, 0.34);
+      const shadow = createContactShadow(WIDTH * 1.5, DEPTH * 1.35, 0.015, 0.003, 0.02, 0.34);
       if (shadow) {
         group.add(shadow.mesh);
         materials.push(shadow.mesh.material as Material);
@@ -483,7 +415,7 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
       // but the guard is cheap and the failure mode, the CV opening from
       // halfway down the site, is bad.
       if (!options.isOnStage()) return;
-      // First click opens the envelope in the scene; a second one opens the
+      // First click lifts the sheet in the scene; a second one opens the
       // reader. See `features/cv/state.ts`.
       cv.activate();
     };
@@ -497,10 +429,10 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
   };
 
   /**
-   * The opening move, and the only animation this owns. Deliberately small: the
-   * flap swings, the sheet rises about its own hinge and settles. Nothing
-   * crosses the screen, the CV panel is what the visitor is about to read, and
-   * a sheet flying at the camera would be competing with it.
+   * The opening move, and the only animation this owns. Deliberately small:
+   * the top sheet lifts a few centimetres and tips up about its far edge.
+   * Nothing crosses the screen, the CV panel is what the visitor is about to
+   * read, and a sheet flying at the camera would be competing with it.
    */
   const setOpen = (value: number, duration: number) => {
     gsap.to(open, { value, duration, ease: value ? "power3.out" : "power2.inOut", overwrite: "auto" });
@@ -519,10 +451,10 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
       box.makeEmpty();
       /**
        * Scrolling away from BOTH scenes closes it: leaving the prompt bar up
-       * over a page whose envelope is nowhere on screen is worse than losing
+       * over a page whose document is nowhere on screen is worse than losing
        * the state, and the state is one click to get back.
        *
-       * The `some` is load-bearing. Without it the OTHER envelope, the one
+       * The `some` is load-bearing. Without it the OTHER document, the one
        * whose scene is off screen, ran this branch on the very next frame and
        * dismissed the state the on-screen one had just opened. The click
        * worked, the store updated, and a tick later it was closed again, which
@@ -540,15 +472,14 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
     /**
      * ── THE HIT BOX IS A VOLUME, NOT THE PROP ─────────────────────────────
      *
-     * An envelope lying flat is 5cm thick, and both cameras look along the
-     * desk, so its true bounds project to a strip about 60 x 20 pixels. Two
-     * things went wrong with that: it is far too small to find, and the 2cm
-     * hover lift moved the box by more than the strip was tall, the pointer
-     * fell out of it, the lift reversed, and the hover flickered at several
-     * hertz. A click landing in an "off" frame did nothing at all.
+     * A sheet lying flat is a couple of centimetres thick, and both cameras
+     * look along the desk, so its true bounds project to a thin strip. Two
+     * things went wrong with that: it is too small to find, and the hover lift
+     * moved the box by more than the strip was tall, the pointer fell out of
+     * it, the lift reversed, and the hover flickered at several hertz.
      *
      * So the box is grown mostly UPWARD: a shallow column standing on the desk
-     * where the envelope is. The lift is then a rounding error inside it.
+     * where the document is. The lift is then a rounding error inside it.
      *
      * Height is the knob, and it is a trade rather than a free win, a box seen
      * from an elevated camera projects WIDER as it gets taller, and 0.55 of
@@ -569,37 +500,24 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
     // Hover: two millimetres of lift, two per cent of scale, and the paper
     // warming toward white. Enough to answer "is this clickable" from the
     // corner of the eye, not enough to pull the shot off the avatar.
-    body.position.y = hover * 0.022 + open.value * 0.014;
+    body.position.y = hover * 0.022;
     body.scale.setScalar(1 + hover * 0.022);
-    shellMaterial?.color.lerpColors(SHELL, SHELL_HOVER, hover);
+    cardMaterial?.color.lerpColors(PAPER, PAPER_HOVER, hover);
 
     /**
-     * Flap first, sheet second, so the two beats read in order rather than as
-     * one pop, and the sheet does two things at once on the way out: it SLIDES
-     * along the hinge axis (clearing the pocket) while it swings up about it.
-     * Rotating alone made it pivot out of a slot it was never inside.
+     * The lift leads the tilt slightly, so the sheet clears the pile before it
+     * leans, the way a page comes off a stack when you pick it up by the near
+     * edge. A couple of degrees of roll, because nothing a person lifts is
+     * perfectly square.
      */
-    const flapT = Math.min(1, open.value / 0.55);
-    const sheetT = Math.max(0, (open.value - 0.3) / 0.7);
-    // ease the slide out ahead of the lean, so it is clear of the mouth before
-    // it starts tipping back
-    const slideT = Math.min(1, sheetT * 1.6);
-    // 1.85, not 2.2. Past vertical the flap leans back over the envelope and
-    // its silhouette stops reading as a flap at all.
-    flap.rotation.x = flapT * 1.85;
-    paper.rotation.x = -Math.PI / 2 + sheetT * SHEET_SETTLE;
-    // a couple of degrees off square, because nothing a person put down is
-    // perfectly aligned
-    paper.rotation.z = sheetT * 0.05;
-    const sheetMesh = paper.children[0] as Mesh | undefined;
-    if (sheetMesh) sheetMesh.position.y = DEPTH * (SHEET_IN + (SHEET_OUT - SHEET_IN) * slideT);
+    const liftT = Math.min(1, open.value * 1.4);
+    paper.position.y = UNDER_SHEET * 2 + liftT * LIFT;
+    paper.rotation.x = -open.value * TILT;
+    paper.rotation.z = open.value * 0.04;
 
-    // The sheet is in `materials` and takes the scene's own opacity like every
-    // other part. It is NOT faded by `sheetT` any more: what hides it is the
-    // pocket it is inside, so it is a solid object for the whole move.
     for (const material of materials) material.opacity = opacity;
-    if (sealMaterial) sealMaterial.opacity = opacity * (0.6 + hover * 0.4);
-    if (leanShadow) leanShadow.opacity = opacity * sheetT;
+    if (clipMaterial) clipMaterial.opacity = opacity * (0.7 + hover * 0.3);
+    if (leanShadow) leanShadow.opacity = opacity * open.value;
   };
 
   const destroy = () => {
@@ -611,12 +529,10 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
     disposables.forEach((item) => item.dispose());
     disposables = [];
     materials = [];
-    shellMaterial = null;
-    sealMaterial = null;
-    sheetMaterial = null;
+    cardMaterial = null;
+    clipMaterial = null;
     leanShadow = null;
     body.clear();
-    flap.clear();
     paper.clear();
     group.clear();
 
@@ -624,23 +540,23 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
     if (at !== -1) instances.splice(at, 1);
   };
 
-  const instance: Envelope = { init, destroy, tick, group, setOpen, setOpacity, isOnStage: options.isOnStage };
+  const instance: CvDocument = { init, destroy, tick, group, setOpen, setOpacity, isOnStage: options.isOnStage };
   instances.push(instance);
   return instance;
 };
 
 /**
- * Plays the opening move on every envelope in the scene graph. The CV panel
- * calls this rather than holding a reference: only one envelope is ever on
- * screen, so animating both is correct and saves threading "which one did the
- * visitor click" through the click handler and the panel.
+ * Plays the lift on every document in the scene graph. The CV panel calls this
+ * rather than holding a reference: only one is ever on screen, so animating
+ * both is correct and saves threading "which one did the visitor click"
+ * through the click handler and the panel.
  */
-export const setEnvelopesOpen = (value: number, duration: number) => {
+export const setCvDocumentsOpen = (value: number, duration: number) => {
   for (const item of instances) item.setOpen(value, duration);
 };
 
-/** The shared sheet texture; each instance disposes only what it built. */
-export const disposeEnvelopeAssets = () => {
-  sheetTexture?.dispose();
-  sheetTexture = null;
+/** The shared page texture; each instance disposes only what it built. */
+export const disposeCvDocumentAssets = () => {
+  pageTexture?.dispose();
+  pageTexture = null;
 };

@@ -178,7 +178,7 @@ export const disposeMatcaps = () => {
  * hovering a few centimetres above it, the one tell that makes a modelled
  * scene read as assets dropped onto a plane. The plant already solved this
  * with a multiply-blended radial gradient; this is that trick as one call so
- * the mug, the keyboard, the stands, the lamp and the envelope all get the
+ * the mug, the keyboard, the stands, the lamp and the CV all get the
  * same one.
  *
  * `width` and `depth` are separate so a wide flat object (a keyboard) gets a

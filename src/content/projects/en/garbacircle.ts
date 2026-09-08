@@ -1,20 +1,18 @@
-import { PLACEHOLDER_IMAGE } from "../placeholder";
+import garbacircleArtwork from "../../../assets/thumbnails/garbacircle.webp";
 
 import type { ProjectContent } from "../../types";
 
 /**
  * The only project with its real write-up. Everything below is true, the
- * title, the copy, the stack, the links and the feature list. The one stand-in
- * is the visual: the shared placeholder plate holds the hero slot until the
- * Garba Circle captures exist.
+ * title, the copy, the stack, the links, the feature list and now the artwork:
+ * the app's own key art, which is also the card in the Projects grid (see
+ * `previews/en.ts`). One file for both, so the card and the page cannot drift.
  *
  * The features are a list rather than six captioned media blocks on purpose.
- * They used to be six screenshots borrowed from an unrelated project, and
- * swapping those for six copies of the same plate would have read as a page
- * that failed to load. As text they are still the real content, and there is
- * one image instead of six identical ones.
+ * They used to be six screenshots borrowed from an unrelated project. As text
+ * they are still the real content, and there is one image instead of six.
  *
- * To finish it: drop the captures into
+ * To finish it: drop real captures into
  * `src/assets/images/projects/garbacircle/`, import them, and turn each list
  * item back into its own `media` block with the same caption.
  */
@@ -36,9 +34,9 @@ export default {
       type: "media",
       props: {
         type: "image",
-        src: PLACEHOLDER_IMAGE,
-        alt: "Garba Circle, artwork pending",
-        caption: "Artwork pending",
+        src: garbacircleArtwork,
+        alt: "Garba Circle key art: the app's logo beside a dancer holding dandiya sticks",
+        caption: "Play. Dance. Connect.",
       },
     },
     {

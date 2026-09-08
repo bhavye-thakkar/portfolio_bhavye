@@ -1,11 +1,12 @@
 /**
  * ─── THE OBJECTS THAT ANSWER FOR THEMSELVES ───────────────────────────────
  *
- * The room is full of props. Three of them are not: the orchid on the shelf,
- * the painting on the wall and the watch on the desk were all chosen, all
- * three are clickable, and each opens a page that says why. Everything a
- * visitor reads on those pages is in this file, the components render it and
- * hold no copy of their own.
+ * The room is full of props. Two of them are not: the orchid on the shelf and
+ * the painting on the wall were both chosen, both are clickable, and each
+ * opens a page that says why. Everything a visitor reads on those pages is in
+ * this file, the components render it and hold no copy of their own. (A third,
+ * the watch on the desk, had a page from 2026-09-03 to 2026-09-09; see the
+ * note at the end of the array.)
  *
  * ── RULES FOR EDITING THE COPY ────────────────────────────────────────────
  *
@@ -15,10 +16,8 @@
  *      it: to a stranger the page must read as writing about a flower, and
  *      the words ex/girlfriend/relationship/love must never appear. The
  *      PAINTING speaks in first-person wonder, fascination with night and
- *      motion, not romance. The WATCH is drier than either, an everyday
- *      object noticed rather than admired, and it is the one page that must
- *      not become poetry. First person is voice, not biography: no page makes
- *      claims about Bhavye, praises him, or lists achievements.
+ *      motion, not romance. First person is voice, not biography: no page
+ *      makes claims about Bhavye, praises him, or lists achievements.
  *   2. Keep it short. Three paragraphs is the ceiling; two reads better.
  *   3. `facts` are verifiable, the painting's date and museum, the plant's
  *      species, the way the object is actually built in this scene. They are
@@ -104,55 +103,10 @@ export const roomObjects: RoomObject[] = [
       "Why Van Gogh's The Starry Night hangs in the 3D room of Bhavye Thakkar's Three.js portfolio, night, motion, and imagination made visible in an interactive art experience.",
     framing: { distance: 3.1, height: 0.05 },
   },
-  {
-    /**
-     * ⚠ EVERY FACT BELOW IS EITHER THE OWNER'S OWN OR THIS SCENE'S OWN.
-     *
-     * The brand and the reference are what the owner supplied. Nothing else
-     * about the watch is claimed, because nothing else is checkable: no case
-     * size, no movement, no crystal, no water rating, no year. That reference
-     * returns nothing in Timex's own manual index or in a general search, so
-     * any spec next to it would be a plausible-sounding invention, which is
-     * precisely rule 3 at the top of this file. If the real specification ever
-     * turns up on a box or a warranty card, add it HERE and it appears on the
-     * page; do not fill the table in the meantime.
-     *
-     * The last two facts are about the object in this room, which the project
-     * can verify by looking at `three/objects/desk-watch.ts`.
-     */
-    slug: "timex",
-    eyebrow: "On the desk",
-    title: "The Timex",
-    subtitle: "Timex, reference T1000Q70200-YY (AR)",
-    statement: "The only thing on this desk that has never once needed charging.",
-    body: [
-      "It comes off to type and goes back on to leave, and in between it lies where you see it, face up beside the keyboard, strap still holding the shape of a wrist. Everything else on this desk is measured in frames per second and cache hits. This one just keeps going, quietly, on a battery nobody has thought about in years.",
-      "A hand sweeping a dial is a different kind of clock from a number counting down. It does not tell you how long you have left, only where you are in the turn, and you have to look at it to find out. That turns out to matter on a day spent inside a build: the screen's time is a notification, and this one is a glance.",
-      "Modelled rather than photographed, and generic on purpose. It is a round three-hander with a leather strap because that is what the object on the desk is; the dial is not a facsimile of any particular face, and the panel above does not pretend to know one.",
-    ],
-    facts: [
-      { label: "Brand", value: "Timex" },
-      { label: "Reference", value: "T1000Q70200-YY" },
-      { label: "Variant", value: "AR" },
-      { label: "Type", value: "Analogue wristwatch, worn daily" },
-      { label: "In this room", value: "Round case, leather strap, ~30 primitives" },
-      { label: "Not to be confused with", value: "The rectangular smartwatch on his wrist" },
-    ],
-    hotspotLabel: "View the Timex watch on the desk",
-    description:
-      "The Timex watch on the desk of Bhavye Thakkar's interactive 3D portfolio: reference T1000Q70200-YY, modelled in Three.js, and why an analogue dial still earns its place beside two monitors.",
-    /**
-     * Closer than the other two. It is a wristwatch on a desk, so a framing
-     * that reads at all has to be near enough to see the dial, and there is
-     * nothing behind it to keep in shot. The camera already looks down at the
-     * desk, it backs off along the hero's own sight line; `height` only moves
-     * the point it aims at. NEGATIVE here because the watch's hit box is grown
-     * upward for hover (`desk-watch.ts` lifts its centre by 0.12), so aiming at
-     * the box centre put the dial at the bottom edge of the frame. This brings
-     * the aim back down to the watch itself.
-     */
-    framing: { distance: 1.25, height: -0.1 },
-  },
+  // The Timex used to be the third object here, lying on the hero desk with
+  // its own page. On the owner's instruction (2026-09-09) it is off the desk;
+  // he only wears it now, in Experience (`three/objects/avatar/watch.ts`), and
+  // a page for a thing you cannot click is a dead end, so the entry went too.
 ];
 
 export const objectSlugs = roomObjects.map((entry) => entry.slug);
