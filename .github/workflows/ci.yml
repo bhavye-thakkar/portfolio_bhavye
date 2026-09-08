@@ -17,10 +17,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # v5 of both: the v4 majors target Node 20, which GitHub's runners now
+      # force onto Node 24 with a deprecation warning on every run.
+      - uses: actions/checkout@v5
 
       # Vite 7 needs Node 20.19+ / 22.12+; 22 is the current LTS line.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: npm
