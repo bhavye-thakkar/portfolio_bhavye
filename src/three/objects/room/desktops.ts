@@ -1,7 +1,8 @@
 import { resources } from "../../../utils/resources";
-import { BufferAttribute, LinearSRGBColorSpace, Mesh, RepeatWrapping, ShaderMaterial } from "three";
+import { BufferAttribute, CanvasTexture, LinearSRGBColorSpace, Mesh, RepeatWrapping, ShaderMaterial } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { room } from ".";
+import { getDesktopAtlas } from "./desktop-atlas";
 import fragmentShader from "../../shaders/desktops/fragment.glsl";
 import vertexShader from "../../shaders/desktops/vertex.glsl";
 import gsap from "gsap";
@@ -15,6 +16,8 @@ import type { Object3D, Material, BufferGeometry } from "three";
 let mesh: Mesh | null = null;
 let material: Material | null = null;
 let geometry: BufferGeometry | null = null;
+/** The composited atlas texture, ours to dispose; null when the raw one is in use. */
+let atlasTexture: CanvasTexture | null = null;
 
 let messageTween: gsap.core.Tween | null = null;
 let scrollInterval: gsap.core.Tween | null = null;
@@ -52,7 +55,11 @@ const setupMesh = () => {
 
   geometry = mergeGeometries([desktop1.geometry, desktop2.geometry]);
 
-  const texture = resources.items["desktops-texture"];
+  // The room's atlas with the CV painted onto the second panel, see
+  // `desktop-atlas.ts`; the raw file only if that could not be drawn.
+  const atlas = getDesktopAtlas();
+  atlasTexture = atlas ? new CanvasTexture(atlas) : null;
+  const texture = atlasTexture ?? resources.items["desktops-texture"];
   texture.colorSpace = LinearSRGBColorSpace;
   texture.flipY = false;
   texture.wrapS = RepeatWrapping;
@@ -115,6 +122,8 @@ const showMessage = () => {
 const destroy = () => {
   material?.dispose();
   material = null;
+  atlasTexture?.dispose();
+  atlasTexture = null;
   geometry?.dispose();
   geometry = null;
   mesh = null;

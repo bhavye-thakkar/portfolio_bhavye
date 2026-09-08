@@ -9,7 +9,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshMatcapMaterial,
-  PlaneGeometry,
+  CircleGeometry,
   Shape,
   ShapeGeometry,
   SRGBColorSpace,
@@ -81,11 +81,35 @@ export type EnvelopeOptions = {
 
 const WIDTH = 0.72;
 const DEPTH = 0.5;
-const THICKNESS = 0.05;
+/**
+ * 8.5cm at desk scale, not 5. A stuffed envelope has a shoulder you can see
+ * from across a room, and at 5 this prop's side wall was about two pixels from
+ * either camera: it read as a printed rectangle lying on the laminate rather
+ * than as an object with something in it. This is the single biggest reason it
+ * used to look like a loose sheet of paper.
+ */
+const THICKNESS = 0.085;
 
-/** How far along its own hinge axis the sheet sits, tucked in and fully out. */
-const SHEET_IN = 0.24;
-const SHEET_OUT = 0.66;
+/**
+ * How far along its own hinge axis the sheet sits, tucked in and fully out.
+ *
+ * ── THESE TWO NUMBERS ARE NOT FREE ────────────────────────────────────────
+ *
+ * The sheet is opaque now (see `sheetMaterial`), so what hides it at rest is
+ * the pocket it is inside, and that only works if it actually FITS. The hinge
+ * sits at z = DEPTH·0.34 = 0.17 and the sheet is DEPTH·0.98 long, so at
+ * SHEET_IN = 0.34 it spans z ∈ [-0.245, +0.245] inside a pocket that runs
+ * [-0.25, +0.25]: fully in, with a couple of millimetres to spare at each end.
+ *
+ * SHEET_OUT lands the card's bottom edge back at the mouth once it has tipped
+ * up, so it settles half out and leaning, which is how a card sits in an
+ * envelope someone has just opened. Pushing it higher makes it hover with
+ * nothing underneath.
+ *
+ * Change the sheet's size and both of these have to be re-derived.
+ */
+const SHEET_IN = 0.34;
+const SHEET_OUT = 0.51;
 /**
  * Where the sheet settles, as an angle off the desk. Not upright: a card
  * standing to attention out of an envelope reads as a sign, and it is twice
@@ -244,11 +268,16 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
     // ── the front seam: the V the front panel folds into, hinged at the near
     // edge and pointing back. A hair proud of the pocket so it catches the
     // matcap on its own rather than z-fighting.
+    //
+    // The paper colour is a real step down from the shell rather than the hair
+    // it was (0xe7ddca against 0xf3ecdf, which is under two per cent of value
+    // and vanished at prop size). A fold you cannot see is a fold that is not
+    // there, and with no fold visible the whole thing was a rectangle.
     const seam = createTriangle(WIDTH * 0.97, DEPTH * 0.84);
     seam.translate(0, THICKNESS + 0.0015, -DEPTH / 2 + 0.004);
     const seamMaterial = new MeshMatcapMaterial({
       matcap: getMatcap("matte"),
-      color: 0xe7ddca,
+      color: 0xd6c7ab,
       transparent: true,
     });
     const seamMesh = new Mesh(seam, seamMaterial);
@@ -259,11 +288,51 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
     disposables.push(seam, seamMaterial);
 
 
+    /**
+     * ── THE PAPER INSIDE ────────────────────────────────────────────────────
+     *
+     * A three-millimetre band of the card's own cool white, sitting in the gap
+     * just past the closed flap's tip. It is the answer to "how do I know this
+     * has anything in it": an envelope with a visible sheet edge is an envelope,
+     * one without is a rectangle. It is also why the opening move now reads as
+     * a reveal, the thing that comes out was already there.
+     *
+     * Not part of the sheet: the sheet is inside the pocket and depth-tested
+     * against it, so it cannot show anywhere the pocket does not let it. This
+     * is the edge you would actually see.
+     */
+    const mouthMaterial = new MeshMatcapMaterial({
+      matcap: getMatcap("matte"),
+      color: 0xeef2f7,
+      transparent: true,
+    });
+    const mouth = new BoxGeometry(WIDTH * 0.84, 0.009, 0.014);
+    mouth.translate(0, THICKNESS - 0.002, -DEPTH * 0.352);
+    const mouthMesh = new Mesh(mouth, mouthMaterial);
+    mouthMesh.renderOrder = order + 0.01;
+    mouthMesh.frustumCulled = false;
+    body.add(mouthMesh);
+    materials.push(mouthMaterial);
+    disposables.push(mouth, mouthMaterial);
+
     // ── the flap. Hinged along the FAR edge and pointing toward the camera
     // when closed, so opening it swings the tip up and away rather than into
     // frame.
+    //
+    // Its own material, half a step under the shell. A flap in exactly the
+    // shell's white has no edge where it lands on the body, so closed, the top
+    // of this prop was one unbroken plane of cream.
+    const flapMaterial = new MeshMatcapMaterial({
+      matcap: getMatcap("matte"),
+      color: 0xe9dfcd,
+      transparent: true,
+      side: DoubleSide,
+    });
+    materials.push(flapMaterial);
+    disposables.push(flapMaterial);
+
     const flapGeometry = createTriangle(WIDTH * 0.97, DEPTH * 0.86, -1);
-    const flapMesh = new Mesh(flapGeometry, shell);
+    const flapMesh = new Mesh(flapGeometry, flapMaterial);
     flapMesh.renderOrder = order + 0.04;
     flapMesh.frustumCulled = false;
     flap.add(flapMesh);
@@ -286,12 +355,21 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
     body.add(flap);
     disposables.push(flapGeometry, linerGeometry);
 
-    // ── the seal. The one cyan note on the prop, and where the eye lands: the
-    // site's interactive language is cyan, so anyone who has clicked the
-    // orchid already knows what this dot means.
-    const seal = new PlaneGeometry(0.1, 0.1);
+    /**
+     * ── THE SEAL ────────────────────────────────────────────────────────────
+     *
+     * The one cyan note on the prop, and where the eye lands: the site's
+     * interactive language is cyan, so anyone who has clicked the orchid
+     * already knows what this dot means.
+     *
+     * A DISC, and a child of the flap. The square read as a UI chip printed on
+     * the paper, and as a child of the body it stayed lying on the desk while
+     * the flap it was supposedly holding shut swung away above it. On the flap
+     * it goes with it, which is what a seal does.
+     */
+    const seal = new CircleGeometry(0.052, 20);
     seal.rotateX(-Math.PI / 2);
-    seal.translate(0, THICKNESS + 0.005, DEPTH * 0.04);
+    seal.translate(0, 0.0025, -DEPTH * 0.6);
     sealMaterial = new MeshBasicMaterial({
       color: 0x34bfff,
       transparent: true,
@@ -301,7 +379,7 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
     const sealMesh = new Mesh(seal, sealMaterial);
     sealMesh.renderOrder = order + 0.08;
     sealMesh.frustumCulled = false;
-    body.add(sealMesh);
+    flap.add(sealMesh);
     materials.push(sealMaterial);
     disposables.push(seal, sealMaterial);
 
@@ -312,21 +390,31 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
     /**
      * A thin BOX, not a plane. A document seen edge-on at the moment it clears
      * the flap is the frame that sells it as an object, and a plane has no
-     * edge at all. 4mm at this scale.
+     * edge at all. 5mm at this scale.
      *
-     * It is also smaller than it was: 0.605 x 0.75 standing nearly upright out
-     * of a 0.72 x 0.5 envelope filled the frame and read as a poster propped on
-     * the desk. This settles LEANING BACK, which is both what a card in an
-     * envelope does and half the screen height.
+     * ── IT FITS IN THE ENVELOPE, AND THAT IS THE POINT ──────────────────────
+     *
+     * It used to be DEPTH·1.42 long, half a metre of card in a half-metre
+     * pocket, so at rest it stuck out fifteen centimetres past the back and
+     * five past the front. The only thing hiding that was `opacity: 0`, and the
+     * cost of that trick is exactly the thing this pass exists to fix: the
+     * sheet did not come OUT of anything, it faded up in mid-air on its way
+     * past. That is the "teleported into position" the brief calls out.
+     *
+     * At DEPTH·0.98 it is a card that fits, so it can be hidden by the pocket
+     * instead of by a number, which means it can be OPAQUE THE WHOLE TIME:
+     * invisible while it is inside, visible the instant it clears the top face,
+     * with nothing anywhere that fades. `depthWrite` has to be on for that to
+     * work, a transparent material that skips the depth buffer draws straight
+     * over the pocket it is supposed to be inside.
      */
-    const sheet = new BoxGeometry(WIDTH * 0.86, DEPTH * 1.42, 0.005);
+    const sheet = new BoxGeometry(WIDTH * 0.9, DEPTH * 0.98, 0.005);
     sheetMaterial = new MeshBasicMaterial({
       map: texture,
       transparent: true,
       toneMapped: false,
       side: DoubleSide,
-      opacity: 0,
-      depthWrite: false,
+      depthWrite: true,
     });
     const sheetMesh = new Mesh(sheet, sheetMaterial);
     sheetMesh.renderOrder = order + 0.06;
@@ -506,9 +594,11 @@ export const createEnvelope = (options: EnvelopeOptions): Envelope => {
     const sheetMesh = paper.children[0] as Mesh | undefined;
     if (sheetMesh) sheetMesh.position.y = DEPTH * (SHEET_IN + (SHEET_OUT - SHEET_IN) * slideT);
 
+    // The sheet is in `materials` and takes the scene's own opacity like every
+    // other part. It is NOT faded by `sheetT` any more: what hides it is the
+    // pocket it is inside, so it is a solid object for the whole move.
     for (const material of materials) material.opacity = opacity;
     if (sealMaterial) sealMaterial.opacity = opacity * (0.6 + hover * 0.4);
-    if (sheetMaterial) sheetMaterial.opacity = opacity * sheetT;
     if (leanShadow) leanShadow.opacity = opacity * sheetT;
   };
 

@@ -1,17 +1,14 @@
 import {
+  Box3,
   BoxGeometry,
   CanvasTexture,
-  CircleGeometry,
   CylinderGeometry,
   Group,
-  LatheGeometry,
   Mesh,
   MeshBasicMaterial,
   MeshMatcapMaterial,
   PlaneGeometry,
   SRGBColorSpace,
-  TorusGeometry,
-  Vector2,
 } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
@@ -51,22 +48,29 @@ import type { MaterialKind } from "./materials";
  *
  *  1. SIX MATERIALS, NOT ONE TINTED SIX WAYS. Every surface here used to share
  *     the avatar's white matcap with a different `color`, which changes hue
- *     and nothing else, so the laminate desk, the ceramic mug, the fabric
- *     chair and the paper notebook all shaded identically and the bay read as
- *     one plastic object cut into pieces. `./materials.ts` bakes a matcap per
- *     material instead, and the difference between ceramic and laminate is now
- *     where the highlight is and how tight it is, which is what actually
- *     separates them in real life.
+ *     and nothing else, so the laminate desk, the fabric chair and the paper
+ *     notebook all shaded identically and the bay read as one plastic object
+ *     cut into pieces. `./materials.ts` bakes a matcap per material instead,
+ *     and the difference between laminate and paper is now where the highlight
+ *     is and how tight it is, which is what actually separates them in real
+ *     life.
  *  2. CONTACT SHADOWS. There are no lights in this scene, so nothing casts
  *     one, and every prop was floating a couple of centimetres above the desk.
  *     Each one now gets a multiply-blended pool sized to its own footprint.
- *  3. THINGS HAVE A PROFILE. The mug is a lathed wall with a real rim and a
- *     real interior rather than a capped cylinder; the pen is a barrel with a
- *     ferrule; the notebook is a cover plus a page block. A primitive is
- *     recognisable from any angle, and the Experience cameras get close.
+ *  3. THINGS HAVE A PROFILE. The pen is a barrel with a ferrule and a nib; the
+ *     notebook is a cover plus a page block. A primitive is recognisable from
+ *     any angle, and the Experience cameras get close.
+ *
+ * ── WHAT IS ON THE DESK IS WHAT IS ON HOME'S ──────────────────────────────
+ *
+ * Home is the reference, so the props are Home's props: the chair, the mouse,
+ * the penguin and the speaker are CLONED out of room.glb with their own baked
+ * paint (`cloneFromRoom`), the pencil cup is drawn in Home's colours, and
+ * nothing is on this desk that is not on that one. There was a coffee mug
+ * here once; Home has none, so it went.
  *
  * Geometry is still merged down to one mesh per material, the whole office is
- * eight draw calls plus the two screens, the envelope and the plant.
+ * a handful of draw calls plus the two screens, the envelope and the plant.
  */
 
 const DESK_TOP = 1.5;
@@ -84,8 +88,7 @@ const MONITOR = {
   centerY: 2.42,
 };
 
-/** Mug, notebook and lamp positions, referenced by both geometry and shadows. */
-const MUG = { x: 1.02, z: -0.24 };
+/** Notebook and lamp positions, referenced by both geometry and shadows. */
 /**
  * The notebook and the CV envelope swapped places. The notebook's old spot at
  * x 1.52 is the one part of the near half of the desk that the establishing
@@ -176,67 +179,6 @@ const addMonitor = (dark: Bucket, frame: Bucket, side: -1 | 1) => {
   // vanished into the cream desk top.
   at(frame, 0.34, 0.055, 0.2, 0, DESK_TOP + 0.06, -0.04);
   at(frame, 0.86, 0.035, 0.36, 0, DESK_TOP + 0.019, -0.02);
-};
-
-/**
- * ── THE MUG ───────────────────────────────────────────────────────────────
- *
- * What was here was a capped cylinder in flat unlit cyan with a torus floating
- * near it, and from the establishing shot it read as a blue dot on the desk -
- * the single most obviously placeholder object in the section.
- *
- * A mug is a wall, and a lathed profile is the only cheap way to have one. The
- * points below go up the OUTSIDE, over the rim, and back down the INSIDE to a
- * floor that sits ~2cm above the base, so:
- *
- *   · the rim has a visible thickness from every angle, which is the detail
- *     that separates a mug from a cup-shaped solid;
- *   · there is an interior for the coffee to sit in;
- *   · the ceramic matcap's tight highlight runs round the belly and catches
- *     the rim edge separately, which no cylinder can do.
- *
- * The coffee is a disc at y 0.155, four centimetres under the 0.215 rim, so it
- * cannot intersect it at any camera angle.
- */
-const MUG_HEIGHT = 0.215;
-
-const createMugBody = () => {
-  const profile = [
-    new Vector2(0.0, 0.0),
-    new Vector2(0.062, 0.0),
-    new Vector2(0.07, 0.009),
-    new Vector2(0.074, 0.03),
-    new Vector2(0.082, 0.09),
-    new Vector2(0.088, 0.175),
-    new Vector2(0.089, 0.205),
-    // over the rim
-    new Vector2(0.086, MUG_HEIGHT),
-    new Vector2(0.079, 0.213),
-    // and back down the inside
-    new Vector2(0.077, 0.175),
-    new Vector2(0.071, 0.09),
-    new Vector2(0.062, 0.035),
-    new Vector2(0.052, 0.024),
-    new Vector2(0.0, 0.022),
-  ];
-  return new LatheGeometry(profile, 32);
-};
-
-/**
- * A FULL torus, with its inner third buried in the mug wall.
- *
- * ponytail: an arc would look marginally better in a cutaway and is the wrong
- * trade here, its two open ends have to land inside a curved, tapered wall,
- * which is a pair of numbers that go wrong the moment the profile is touched.
- * A closed ring cannot come detached, and the buried half is inside an opaque
- * wall. Upgrade to an arc only if the mug ever becomes translucent.
- */
-const createMugHandle = () => {
-  const handle = new TorusGeometry(0.058, 0.0135, 8, 22);
-  handle.rotateY(Math.PI / 2);
-  // Outer wall is at 0.085 here; the ring's inner edge lands at 0.043.
-  handle.translate(0.115, MUG_HEIGHT * 0.54, 0);
-  return handle;
 };
 
 /**
@@ -354,8 +296,13 @@ const cloneFromRoom = (name: string, kind?: MaterialKind, color?: number): Mesh 
       ? Object.assign((source.material as Material).clone(), { transparent: true })
       : new MeshMatcapMaterial({ matcap: getMatcap(kind), color, transparent: true });
 
-  clone.material = material;
-  clone.renderOrder = 12;
+  // Children too: the penguin carries its wings as child meshes, and a wing
+  // left on the room's opaque material would be painted over by the composite.
+  clone.traverse((child) => {
+    if (!(child instanceof Mesh)) return;
+    child.material = material;
+    child.renderOrder = 12;
+  });
   materials.push(material);
   disposables.push(material);
 
@@ -363,6 +310,18 @@ const cloneFromRoom = (name: string, kind?: MaterialKind, color?: number): Mesh 
   clone.position.set(-z, y, x);
   clone.rotation.set(0, ROOM_TO_LOCAL_YAW, 0);
   return clone;
+};
+
+/**
+ * Stands a cloned prop on the desk top at (x, z). The room meshes' origins are
+ * not at their bases (the chair's is not at its seat either), so the height is
+ * read off the clone's own bounding box rather than guessed.
+ */
+const seatOnDesk = (mesh: Mesh, x: number, z: number) => {
+  mesh.position.set(x, 0, z);
+  mesh.updateMatrixWorld(true);
+  const bounds = new Box3().setFromObject(mesh);
+  mesh.position.y = DESK_TOP - bounds.min.y;
 };
 
 const addShadow = (width: number, depth: number, x: number, y: number, z: number, strength?: number) => {
@@ -393,7 +352,6 @@ const buildChassis = () => {
   const frame = bucket("metal", 0x9aa5b2);
   const dark = bucket("plastic", 0x3c4150);
   const paper = bucket("matte", 0xf7f2e7);
-  const ceramic = bucket("ceramic", 0xf3f5f8);
   const accent: Bucket = {
     geometries: [],
     material: new MeshBasicMaterial({ color: 0x34bfff, transparent: true, toneMapped: false }),
@@ -542,54 +500,33 @@ const buildChassis = () => {
   nib.translate(nbX - 0.02 - 0.17 * Math.cos(nbYaw), penY, nbZ - 0.02 + 0.17 * Math.sin(nbYaw));
   frame.geometries.push(nib);
 
-  // ── mug: a lathed wall with a real rim, a real interior and a ring handle
-  const mugBody = createMugBody();
-  mugBody.translate(MUG.x, DESK_TOP, MUG.z);
-  ceramic.geometries.push(mugBody);
-
-  const mugHandle = createMugHandle();
-  mugHandle.translate(MUG.x, DESK_TOP, MUG.z);
-  ceramic.geometries.push(mugHandle);
-
-  // The coffee: a disc four centimetres below the rim, so no camera angle can
-  // catch it crossing the lip.
-  const coffee = new CircleGeometry(0.0745, 28);
-  coffee.rotateX(-Math.PI / 2);
-  coffee.translate(MUG.x, DESK_TOP + 0.155, MUG.z);
-  const coffeeMaterial = new MeshMatcapMaterial({ matcap: getMatcap("ceramic"), color: 0x4a2c1c, transparent: true });
-  const coffeeMesh = new Mesh(coffee, coffeeMaterial);
-  coffeeMesh.renderOrder = 12.1;
-  coffeeMesh.frustumCulled = false;
-  group.add(coffeeMesh);
-  materials.push(coffeeMaterial);
-  disposables.push(coffee, coffeeMaterial);
-
-  addShadow(0.42, 0.42, MUG.x, DESK_TOP + 0.004, MUG.z, 0.52);
-
   /**
    * ── PENCIL CUP ──────────────────────────────────────────────────────────
    *
-   * Home has a tan cup of pencils beside the left monitor and Experience had
-   * nothing there. It is the cheapest prop on the desk that says "same room":
-   * a warm cylinder and three coloured sticks, and it puts a second warm note
-   * next to the wooden legs.
+   * Home's cup, in Home's colours: a pale taupe pot with one blue pencil and
+   * one pink, the three values read off the hero render (#cab6a4, #a2c7d7,
+   * #cb7883) and lifted a little because the matcap shades them back down.
+   * It was the leg wood with three sticks before, which was a cup, but not
+   * that cup, and the brief was that the cup should be the same one.
    */
+  const cup = bucket("matte", 0xdcc6b2);
+  const pencilBlue = bucket("plastic", 0xa9d6e8);
+  const pencilPink = bucket("plastic", 0xdc8a96);
   const cupX = -2.15;
   const cupZ = -0.5;
-  wood.geometries.push(cylinder(0.15, 0.14, 0.3, cupX, DESK_TOP + 0.15, cupZ, 18));
+  cup.geometries.push(cylinder(0.15, 0.14, 0.3, cupX, DESK_TOP + 0.15, cupZ, 18));
   // hollow it, so the pencils stand IN it rather than on it
   dark.geometries.push(cylinder(0.128, 0.128, 0.02, cupX, DESK_TOP + 0.27, cupZ, 18));
-  const pencils: [number, number, number, number][] = [
-    // x offset, z offset, lean, colour bucket index
-    [-0.05, 0.03, 0.1, 0],
-    [0.04, -0.02, -0.07, 1],
-    [0.01, 0.06, 0.05, 2],
-  ];
+  const pencils = [
+    // x offset, z offset, lean, bucket
+    [-0.045, 0.02, 0.1, pencilBlue],
+    [0.04, -0.03, -0.08, pencilPink],
+  ] as const;
   for (const [dx, dz, lean, tone] of pencils) {
     const stick = new CylinderGeometry(0.017, 0.017, 0.42, 8);
     stick.rotateZ(lean);
     stick.translate(cupX + dx, DESK_TOP + 0.38, cupZ + dz);
-    (tone === 0 ? accent : tone === 1 ? dark : wood).geometries.push(stick);
+    tone.geometries.push(stick);
   }
   addShadow(0.62, 0.62, cupX, DESK_TOP + 0.004, cupZ, 0.5);
 
@@ -605,7 +542,7 @@ const buildChassis = () => {
   // grid floor plus the deck rim already say "environment". The plant and the
   // lamp are the only vertical props the bay needs.
 
-  for (const item of [shell, wood, frame, dark, paper, ceramic, accent, deckMat]) {
+  for (const item of [shell, wood, frame, dark, paper, accent, deckMat, cup, pencilBlue, pencilPink]) {
     /**
      * `mergeGeometries` returns null, silently, if the inputs disagree on
      * whether they are indexed, and RoundedBoxGeometry is the one primitive
@@ -671,6 +608,29 @@ const init = () => {
   }
 
   /**
+   * Two more of Home's own props, for the same reason as the chair: the
+   * penguin and the orange speaker are the two things a visitor remembers the
+   * hero desk BY, and without them the office read as a different desk with
+   * the same furniture. Cloned, so they are Home's exact meshes with Home's
+   * baked paint. The cube and the books are part of the room's single merged
+   * mesh and cannot be cloned; they stay Home-only.
+   *
+   * Placed in Home's arrangement, in the bay's own frame: the penguin beside
+   * the pencil cup in front of the left monitor, the speaker at the far end
+   * by the lamp. Both stood on the desk by `seatOnDesk`, not at a guessed y.
+   */
+  for (const [name, x, z] of [
+    ["penguin", -1.7, -0.5],
+    ["music", -2.45, -1.2],
+  ] as const) {
+    const prop = cloneFromRoom(name);
+    if (!prop) continue;
+    seatOnDesk(prop, x, z);
+    group.add(prop);
+    addShadow(0.6, 0.6, x, DESK_TOP + 0.004, z, 0.45);
+  }
+
+  /**
    * Built rather than cloned, see `plant.ts`. Placement history: level with
    * the desk's front edge it blocked the establishing shot; at local +3.62 it
    * stood on the avatar's RIGHT in world -X, which no Experience camera ever
@@ -703,6 +663,9 @@ const init = () => {
   envelope.init();
   group.add(envelope.group);
 
+  // ponytail: no Timex on this desk. He is wearing it here, see
+  // `avatar/watch.ts`; the desk copy is on the hero desk, where it is off.
+
   group.visible = false;
   scene.instance.add(group);
 
@@ -713,7 +676,14 @@ const tick = () => {
   const weight = sceneWeights.experience;
   const visible = weight > 0.001;
   group.visible = visible;
-  if (!visible) return;
+  if (!visible) {
+    // The props collapse their own hit boxes when off stage, but only when
+    // ticked. A scroll that jumps straight over the fade (an anchor, a route
+    // change) skipped that, and left the office's envelope and watch as ghost
+    // cyan hover targets over the hero desk.
+    envelope?.tick(0);
+    return;
+  }
 
   // The office is pinned to the avatar's own waypoint transform, so every
   // measured offset above stays true wherever the timeline puts him.
@@ -738,8 +708,9 @@ const tick = () => {
   // After the sweep above, not before it: the envelope owns its own materials
   // so that hover and the opening animation can drive the seal and the sheet
   // independently of the office's single reveal value.
+  const delta = gsap.ticker.deltaRatio(60);
   envelope?.setOpacity(opacity);
-  envelope?.tick(gsap.ticker.deltaRatio(60));
+  envelope?.tick(delta);
 
   screens.update(gsap.ticker.time);
 };

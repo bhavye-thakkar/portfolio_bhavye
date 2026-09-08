@@ -1,7 +1,7 @@
 import gsap from "gsap";
 import { Vector3 } from "three";
 import { Box3 } from "three";
-import { stageHold } from "./scenes";
+import { sceneWeights, stageHold } from "./scenes";
 import { waypoints } from "./waypoints";
 import { framedFocus } from "./story";
 import { sizes } from "../utils/sizes";
@@ -196,6 +196,23 @@ const stopTick = () => {
 };
 const enter = (slug: string) => {
   if (isActive) return;
+
+  /**
+   * ── ONLY THE HERO SHOT CAN BE FRAMED ──────────────────────────────────
+   *
+   * Every pose here is derived from the hero waypoint, which is the only one
+   * that looks at the room. The Timex is also on the Experience desk, and that
+   * scene is somewhere else entirely: taking the stage from there would freeze
+   * the section's own timeline and then ease the camera across the world to a
+   * watch nobody can see, with the office still on screen the whole way.
+   *
+   * So from anywhere but the room the panel simply opens over the scene as it
+   * stands, which is a perfectly good answer, and closing it gives the section
+   * straight back. `exit` needs no matching guard: it already returns early
+   * when nothing was entered.
+   */
+  if (sceneWeights.hero < 0.5) return;
+
   isActive = true;
   activeSlug = slug;
   returning = false;

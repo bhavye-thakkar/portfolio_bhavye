@@ -188,8 +188,10 @@ watchEffect((onInvalidate) => {
             <li class="experience-chapter-meta-place">
               <PinIcon class="experience-chapter-meta-icon" />{{ entry.location }}
             </li>
-            <li>{{ entry.duration }}</li>
-            <li>{{ entry.type }}</li>
+            <!-- The CV gives no dates for every role; an empty item would
+                 still draw its separator. -->
+            <li v-if="entry.duration">{{ entry.duration }}</li>
+            <li v-if="entry.type">{{ entry.type }}</li>
           </ul>
 
           <p v-if="entry.statement" class="experience-chapter-statement">{{ entry.statement }}</p>

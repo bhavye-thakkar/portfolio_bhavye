@@ -3,15 +3,9 @@
  *
  * The single source for everything about the person rather than the work:
  * who, where, how to reach him, what he knows, what he has been certified in.
- * The HUD panels, the social row, the metadata and `public/llms.txt` all read
- * from here, so changing a link is one edit in one file.
- *
- * ── PROVENANCE ────────────────────────────────────────────────────────────
- *
- * Every value below was read off the live portfolio at
- * https://bhavyethakkar.netlify.app on 2026-08-28, the skills table, the
- * certificate links and the project links came out of that site's own page
- * bundles, not out of a summary of them. Nothing here is inferred.
+ * The HUD panels, the social row and the metadata read from here, and
+ * `public/llms.txt` mirrors it by hand, so changing a link is one edit in one
+ * file (and one line in llms.txt).
  *
  * Two rules this file exists to keep:
  *
@@ -20,37 +14,45 @@
  *      one that matters most: a card with a url becomes a real link, a card
  *      without one stays an unclickable HUD card.
  *
- *   2. NO WORK EXPERIENCE. The source site has a Work Experience section
- *      (companies, titles, dates). It is deliberately NOT imported and must
- *      not be added here, `content/experience.ts` owns that section and is
- *      written independently. This file is skills, certificates, projects,
- *      hackathons and contact details only.
+ *   2. ONLY WHAT THE SITE SHOWS. There used to be a second skills table, a
+ *      list of repositories and a list of hackathons in here, imported from an
+ *      older portfolio and published only through llms.txt. None of it was
+ *      rendered on this site, and the owner's rule (2026-09-08) is that the
+ *      machine-readable summary lists exactly the projects and skills a
+ *      visitor sees, no fewer and no more. So they are gone, and llms.txt
+ *      reads `skillHighlights`, the Projects grid and the certificates below.
+ *
+ *   3. NO WORK EXPERIENCE. `content/experience.ts` owns that section and is
+ *      written independently.
  */
 
 /**
- * ⚠ PLACEHOLDER DOMAIN. This is the origin the app stamps into per-route
- * canonicals and og:url. It is the same value as index.html's canonical,
- * public/sitemap.xml's <loc>s and public/robots.txt's Sitemap line, those
- * three are static files and have to be changed by hand in the same edit.
+ * ── THE CANONICAL ORIGIN ──────────────────────────────────────────────────
  *
- * Nothing ranks until this is the real domain: a canonical pointing at
- * example.com tells every crawler this page is a copy of somebody else's.
+ * The origin the app stamps into per-route canonicals and og:url. The same
+ * value appears in index.html's canonical, public/sitemap.xml's <loc>s,
+ * public/robots.txt's Sitemap line and public/llms.txt; those four are static
+ * files and have to be changed by hand in the same edit.
+ *
+ * ONE value, even though this build is deployed to several of the addresses in
+ * `portfolioLinks` below. That is the point of a canonical: every mirror
+ * serves this same tag, which tells a crawler which copy is the original
+ * instead of leaving five identical sites competing with each other. The other
+ * addresses are published as `sameAs` in index.html's Person graph and listed
+ * in llms.txt, which is where an alternative address genuinely belongs.
  */
-export const site = "https://example.com";
+export const site = "https://bhavyethakkar.netlify.app";
 
 /** Who and where. */
 export const profile = {
   /** Display name used in the HUD; the full name is in the masthead and footer. */
   firstName: "Bhavye",
   fullName: "Bhavye Thakkar",
-  /** The role line the source site leads with. */
+  /** The role line the site leads with. */
   role: "Data Scientist and Flutter Engineer",
-  /** `addressCountry` from the source site's Person schema. Nothing narrower is published. */
+  /** `addressCountry` in the Person schema. Nothing narrower is published here. */
   country: "India",
-  /**
-   * The About copy, verbatim from the source site. Kept as one string rather
-   * than split into the HUD's shorter lines, which live in the i18n bundle.
-   */
+  /** The About copy. Kept as one string; the HUD's shorter lines live in the i18n bundle. */
   bio: "I craft digital products that merge creativity with technology. With hands-on experience in Flutter and AI/ML, I've built apps, explored data-driven solutions, and brought ideas to life at hackathons. What excites me most is solving real problems with simple, scalable tech-and leaving an impact that lasts.",
 } as const;
 
@@ -78,13 +80,20 @@ export const profiles = {
 /**
  * ── EVERY SITE HE PUBLISHES ───────────────────────────────────────────────
  *
- * One array, consumed by the Contact section and by `public/llms.txt`. Adding
- * or retiring an address is one edit here and nowhere else, which is the whole
- * reason it is not written into a component.
+ * One array. Adding or retiring an address is one edit here and nowhere else,
+ * which is the whole reason it is not written into a component.
  *
- * The FIRST entry is the primary portfolio: it is the address the CV itself
- * prints, it is where `profile.ts` was sourced from, and the UI gives it its
- * own heading. The rest are earlier or parallel builds.
+ * ⚠ THESE DO NOT RENDER AS A LIST ANYWHERE, AND MUST NOT AGAIN. There used to
+ * be a "Portfolio / Other websites" block under the Contact icons: five hosts
+ * stacked with no way to tell them apart, which is a link dump rather than a
+ * call to action. Removed on the owner's instruction (2026-09-03), component
+ * and i18n keys deleted with it. The addresses stayed because they are still
+ * true and still useful to a machine: `site` above is the canonical, these are
+ * its mirrors, and they are published in index.html's `sameAs` and in
+ * `public/llms.txt`. That is the whole of their job.
+ *
+ * The FIRST entry is the primary portfolio and the one `site` points at: it is
+ * the address the CV itself prints.
  *
  * ⚠ URLS ARE VERBATIM. These are the addresses the owner supplied, character
  * for character; all five answered 200 when they went in. The label is just
@@ -101,65 +110,13 @@ export const portfolioLinks = [
 ] as const satisfies { label: string; url: string; primary?: boolean }[];
 
 // The CV lives in `content/cv.ts`, transcribed from the PDF in `public/cv/`.
-// Nothing here duplicates it: that document leads with a different role line
-// and names an employer this file deliberately does not, and the two are
-// allowed to differ, see the header of `content/cv.ts`.
-
-/**
- * The technical skills table from the source site's /skills page, with the
- * proficiency band it publishes for each one. `level` is that page's own
- * percentage, carried across so the number cannot drift from the label.
- */
-export const skills = [
-  { name: "Python", level: 75, tag: "Intermediate" },
-  { name: "JavaScript", level: 75, tag: "Intermediate" },
-  { name: "Flutter", level: 85, tag: "Advanced" },
-  { name: "Pandas", level: 90, tag: "Advanced" },
-  { name: "NumPy", level: 80, tag: "Advanced" },
-  { name: "Seaborn", level: 80, tag: "Advanced" },
-  { name: "Matplotlib", level: 80, tag: "Advanced" },
-  { name: "TensorFlow", level: 65, tag: "Intermediate" },
-  { name: "OpenCV", level: 30, tag: "Beginner" },
-] as const satisfies { name: string; level: number; tag: string }[];
-
-export const softSkills = ["Communication", "Problem-Solving", "Teamwork", "Time Management"] as const;
-
-/**
- * The AI/ML subjects the source site's Person schema lists under `knowsAbout`,
- * minus the general-purpose web entries which are covered by `skills`.
- */
-export const aiMl = [
-  "Machine Learning",
-  "Deep Learning",
-  "Artificial Intelligence",
-  "Computer Vision",
-  "Data Science",
-  "Data Analytics",
-] as const;
-
-/**
- * ── LLM ───────────────────────────────────────────────────────────────────
- *
- * The source site names no LLM technology anywhere, not in the skills table,
- * not in the project stacks, not in `knowsAbout`. This single entry is carried
- * over from THIS portfolio's own existing skills panel, which is the only
- * place it is claimed. Nothing has been added to it: inventing a LangChain or
- * an OpenAI here would be exactly the fabrication this file exists to prevent.
- *
- * If specific LLM work exists, name it here and it flows to the HUD and to
- * llms.txt at once.
- */
-export const llm = ["Generative AI & LLMs"] as const;
+// Nothing here duplicates it: that document leads with a different role line,
+// and the two are allowed to differ, see the header of `content/cv.ts`.
 
 /**
  * The HUD's skills panel, in the order and wording it has always used. This
- * is the portfolio's own list, kept as-is at the owner's instruction, it is
- * NOT the source site's skills table (that is `skills` above, which the
- * metadata and llms.txt publish).
- *
- * The two lists are allowed to differ, and the difference is deliberate: this
- * one is what a visitor reads on the stage, the other one is what a machine
- * reads and every entry in it is verifiable.
+ * is THE skills list: what a visitor reads on the stage is what llms.txt and
+ * index.html's `knowsAbout` publish, so the three cannot disagree.
  */
 export const skillHighlights = [
   { name: "Three.js & WebGL" },
@@ -182,11 +139,11 @@ export const skillHighlights = [
 
 /**
  * Certificates, with the real destination behind each one. Every `url` is the
- * exact link the source site points at, none of them is reconstructed, and
- * none of them is a `#`. A card with an empty `url` renders as a plain card
- * rather than a dead link, so a future entry without a link is still safe.
+ * exact link the card points at, none of them is reconstructed, and none of
+ * them is a `#`. A card with an empty `url` renders as a plain card rather
+ * than a dead link, so a future entry without a link is still safe.
  *
- * `note` is the sponsor line the source site prints under the organisation.
+ * `note` is the sponsor line printed under the organisation.
  */
 export const certificates = [
   {
@@ -236,116 +193,4 @@ export const certificates = [
   year: string;
   url: string;
   image: string | null;
-}[];
-
-/**
- * ── SOURCE-SITE PROJECTS ──────────────────────────────────────────────────
- *
- * Recorded, not rendered. `content/projects/` owns the Projects grid: Garba
- * Circle is the one written-up case study and the rest are reserved slots by
- * design. Promoting one of these into a slot needs a real write-up and real
- * artwork, and the source site publishes a one-line description and a repo
- * link, turning that into a case study would mean writing fiction.
- *
- * So they live here with their verified links, which is what llms.txt
- * publishes and what a future promotion starts from. `demo` is null wherever
- * the source site had no destination; two of its cards linked to `"#"`, which
- * is a dead link and is deliberately not carried over.
- */
-export const sourceProjects = [
-  {
-    title: "Mobile Finance App",
-    description: "Flutter expense tracking app with budget analysis and financial insights.",
-    tech: ["Flutter", "Python", "SQLAlchemy"],
-    status: "In Progress",
-    repo: "https://github.com/bhavye-thakkar/Expense-tracker",
-    demo: null,
-  },
-  {
-    title: "Stock Market Analyzer",
-    description: "Stock prediction tool using machine learning, with real-time data and interactive charts.",
-    tech: ["Python", "Streamlit", "yfinance", "scikit-learn"],
-    status: "Completed",
-    repo: "https://github.com/bhavye-thakkar/Stock_MArket-prediction-AI-ML",
-    demo: null,
-  },
-  {
-    title: "House Price Prediction",
-    description: "Regression model for house prices behind an interactive Streamlit interface.",
-    tech: ["Python", "Streamlit", "Pandas", "NumPy"],
-    status: "Completed",
-    repo: "https://github.com/bhavye-thakkar/house-price-prediction-with-the-help-of-streeamlit",
-    demo: null,
-  },
-  {
-    title: "Note Taking & Summarization",
-    description: "Collaborative note-taking app with automatic summarisation.",
-    tech: ["Flutter", "Python", "Firebase"],
-    status: "Completed",
-    repo: "https://github.com/bhavye-thakkar/note-taking-and-summarization-",
-    demo: null,
-  },
-  {
-    title: "To-Do App",
-    description: "Task manager with real-time sync and collaborative lists.",
-    tech: ["Flutter", "Firebase", "Dart"],
-    status: "Completed",
-    repo: null,
-    demo: null,
-  },
-] as const satisfies {
-  title: string;
-  description: string;
-  tech: readonly string[];
-  status: string;
-  repo: string | null;
-  demo: string | null;
-}[];
-
-/**
- * Hackathons, as published on the source site's /hackathons page. Recorded
- * rather than rendered for the same reason as the projects above: this site
- * has no hackathons section, and adding one would be a redesign rather than a
- * content import. llms.txt publishes them.
- */
-export const hackathons = [
-  {
-    name: "InnoNova, 24-Hour Hackathon",
-    organisation: "Innovation Hub",
-    date: "March 2025",
-    role: "Team Lead",
-    result: "Top 15 Finalist",
-    tech: ["AI/ML", "Python", "TensorFlow"],
-  },
-  {
-    name: "HackHertz",
-    organisation: "Tech Community",
-    date: "September 2025",
-    role: "Team Lead",
-    result: "Finalist",
-    tech: ["React", "Node.js", "Mobile"],
-  },
-  {
-    name: "Tic Tac Toe 2025",
-    organisation: "DA-IICT, Gandhinagar",
-    date: "April 2025",
-    role: "Participant",
-    result: "Participant",
-    tech: ["Algorithms", "Game Theory", "Python"],
-  },
-  {
-    name: "Smart India Hackathon 2024",
-    organisation: "Government of India",
-    date: "Aug–Sept 2024",
-    role: "Participant",
-    result: "Participant",
-    tech: ["Civic Tech", "Full Stack"],
-  },
-] as const satisfies {
-  name: string;
-  organisation: string;
-  date: string;
-  role: string;
-  result: string;
-  tech: readonly string[];
 }[];

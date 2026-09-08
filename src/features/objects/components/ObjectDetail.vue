@@ -90,14 +90,21 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <!-- The theme class is the whole of what makes these two pages feel like
+       different rooms: same structure, same rhythm, its own palette and its own
+       light. See the note at the top of the style block. -->
   <article
     v-if="entry"
     ref="panelRef"
     class="object-panel"
+    :class="`object-panel-${entry.slug}`"
     tabindex="-1"
     :aria-labelledby="`object-title-${entry.slug}`"
   >
     <div class="object-panel-scrim" aria-hidden="true"></div>
+    <!-- The atmosphere layer. Empty on purpose: what it paints is entirely a
+         theme's business, and for the object that has none it paints nothing. -->
+    <div class="object-panel-air" aria-hidden="true"></div>
 
     <div class="object-panel-inner">
       <!-- Top-left, above the title block rather than inside it: this is the
@@ -145,42 +152,92 @@ onBeforeUnmount(() => {
   </article>
 </template>
 
+
 <style scoped lang="scss">
+/**
+ * ─── TWO OBJECTS, TWO ATMOSPHERES ─────────────────────────────────────────
+ *
+ * This panel used to be the site's HUD: ProFontWindows, cyan rules, cyan
+ * labels, an ink-blue wash. That is the X-ray's voice, and borrowing it made
+ * a flower on a shelf and a painting on a wall read as two more readouts in a
+ * technical sequence. They are the only two things in the room that are here
+ * for a reason that is not work, so they get their own light.
+ *
+ * The structure does NOT change, and deliberately: eyebrow, title, statement,
+ * body, facts, back link, the same rhythm the project pages use, because a
+ * visitor arriving from a case study should recognise where they are. Only the
+ * palette, the type and the air change, and all three come out of the tokens
+ * below. Adding a third object means adding one theme block, nothing else.
+ *
+ *   ORCHID        warm, low, botanical. A greenhouse at the end of the day:
+ *                 near-black brown rather than blue, and a soft gold that
+ *                 reads as light through a window rather than as a UI accent.
+ *   STARRY NIGHT  prussian blue and the painting's own chrome yellow, with a
+ *                 drift of stars behind the copy. Deep, not technical: no
+ *                 grid, no scan line, nothing that glows.
+ *
+ * Neither uses the monospace face and neither uses cyan. That is the whole
+ * separation from the X-ray, and it is why the tokens exist rather than being
+ * spot-overridden further down.
+ */
 .object-panel {
+  /* Defaults are the orchid's, so a new object without a theme block lands
+     somewhere warm and readable rather than somewhere unstyled. */
+  --panel-veil: 26 21 18;
+  --panel-ink: #f4ede3;
+  --panel-ink-dim: #c6b6a4;
+  --panel-accent: #e0b57f;
+  --panel-rule: rgba(224, 181, 127, 0.32);
+  --panel-face: "Urbanist", system-ui, sans-serif;
+
   position: relative;
   min-height: 100%;
   width: 100%;
-  color: var(--color-text-cyan-400);
-  font-family: "ProFontWindows";
+  color: var(--panel-ink);
+  font-family: var(--panel-face);
   outline: none;
 
-  /* The room behind this is warm cream, so the wash is ink rather than the
-     dark blue used on the About stage, over a cream room a blue tint reads as
-     a colour cast, while neutral ink reads as the lights going down.
-
-     Portrait clears the top of the frame, landscape clears the right, which is
-     the half `framedFocus` puts the object in. */
+  /**
+   * Portrait clears the top of the frame, landscape clears the right, which is
+   * the half `framedFocus` puts the object in.
+   *
+   * `--panel-vignette` is the second layer, and it is what stops the clear half
+   * being the ROOM: past the object the hero shot is a bright cream wall, and a
+   * page that is meant to feel like a night sky cannot have one of those in the
+   * corner. A theme that wants the room left alone simply does not set it.
+   * The centre follows the object, so there is one value per orientation.
+   */
   &-scrim {
     position: fixed;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(
-      to bottom,
-      rgba(6, 12, 22, 0.06) 0%,
-      rgba(6, 12, 22, 0.58) 26%,
-      rgba(6, 12, 22, 0.93) 46%,
-      rgba(6, 12, 22, 0.96) 100%
-    );
+    background-image:
+      var(--panel-vignette-portrait, none),
+      linear-gradient(
+        to bottom,
+        rgb(var(--panel-veil) / 0.06) 0%,
+        rgb(var(--panel-veil) / 0.58) 26%,
+        rgb(var(--panel-veil) / 0.93) 46%,
+        rgb(var(--panel-veil) / 0.96) 100%
+      );
 
     @include mixins.landscape {
-      background: linear-gradient(
-        to right,
-        rgba(6, 12, 22, 0.96) 0%,
-        rgba(6, 12, 22, 0.92) 40%,
-        rgba(6, 12, 22, 0.5) 62%,
-        rgba(6, 12, 22, 0.08) 100%
-      );
+      background-image:
+        var(--panel-vignette, none),
+        linear-gradient(
+          to right,
+          rgb(var(--panel-veil) / 0.96) 0%,
+          rgb(var(--panel-veil) / 0.92) 40%,
+          rgb(var(--panel-veil) / 0.5) 62%,
+          rgb(var(--panel-veil) / 0.08) 100%
+        );
     }
+  }
+
+  &-air {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
   }
 
   &-inner {
@@ -201,6 +258,94 @@ onBeforeUnmount(() => {
   }
 }
 
+/**
+ * ── THE ORCHID ────────────────────────────────────────────────────────────
+ *
+ * One low warm light coming in from where the shelf is, and nothing else. The
+ * gradient is enormous and very soft on purpose: a tight one reads as a spot
+ * lamp pointed at an exhibit, and this page is about something that was simply
+ * in the room.
+ */
+.object-panel-orchid {
+  --panel-veil: 26 21 18;
+  --panel-ink: #f4ede3;
+  --panel-ink-dim: #c6b6a4;
+  --panel-accent: #e0b57f;
+  --panel-rule: rgba(224, 181, 127, 0.32);
+  /* Gentle: the shelf light is the point of this one, so the corners come down
+     just enough to stop the wall behind it reading as daylight. */
+  --panel-vignette: radial-gradient(64% 70% at 80% 54%, rgb(26 21 18 / 0) 0%, rgb(26 21 18 / 0.34) 100%);
+  --panel-vignette-portrait: radial-gradient(78% 46% at 50% 24%, rgb(26 21 18 / 0) 0%, rgb(26 21 18 / 0.34) 100%);
+
+  .object-panel-air {
+    background: radial-gradient(
+      120% 80% at 82% 18%,
+      rgba(255, 214, 158, 0.16) 0%,
+      rgba(255, 196, 140, 0.06) 38%,
+      rgba(255, 196, 140, 0) 72%
+    );
+  }
+}
+
+/**
+ * ── THE STARRY NIGHT ──────────────────────────────────────────────────────
+ *
+ * Prussian blue, the painting's chrome yellow, and stars.
+ *
+ * The stars are two tiled radial-gradient layers rather than elements: a few
+ * hundred dots as DOM nodes is a scroll cost on a page whose whole job is to
+ * be scrolled through, and this is one paint. They are dim, they are not the
+ * same size, and the two layers drift at different speeds so the field has
+ * depth. Very slow: at 190s a pass they are never seen to move, only noticed
+ * to have moved, which is the difference between a night sky and a screensaver.
+ */
+.object-panel-starry-night {
+  --panel-veil: 9 14 40;
+  --panel-ink: #eef2ff;
+  --panel-ink-dim: #a9b7d9;
+  --panel-accent: #eac86a;
+  --panel-rule: rgba(234, 200, 106, 0.3);
+  /* Stronger than the orchid's. Everything except the canvas goes to night;
+     the painting is left alone and becomes the only lit thing in the frame,
+     which is the whole composition. */
+  --panel-vignette: radial-gradient(56% 62% at 79% 52%, rgb(9 14 40 / 0) 0%, rgb(9 14 40 / 0.62) 100%);
+  --panel-vignette-portrait: radial-gradient(72% 40% at 50% 24%, rgb(9 14 40 / 0) 0%, rgb(9 14 40 / 0.62) 100%);
+
+  .object-panel-air {
+    background-image:
+      radial-gradient(1.6px 1.6px at 18% 22%, rgba(255, 248, 220, 0.55), transparent 60%),
+      radial-gradient(1.2px 1.2px at 62% 12%, rgba(226, 236, 255, 0.42), transparent 60%),
+      radial-gradient(1.8px 1.8px at 84% 46%, rgba(255, 244, 205, 0.5), transparent 60%),
+      radial-gradient(1.1px 1.1px at 34% 68%, rgba(226, 236, 255, 0.36), transparent 60%),
+      radial-gradient(1.5px 1.5px at 8% 84%, rgba(255, 248, 220, 0.4), transparent 60%),
+      radial-gradient(1.2px 1.2px at 72% 88%, rgba(226, 236, 255, 0.34), transparent 60%),
+      /* the one warm swell the sky turns around, well off the copy column */
+        radial-gradient(60% 46% at 88% 26%, rgba(234, 200, 106, 0.1) 0%, rgba(234, 200, 106, 0) 70%);
+    background-size:
+      420px 420px,
+      420px 420px,
+      420px 420px,
+      680px 680px,
+      680px 680px,
+      680px 680px,
+      100% 100%;
+    animation: object-stars 190s linear infinite;
+  }
+}
+
+@keyframes object-stars {
+  to {
+    background-position:
+      420px 210px,
+      420px 210px,
+      420px 210px,
+      -680px 340px,
+      -680px 340px,
+      -680px 340px,
+      0 0;
+  }
+}
+
 .object-back {
   display: inline-flex;
   align-items: center;
@@ -209,9 +354,9 @@ onBeforeUnmount(() => {
   font-size: var(--font-size-sm);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-text-cyan-300);
+  color: var(--panel-ink-dim);
   transition: color 0.15s ease-in-out;
-  --icon-color: var(--color-text-cyan-300);
+  --icon-color: var(--panel-ink-dim);
 
   &-icon {
     width: var(--icon-size-xs);
@@ -221,8 +366,8 @@ onBeforeUnmount(() => {
 
   @include mixins.hover {
     &:hover {
-      color: var(--color-cyan-400);
-      --icon-color: var(--color-cyan-400);
+      color: var(--panel-accent);
+      --icon-color: var(--panel-accent);
 
       .object-back-icon {
         transform: rotate(180deg) translateX(4px);
@@ -262,7 +407,7 @@ onBeforeUnmount(() => {
   font-size: var(--font-size-sm);
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--color-cyan-400);
+  color: var(--panel-accent);
 }
 
 .object-title {
@@ -279,7 +424,7 @@ onBeforeUnmount(() => {
 
 .object-subtitle {
   font-size: var(--font-size-lg);
-  color: var(--color-text-cyan-300);
+  color: var(--panel-ink-dim);
 }
 
 .object-body {
@@ -291,16 +436,23 @@ onBeforeUnmount(() => {
     font-size: var(--font-size-sm);
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--color-cyan-400);
+    color: var(--panel-accent);
     padding-bottom: var(--space-md);
-    border-bottom: var(--stroke-sm) solid rgba(52, 191, 255, 0.35);
+    border-bottom: var(--stroke-sm) solid var(--panel-rule);
   }
 }
 
+/* The one line that is the answer, set large and light. Both of these pages
+   are writing before they are documentation, so the statement gets the
+   generous measure and leading of a pull quote rather than the tight setting
+   the HUD panels use. */
 .object-statement {
   font-size: var(--font-size-xl);
-  line-height: var(--line-height-copy);
-  color: var(--color-text-cyan-400);
+  font-weight: 400;
+  line-height: 1.42;
+  letter-spacing: -0.005em;
+  color: var(--panel-ink);
+  max-width: 34ch;
   text-wrap: pretty;
 
   @include mixins.mq("md") {
@@ -311,7 +463,8 @@ onBeforeUnmount(() => {
 .object-paragraph {
   font-size: var(--font-size-md);
   line-height: var(--line-height-copy);
-  color: var(--color-text-cyan-300);
+  color: var(--panel-ink-dim);
+  max-width: 62ch;
   text-wrap: pretty;
 }
 
@@ -320,9 +473,9 @@ onBeforeUnmount(() => {
     font-size: var(--font-size-sm);
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--color-cyan-400);
+    color: var(--panel-accent);
     padding-bottom: var(--space-md);
-    border-bottom: var(--stroke-sm) solid rgba(52, 191, 255, 0.35);
+    border-bottom: var(--stroke-sm) solid var(--panel-rule);
     margin-bottom: var(--space-md);
   }
 
@@ -344,25 +497,29 @@ onBeforeUnmount(() => {
       font-size: var(--font-size-xs);
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: var(--color-text-cyan-300);
+      color: var(--panel-ink-dim);
     }
 
     dd {
       flex: 1 1 14rem;
       font-size: var(--font-size-md);
-      color: var(--color-text-cyan-400);
+      color: var(--panel-ink);
     }
   }
 }
 
 .object-end {
   padding-top: var(--space-xl);
-  border-top: var(--stroke-sm) solid rgba(52, 191, 255, 0.35);
+  border-top: var(--stroke-sm) solid var(--panel-rule);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .object-back-icon {
     transition: none;
+  }
+
+  .object-panel-air {
+    animation: none;
   }
 }
 </style>

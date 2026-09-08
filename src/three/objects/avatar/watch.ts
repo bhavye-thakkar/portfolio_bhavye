@@ -1,4 +1,4 @@
-import { BoxGeometry, CylinderGeometry, SkinnedMesh } from "three";
+import { BoxGeometry, CircleGeometry, CylinderGeometry, SkinnedMesh, TorusGeometry } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 import { bakeToBone } from "./spectacles";
@@ -6,34 +6,34 @@ import { bakeToBone } from "./spectacles";
 import type { BufferGeometry, Material, Object3D, Skeleton } from "three";
 
 /**
- * A Fire-Boltt-style smartwatch on the avatar's RIGHT wrist, his own right, not
- * the right of the screen.
+ * ─── TWO WATCHES, ONE WRIST ───────────────────────────────────────────────
  *
- * ── WHAT MAKES IT READ AS A SMARTWATCH ────────────────────────────────────
+ * Both on his RIGHT wrist, his own right, not the right of the screen, and
+ * never both at once:
  *
- * It used to be a round case with a bright white disc on it, which from any
- * distance read as a dress watch. A smartwatch is recognised by its silhouette
- * before any detail: a RECTANGLE longer along the forearm than it is across,
- * a black bezel, and a display that runs nearly to the edges. So:
+ *   · at home (hero, About, Contact) a ROUND SMARTWATCH: a dark puck on a dark
+ *     band, a dark always-on display with a light readout on it, and a side
+ *     button breaking the rim. No logo, no brand. The display is dark on
+ *     purpose: a round case with a bright white disc is the one silhouette
+ *     that reads as a dress watch from the hero camera, and the Timex already
+ *     owns "a watch with a light face" in this portfolio.
+ *   · at work (Experience, and the story pages) the TIMEX: the same watch that
+ *     lies on the hero desk, drawn from the same dial canvas (`../timex-dial`),
+ *     on a black strap. Steel case, bezel, crown, lugs.
  *
- *   · the case is a box, 0.19 along the arm by 0.155 across, on a strap
- *     narrower than the case is long, so it overhangs top and bottom the way
- *     a real one does;
- *   · the display is an inset panel on the light matcap inside that black
- *     bezel, which is the whole contrast;
- *   · two thin dark bars sit proud of the display, a wide one and a short one.
- *     They read as a time readout at a glance and as nothing in particular up
- *     close, which is the point: there is no logo and no brand mark.
- *   · a side button breaks the case's right edge.
+ * `setTimex` swaps them. It is driven off `avatar.seated`, which only the
+ * Experience timeline raises, and which is already at 1 before the materialise
+ * scan makes him visible there and back at 0 only after the closing scan has
+ * hidden him again, so the swap itself is never on screen.
  *
  * ── EVERYTHING HERE MUST STAY INDEXED ─────────────────────────────────────
  *
- * `hologram.ts` merges these two geometries in with the GLB's own, and
+ * `hologram.ts` merges the smartwatch geometries in with the GLB's own, and
  * `mergeGeometries` returns NULL, silently, if some inputs are indexed and
- * others are not. `BoxGeometry` and `CylinderGeometry` are both indexed;
- * `RoundedBoxGeometry` is not, which is why the corners here are chamfered
- * with a second box rather than with a rounded primitive. Getting this wrong
- * does not break the watch, it breaks the entire X-ray avatar.
+ * others are not. Box, Cylinder, Circle and Torus are all indexed;
+ * `RoundedBoxGeometry` is not, which is why the case is chamfered with a
+ * second, smaller puck rather than with a rounded primitive. Getting this
+ * wrong does not break the watch, it breaks the entire X-ray avatar.
  *
  * ── THE COORDINATE FRAME ──────────────────────────────────────────────────
  *
@@ -77,18 +77,8 @@ const P = {
   y: 0.428,
   /** strap: a band hugging the arm, slightly proud of the skin */
   strapGap: 0.014,
-  /**
-   * Measured ALONG the arm, so this is the strap's width, and it is narrower
-   * than the case is long on purpose: the case has to overhang it.
-   */
+  /** Measured ALONG the arm, so this is the strap's width. */
   strapH: 0.132,
-  /** case: across the arm, along the arm, and out from it */
-  caseW: 0.155,
-  caseL: 0.19,
-  caseD: 0.046,
-  /** display: inset inside the bezel on all four sides */
-  screenW: 0.118,
-  screenL: 0.148,
   /**
    * Which way round the wrist the case sits, measured from the bone's +Z.
    *
@@ -101,6 +91,11 @@ const P = {
   caseAngle: (-150 * Math.PI) / 180,
 };
 
+/** The smartwatch: case radius, case depth, display radius. */
+const SMART = { r: 0.094, depth: 0.046, screenR: 0.074 };
+/** The Timex: case radius, case depth, dial radius. A hair bigger, a real watch is. */
+const TIMEX = { r: 0.1, depth: 0.05, dialR: 0.079 };
+
 const findBoneIndex = (skeleton: Skeleton, name: string): number => {
   const index = skeleton.bones.findIndex((bone) => bone.name === name);
   if (index === -1) throw new Error(`[Watch] ${name} not found`);
@@ -108,57 +103,57 @@ const findBoneIndex = (skeleton: Skeleton, name: string): number => {
 };
 
 /**
- * A box sitting on a radial of the arm, `out` from the axis, swung round to
- * `caseAngle`. The box's own axes already line up with the frame the watch
- * wants: x across the arm, y along it, z out from it.
+ * Puts a geometry authored in the watch's own frame onto the wrist. That frame
+ * is x across the arm, y along it, z out from it; `out` is the distance from
+ * the arm's axis, `slideY` walks along the arm, `slideX` across it.
  */
-const radialBox = (
-  width: number,
-  length: number,
-  depth: number,
-  out: number,
-  slideY = 0,
-  slideX = 0,
-): BufferGeometry =>
-  new BoxGeometry(width, length, depth)
-    .translate(slideX, slideY, out)
-    .rotateY(P.caseAngle)
-    .translate(P.cx, P.y, P.cz);
+const onWrist = (geometry: BufferGeometry, out: number, slideY = 0, slideX = 0): BufferGeometry =>
+  geometry.translate(slideX, slideY, out).rotateY(P.caseAngle).translate(P.cx, P.y, P.cz);
 
+const radialBox = (width: number, length: number, depth: number, out: number, slideY = 0, slideX = 0) =>
+  onWrist(new BoxGeometry(width, length, depth), out, slideY, slideX);
+
+/** A puck whose flat faces point out from the arm. A cylinder's axis is Y; the rotate turns it to Z. */
+const radialPuck = (radius: number, depth: number, out: number, segments = 28) =>
+  onWrist(new CylinderGeometry(radius, radius, depth, segments).rotateX(Math.PI / 2), out);
+
+const strapBand = () => {
+  const strapR = P.armR + P.strapGap;
+  return new CylinderGeometry(strapR, strapR, P.strapH, 20).translate(P.cx, P.y, P.cz);
+};
+
+/** The case stands off the strap by a third of its own depth, so the two read as separate parts. */
+const caseOutFor = (depth: number) => P.armR + P.strapGap + depth * 0.34;
+
+/** The smartwatch. `hologram.ts` merges these two into the X-ray body. */
 export const createWatchGeometries = (skeleton: Skeleton): { body: BufferGeometry; screen: BufferGeometry } => {
   const boneIndex = findBoneIndex(skeleton, "rightForearmBone");
+  const caseOut = caseOutFor(SMART.depth);
 
-  const strapR = P.armR + P.strapGap;
-  const strap = new CylinderGeometry(strapR, strapR, P.strapH, 20).translate(P.cx, P.y, P.cz);
+  const screenOut = caseOut + SMART.depth * 0.5 + 0.002;
+  const body = mergeGeometries([
+    strapBand(),
+    radialPuck(SMART.r, SMART.depth, caseOut),
+    // A slightly smaller, slightly prouder puck: the chamfer that stops the
+    // case ending in a hard mathematical edge. Cheaper than a rounded
+    // primitive and, more to the point, still indexed.
+    radialPuck(SMART.r - 0.008, SMART.depth, caseOut + 0.006),
+    // The display itself, dark like the case: an OLED face is black glass
+    // until something is drawn on it, and what is drawn on it is below.
+    radialPuck(SMART.screenR, 0.008, screenOut),
+    // Side button, breaking the case's right edge.
+    radialBox(0.012, 0.038, 0.026, caseOut, 0.012, SMART.r + 0.004),
+  ]);
 
-  // The case stands off the strap by a third of its own depth, so the two read
-  // as separate parts rather than as one extruded lump.
-  const caseOut = strapR + P.caseD * 0.34;
-
-  const parts: BufferGeometry[] = [
-    strap,
-    radialBox(P.caseW, P.caseL, P.caseD, caseOut),
-    // A slightly smaller, slightly prouder slab: the chamfer that stops the
-    // case ending in a hard mathematical edge. Cheaper than a rounded box and,
-    // more to the point, still indexed.
-    radialBox(P.caseW - 0.018, P.caseL - 0.018, P.caseD, caseOut + 0.006),
-    // Side button, breaking the case's right edge the way every Fire-Boltt has.
-    radialBox(0.012, 0.038, 0.026, caseOut, 0.012, P.caseW / 2 + 0.004),
-  ];
-
-  const body = mergeGeometries(parts);
-
-  // ── the display, and the two bars that make it read as one ──────────────
+  // ── the readout: two light bars proud of the dark display ────────────────
   //
-  // The bars are part of the SCREEN geometry, not the body, so they share its
-  // material. On the light matcap they catch a different part of the sphere
-  // from the flat panel and come out as a darker rule across it, which is all
-  // the "digital" this needs at the size it is actually seen.
-  const screenOut = caseOut + P.caseD * 0.5 + 0.002;
+  // They are the only part of the smartwatch on the light matcap, so from the
+  // hero camera the watch is a black puck with a bright line across it, which
+  // is what an always-on display looks like at that distance. Both sit inside
+  // the disc: at 0.022 off centre a 0.074 disc is still 0.141 wide.
   const screen = mergeGeometries([
-    radialBox(P.screenW, P.screenL, 0.008, screenOut),
-    radialBox(P.screenW * 0.72, 0.02, 0.01, screenOut + 0.003, 0.022),
-    radialBox(P.screenW * 0.4, 0.011, 0.01, screenOut + 0.003, -0.014),
+    radialBox(SMART.screenR * 1.2, 0.024, 0.01, screenOut + 0.004, 0.02),
+    radialBox(SMART.screenR * 0.7, 0.014, 0.01, screenOut + 0.004, -0.016),
   ]);
 
   bakeToBone(body, skeleton, boneIndex);
@@ -167,22 +162,83 @@ export const createWatchGeometries = (skeleton: Skeleton): { body: BufferGeometr
   return { body, screen };
 };
 
-const init = (root: Object3D, bodyMaterial: Material, screenMaterial: Material) => {
-  const sibling = root.getObjectByName("black") as SkinnedMesh;
-  const { body, screen } = createWatchGeometries(sibling.skeleton);
+/**
+ * The Timex, for the wrist. Same proportions as the desk one (`../desk-watch`),
+ * built in this frame rather than cloned from it, because that one is a flat
+ * prop with a strap that curls onto a desk and this one has to wrap an arm.
+ * The dial is a disc with UVs, which is what the canvas is painted onto.
+ */
+export const createWristTimexGeometries = (
+  skeleton: Skeleton,
+): { strap: BufferGeometry; steel: BufferGeometry; dial: BufferGeometry } => {
+  const boneIndex = findBoneIndex(skeleton, "rightForearmBone");
+  const { r, depth, dialR } = TIMEX;
+  const caseOut = caseOutFor(depth);
+  const top = caseOut + depth * 0.5;
 
-  const bodyMesh = new SkinnedMesh(body, bodyMaterial);
-  bodyMesh.name = "watch-body";
-  const screenMesh = new SkinnedMesh(screen, screenMaterial);
-  screenMesh.name = "watch-screen";
+  const strap = strapBand();
 
-  for (const mesh of [bodyMesh, screenMesh]) {
-    mesh.frustumCulled = false;
-    mesh.bind(sibling.skeleton, sibling.bindMatrix);
-    sibling.parent!.add(mesh);
-    // same layer as the body, so the about-scene dissolve clips it in step
-    mesh.renderOrder = 24;
-  }
+  // A torus lies in XY with its axis on Z, so once on the wrist it rings the
+  // outward face; a cylinder turned onto X lies across the arm, which is
+  // where a crown sits. The lugs bridge the case to the band along the arm.
+  const bezel = new TorusGeometry(r - 0.011, 0.012, 8, 30);
+  const crown = new CylinderGeometry(0.015, 0.015, 0.026, 10).rotateZ(Math.PI / 2);
+  const steel = mergeGeometries([
+    radialPuck(r, depth, caseOut),
+    onWrist(bezel, top),
+    onWrist(crown, caseOut, 0, r + 0.01),
+    radialBox(0.11, 0.05, 0.022, caseOut - 0.008, r - 0.004),
+    radialBox(0.11, 0.05, 0.022, caseOut - 0.008, -(r - 0.004)),
+  ]);
+
+  // Sits 3mm above the case top and 9mm under the bezel's crest: recessed,
+  // the way a real dial is.
+  const dial = onWrist(new CircleGeometry(dialR, 30), top + 0.003);
+
+  bakeToBone(strap, skeleton, boneIndex);
+  bakeToBone(steel, skeleton, boneIndex);
+  bakeToBone(dial, skeleton, boneIndex);
+
+  return { strap, steel, dial };
 };
 
-export const watch = { init };
+let smartMeshes: SkinnedMesh[] = [];
+let timexMeshes: SkinnedMesh[] = [];
+
+/**
+ * `bodyMaterial` is the black matcap (case, band, strap), `lightMaterial` the
+ * white one (display, steel), `dialMaterial` the textured dial. All three
+ * carry the avatar's own dissolve.
+ */
+const init = (root: Object3D, bodyMaterial: Material, lightMaterial: Material, dialMaterial: Material) => {
+  const sibling = root.getObjectByName("black") as SkinnedMesh;
+  const smart = createWatchGeometries(sibling.skeleton);
+  const timex = createWristTimexGeometries(sibling.skeleton);
+
+  const make = (geometry: BufferGeometry, material: Material, name: string) => {
+    const mesh = new SkinnedMesh(geometry, material);
+    mesh.name = name;
+    mesh.frustumCulled = false;
+    mesh.bind(sibling.skeleton, sibling.bindMatrix);
+    // same layer as the body, so the about-scene dissolve clips it in step
+    mesh.renderOrder = 24;
+    sibling.parent!.add(mesh);
+    return mesh;
+  };
+
+  smartMeshes = [make(smart.body, bodyMaterial, "watch-body"), make(smart.screen, lightMaterial, "watch-screen")];
+  timexMeshes = [
+    make(timex.strap, bodyMaterial, "timex-strap"),
+    make(timex.steel, lightMaterial, "timex-case"),
+    make(timex.dial, dialMaterial, "timex-dial"),
+  ];
+  setTimex(false);
+};
+
+/** Timex on, smartwatch off, or the other way round. */
+const setTimex = (on: boolean) => {
+  for (const mesh of smartMeshes) mesh.visible = !on;
+  for (const mesh of timexMeshes) mesh.visible = on;
+};
+
+export const watch = { init, setTimex };

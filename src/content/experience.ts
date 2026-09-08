@@ -171,9 +171,8 @@ const sampleStoryContent = (): StoryChapter[] => {
 export const experiences: ExperienceEntry[] = [
   {
     slug: "notionmind",
-    // Deliberately non-ordinal: NotionMind is last in the array, so a title
-    // claiming "First" would contradict its own chapter number. Rewrite it to
-    // whatever is true once the earlier chapters are filled in.
+    // Deliberately non-ordinal: the chapters run newest first, so a title
+    // claiming "First" would be wrong for the most recent job.
     chapter: "The Opportunity",
     company: "NotionMind",
     role: "Software Developer Intern",
@@ -187,22 +186,23 @@ export const experiences: ExperienceEntry[] = [
     story: sampleStoryContent(),
   },
   /**
-   * Reserved slot. It is a full chapter, its own card, its own camera beat,
-   * its own story page, so the section can be built and judged at its real
-   * length, but nothing here claims a job. Replacing it is: company, role,
-   * type, location, duration, statement, then drop `placeholder` and swap
-   * `sampleStoryContent()` for the real six chapters.
+   * The second internship. The company is Unispace, on the owner's own
+   * instruction (2026-09-08, replacing the name the CV transcription carried);
+   * role and city are the ones that slot already had, `content/cv.ts` says the
+   * same. No dates are published for it, so `duration` stays empty rather
+   * than guessed. The six story chapters are still sample copy, the SAMPLE
+   * CONTENT badge says so; swap `sampleStoryContent()` for the real account
+   * and drop `sampleStory` in the same edit.
    */
   {
-    slug: "company-02",
-    chapter: "The Next Chapter",
-    company: "Company 02",
-    role: "Role to be added",
-    type: "",
-    location: "",
+    slug: "unispace",
+    chapter: "The Practice",
+    company: "Unispace",
+    role: "Data Science and Machine Learning Intern",
+    type: "Internship",
+    location: "Ahmedabad, India",
     duration: "",
-    statement: "",
-    placeholder: true,
+    statement: "Core Python scripts, tests and validation for real-world data processing, built with a team.",
     sampleStory: true,
     story: sampleStoryContent(),
   },

@@ -1,340 +1,79 @@
 import { CanvasTexture, LinearFilter, SRGBColorSpace } from "three";
+import { resources } from "../../../utils/resources";
+import { getDesktopAtlas } from "../room/desktop-atlas";
 
 /**
- * The two monitor faces of the Experience workstation, drawn on a 2D canvas
- * rather than modelled, a dashboard is text and rectangles, which is exactly
- * what a canvas is good at, and it keeps the whole office at zero extra
- * texture downloads.
+ * ─── THE EXPERIENCE MONITORS SHOW HOME'S SCREENS ──────────────────────────
  *
- * Two scenarios share one canvas per monitor. `blend` wipes between them the
- * way a screen actually switches: a bright seam sweeping across, old content on
- * one side, new content on the other.
+ * Home and Experience are the same workstation, and that has to include what is
+ * ON the monitors. It used to not: the hero room's two panels are a dark code
+ * editor and a chat app, baked into `assets/textures/desktops.webp`, while this
+ * module drew its own pair of cyan-on-navy dashboards. Both were fine screens.
+ * They were also unmistakably two different computers in what is supposed to be
+ * one room, and screen content is the loudest thing on a desk: it is the only
+ * part of the composition that emits light.
  *
- * These are set dressing, not a portfolio claim. Nothing here names a product,
- * a client or a dataset, they are original panels that read as "something is
- * being built" and "something is being shipped", which is all the office needs
- * them to say. Real work belongs in the story page, in the visitor's own words.
+ * So this now draws HOME'S OWN ATLAS, cropped to each monitor. Not a copy of it,
+ * the same file, the same download, already in `resources` for the room. The
+ * ~430 lines of dashboard drawing that used to live here are gone with it.
+ *
+ * ── WHY A CANVAS AND NOT THE TEXTURE DIRECTLY ─────────────────────────────
+ *
+ * Pointing a `MeshBasicMaterial` at a clone of the shared texture with its own
+ * `offset`/`repeat` is the obvious move and it is a trap. `room/desktops.ts`
+ * puts that texture into LINEAR colour space with `flipY = false`, because its
+ * shader samples it raw; three shares one GPU upload between every texture that
+ * shares a `source`, so the first of the two to be uploaded decides both. A
+ * basic material would then either double-encode the panel (visibly washed out)
+ * or fight the room for the setting. Blitting the region onto our own canvas
+ * sidesteps all of it, costs one `drawImage` per redraw at 6fps, and keeps the
+ * crop as plain pixel arithmetic instead of inverted UV transforms.
+ *
+ * ── THE ATLAS ─────────────────────────────────────────────────────────────
+ *
+ * 1024², read off the file rather than assumed:
+ *
+ *   LEFT HALF  (x 0..512)    the code editor, tiling vertically, 64 lines at
+ *                            16px. The room shows the top third of it and
+ *                            scrolls; so does this.
+ *   RIGHT HALF (x 512..1024) the CV, painted over the chat app by
+ *                            `room/desktop-atlas.ts`, the page in the top half.
  */
 
+/** 16:9, matching MONITOR.screenWidth / screenHeight in `./index.ts`. */
 const WIDTH = 640;
 const HEIGHT = 360;
 
-// Palette borrowed from the site's HUD so the screens sit in the same world.
-const INK = "#e1f5ff";
-const DIM = "#81bdd8";
-const CYAN = "#34bfff";
-const DEEP = "#001941";
-const PANEL = "#00306f";
-const LINE = "rgba(52, 191, 255, 0.28)";
-const WARM = "#ff8400";
-
-export type ScenarioKey = "build" | "ship";
+/** Source crop: 502px wide, and whatever height keeps the monitor's aspect. */
+const CROP_W = 502;
+const CROP_H = Math.round((CROP_W * HEIGHT) / WIDTH);
 
 type Side = "left" | "right";
 
-const mono = (size: number, weight = 400) => `${weight} ${size}px ProFontWindows, ui-monospace, monospace`;
-
-const rounded = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
-  ctx.beginPath();
-  ctx.roundRect(x, y, w, h, r);
+/**
+ * Where each panel is cut from, and how far `blend` walks it.
+ *
+ * The pan is what `blend` means now. It used to cross-fade between two invented
+ * dashboards; the Experience timeline still drives it per chapter, and a screen
+ * that has been scrolled a few lines between one beat and the next says the
+ * same thing ("time passed, work happened") in the room's own idiom rather than
+ * in a second one. 96px is six lines of code, which is a nudge and not a jump.
+ */
+const CROPS: Record<Side, { x: number; y: number; pan: number }> = {
+  left: { x: 6, y: 16, pan: 96 },
+  right: { x: 518, y: 6, pan: 34 },
 };
 
-const panel = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, fill = PANEL) => {
-  rounded(ctx, x, y, w, h, 6);
-  ctx.fillStyle = fill;
-  ctx.fill();
-  ctx.strokeStyle = LINE;
-  ctx.lineWidth = 1;
-  ctx.stroke();
-};
-
-const label = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, size = 13, color = DIM) => {
-  ctx.font = mono(size);
-  ctx.fillStyle = color;
-  ctx.fillText(text, x, y);
-};
-
-const chrome = (ctx: CanvasRenderingContext2D, title: string, right: string) => {
-  ctx.fillStyle = DEEP;
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-  // window bar
-  ctx.fillStyle = "#00224f";
-  ctx.fillRect(0, 0, WIDTH, 26);
-  ctx.fillStyle = LINE;
-  ctx.fillRect(0, 26, WIDTH, 1);
-  for (let i = 0; i < 3; i++) {
-    ctx.beginPath();
-    ctx.arc(16 + i * 14, 13, 4, 0, Math.PI * 2);
-    ctx.fillStyle = i === 0 ? WARM : "rgba(129, 189, 216, 0.5)";
-    ctx.fill();
-  }
-  label(ctx, title, 66, 18, 14, INK);
-  ctx.textAlign = "right";
-  label(ctx, right, WIDTH - 14, 18, 12, DIM);
-  ctx.textAlign = "left";
-};
-
-/** Column chart. `phase` walks the bars a little so the screen is not a still. */
-const bars = (
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  seed: number[],
-  phase: number,
-) => {
-  const gap = 5;
-  const bw = (w - gap * (seed.length - 1)) / seed.length;
-  seed.forEach((base, i) => {
-    const wobble = 0.06 * Math.sin(phase * 1.4 + i * 0.9);
-    const value = Math.max(0.08, Math.min(1, base + wobble));
-    const bh = h * value;
-    rounded(ctx, x + i * (bw + gap), y + h - bh, bw, bh, 2);
-    ctx.fillStyle = i === seed.length - 2 ? CYAN : "rgba(52, 191, 255, 0.45)";
-    ctx.fill();
-  });
-};
-
-const sparkline = (
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  seed: number[],
-  phase: number,
-  color = CYAN,
-) => {
-  ctx.beginPath();
-  seed.forEach((base, i) => {
-    const value = base + 0.05 * Math.sin(phase + i * 0.7);
-    const px = x + (w * i) / (seed.length - 1);
-    const py = y + h - h * Math.max(0.05, Math.min(1, value));
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
-  });
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
-  ctx.stroke();
-};
-
-const buildLeft = (ctx: CanvasRenderingContext2D, phase: number) => {
-  chrome(ctx, "SERVICE OVERVIEW", "LIVE");
-
-  // KPI row
-  const kpis = [
-    ["REQUESTS / DAY", "48,210"],
-    ["SUCCESS", "96.4%"],
-    ["ENDPOINTS", "32"],
-  ];
-  kpis.forEach(([k, v], i) => {
-    const x = 14 + i * 205;
-    panel(ctx, x, 38, 194, 54);
-    label(ctx, k as string, x + 12, 58, 11);
-    label(ctx, v as string, x + 12, 80, 20, INK);
-  });
-
-  // Node diagram, two paths through the graph with shared junctions
-  panel(ctx, 14, 102, 320, 156);
-  label(ctx, "SERVICE MAP", 26, 122, 11);
-  const route = (points: [number, number][], color: string) => {
-    ctx.beginPath();
-    points.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)));
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 4;
-    ctx.lineJoin = "round";
-    ctx.stroke();
-    points.forEach(([px, py]) => {
-      ctx.beginPath();
-      ctx.arc(px, py, 4, 0, Math.PI * 2);
-      ctx.fillStyle = DEEP;
-      ctx.fill();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    });
-  };
-  route(
-    [
-      [40, 230],
-      [96, 230],
-      [140, 186],
-      [212, 186],
-      [258, 140],
-      [312, 140],
-    ],
-    CYAN,
-  );
-  route(
-    [
-      [40, 150],
-      [104, 150],
-      [140, 186],
-      [176, 222],
-      [252, 222],
-      [312, 222],
-    ],
-    WARM,
-  );
-
-  // Hourly load
-  panel(ctx, 346, 102, 280, 156);
-  label(ctx, "LOAD / HOUR", 358, 122, 11);
-  bars(ctx, 358, 134, 256, 108, [0.32, 0.55, 0.86, 0.62, 0.4, 0.48, 0.74, 0.91, 0.58], phase);
-
-  // Footer strip
-  panel(ctx, 14, 268, 612, 78);
-  label(ctx, "ROUTE THROUGHPUT", 26, 288, 11);
-  const rows = [
-    ["/api/v1", "6,412", "+4.2%"],
-    ["/assets", "5,180", "+1.8%"],
-    ["/search", "4,905", "-0.6%"],
-  ];
-  rows.forEach(([a, b, c], i) => {
-    const y = 308 + i * 15;
-    label(ctx, a as string, 26, y, 12, INK);
-    label(ctx, b as string, 120, y, 12);
-    label(ctx, c as string, 200, y, 12, (c as string).startsWith("-") ? WARM : CYAN);
-    ctx.fillStyle = LINE;
-    ctx.fillRect(250, y - 4, 360 * (0.5 + 0.16 * i), 1);
-  });
-};
-
-const buildRight = (ctx: CanvasRenderingContext2D, phase: number) => {
-  chrome(ctx, "query.sql / pipeline", "postgres");
-
-  // Faux query, shapes of code, not code
-  const code: [number, string][] = [
-    [0, "select"],
-    [1, "route_id, date_trunc('hour', seen_at) as h,"],
-    [1, "count(*) as hits"],
-    [0, "from  app.events"],
-    [0, "where region in ('north','east')"],
-    [0, "group by 1, 2"],
-    [0, "order by hits desc"],
-  ];
-  code.forEach(([indent, text], i) => {
-    const y = 50 + i * 19;
-    label(ctx, String(i + 1).padStart(2, "0"), 14, y, 12, "rgba(129,189,216,0.45)");
-    label(ctx, text, 42 + indent * 16, y, 13, i === 0 || text.startsWith("from") || text.startsWith("where") ? CYAN : INK);
-  });
-
-  panel(ctx, 14, 196, 300, 150);
-  label(ctx, "ETL RUNS", 26, 216, 11);
-  sparkline(ctx, 26, 226, 276, 106, [0.4, 0.62, 0.5, 0.78, 0.66, 0.9, 0.72, 0.84], phase);
-
-  panel(ctx, 326, 196, 300, 150);
-  label(ctx, "SERVICES", 338, 216, 11);
-  ["flask api", "react client", "worker queue"].forEach((name, i) => {
-    const y = 240 + i * 30;
-    ctx.beginPath();
-    ctx.arc(346, y - 4, 4, 0, Math.PI * 2);
-    ctx.fillStyle = i === 2 ? WARM : CYAN;
-    ctx.fill();
-    label(ctx, name, 360, y, 13, INK);
-    label(ctx, i === 2 ? "queued" : "healthy", 560, y, 12);
-  });
-};
-
-const shipLeft = (ctx: CanvasRenderingContext2D, phase: number) => {
-  chrome(ctx, "TEAM BOARD", "workspace");
-
-  // Channel rail
-  panel(ctx, 14, 38, 150, 308, "#002456");
-  ["# general", "# releases", "# data", "# design", "# standup"].forEach((name, i) => {
-    const y = 62 + i * 26;
-    if (i === 2) {
-      rounded(ctx, 22, y - 14, 134, 20, 4);
-      ctx.fillStyle = "rgba(52,191,255,0.18)";
-      ctx.fill();
-    }
-    label(ctx, name, 28, y, 13, i === 2 ? INK : DIM);
-    if (i === 1) {
-      ctx.beginPath();
-      ctx.arc(148, y - 4, 6, 0, Math.PI * 2);
-      ctx.fillStyle = WARM;
-      ctx.fill();
-    }
-  });
-
-  // Message stream
-  panel(ctx, 176, 38, 450, 190);
-  const messages = [
-    ["AK", "deploy went out, build is green"],
-    ["BT", "hooked the hourly job to the new endpoint"],
-    ["RS", "throughput view looks right now"],
-  ];
-  messages.forEach(([who, text], i) => {
-    const y = 66 + i * 44;
-    rounded(ctx, 190, y - 14, 22, 22, 5);
-    ctx.fillStyle = i === 1 ? CYAN : "rgba(52,191,255,0.35)";
-    ctx.fill();
-    label(ctx, who as string, 195, y + 2, 12, DEEP);
-    label(ctx, text as string, 222, y, 13, INK);
-    label(ctx, "09:4" + (i + 2), 222, y + 16, 11);
-  });
-  // typing indicator
-  for (let i = 0; i < 3; i++) {
-    ctx.beginPath();
-    ctx.arc(226 + i * 10, 208, 3, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(225, 245, 255, ${0.25 + 0.6 * Math.max(0, Math.sin(phase * 2.4 - i * 0.7))})`;
-    ctx.fill();
-  }
-
-  panel(ctx, 176, 240, 218, 106);
-  label(ctx, "MESSAGES / DAY", 188, 260, 11);
-  bars(ctx, 188, 272, 194, 60, [0.4, 0.7, 0.55, 0.88, 0.62, 0.75], phase);
-
-  panel(ctx, 408, 240, 218, 106);
-  label(ctx, "ACTIVE MEMBERS", 420, 260, 11);
-  label(ctx, "24", 420, 296, 26, INK);
-  sparkline(ctx, 500, 268, 112, 60, [0.35, 0.6, 0.48, 0.72, 0.85, 0.7], phase, WARM);
-};
-
-const shipRight = (ctx: CanvasRenderingContext2D, phase: number) => {
-  chrome(ctx, "workspace / activity", "realtime");
-
-  panel(ctx, 14, 38, 612, 140);
-  label(ctx, "EVENTS PER MINUTE", 26, 58, 11);
-  bars(
-    ctx,
-    26,
-    70,
-    588,
-    96,
-    [0.3, 0.44, 0.62, 0.5, 0.72, 0.58, 0.8, 0.66, 0.9, 0.74, 0.55, 0.68],
-    phase,
-  );
-
-  panel(ctx, 14, 190, 300, 156);
-  label(ctx, "CHANNEL SPLIT", 26, 210, 11);
-  ["releases", "data", "standup", "design"].forEach((name, i) => {
-    const y = 234 + i * 26;
-    label(ctx, name, 26, y, 13, INK);
-    const w = 150 * [0.9, 0.72, 0.48, 0.3][i]!;
-    rounded(ctx, 150, y - 9, w, 10, 5);
-    ctx.fillStyle = i === 0 ? CYAN : "rgba(52,191,255,0.4)";
-    ctx.fill();
-  });
-
-  panel(ctx, 326, 190, 300, 156);
-  label(ctx, "INTEGRATIONS", 338, 210, 11);
-  ["webhook relay", "digest job", "presence sync"].forEach((name, i) => {
-    const y = 240 + i * 32;
-    ctx.beginPath();
-    ctx.arc(346, y - 4, 4, 0, Math.PI * 2);
-    ctx.fillStyle = CYAN;
-    ctx.fill();
-    label(ctx, name, 360, y, 13, INK);
-    label(ctx, ["ok", "ok", "ok"][i]!, 592, y, 12);
-  });
-};
-
-const SCENES: Record<ScenarioKey, Record<Side, (ctx: CanvasRenderingContext2D, phase: number) => void>> = {
-  build: { left: buildLeft, right: buildRight },
-  ship: { left: shipLeft, right: shipRight },
+/**
+ * The room's own monitor artwork, with the CV on it. Null until resources have
+ * loaded; the raw file if the composite could not be drawn.
+ */
+const atlas = (): CanvasImageSource | null => {
+  const composed = getDesktopAtlas();
+  if (composed) return composed;
+  const image = resources.items["desktops-texture"]?.image;
+  // An Image that has not decoded yet has width 0, and drawing it throws.
+  return image && image.width ? image : null;
 };
 
 class Screen {
@@ -357,40 +96,18 @@ class Screen {
     this.texture.magFilter = LinearFilter;
   }
 
-  /** `blend` 0 = build, 1 = ship; in between the new panel wipes across. */
-  draw(blend: number, phase: number) {
+  draw(blend: number) {
+    const image = atlas();
     const { ctx } = this;
-    ctx.save();
-    ctx.textBaseline = "alphabetic";
+    const crop = CROPS[this.side];
 
-    const seam = WIDTH * blend;
+    // The editor's own background, so a frame drawn before the atlas has
+    // decoded is a dark panel rather than a transparent hole.
+    ctx.fillStyle = "#36393f";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    if (!image) return;
 
-    if (blend < 0.999) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(seam, 0, WIDTH - seam, HEIGHT);
-      ctx.clip();
-      SCENES.build[this.side](ctx, phase);
-      ctx.restore();
-    }
-
-    if (blend > 0.001) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, 0, seam, HEIGHT);
-      ctx.clip();
-      SCENES.ship[this.side](ctx, phase);
-      ctx.restore();
-    }
-
-    if (blend > 0.001 && blend < 0.999) {
-      ctx.fillStyle = CYAN;
-      ctx.fillRect(seam - 2, 0, 4, HEIGHT);
-      ctx.fillStyle = "rgba(52, 191, 255, 0.25)";
-      ctx.fillRect(seam - 26, 0, 24, HEIGHT);
-    }
-
-    ctx.restore();
+    ctx.drawImage(image, crop.x, crop.y + blend * crop.pan, CROP_W, CROP_H, 0, 0, WIDTH, HEIGHT);
     this.texture.needsUpdate = true;
   }
 
@@ -405,45 +122,40 @@ let left: Screen | null = null;
 let right: Screen | null = null;
 
 /**
- * `blend` crosses the two scenarios; `dim` is how far the panels have gone
- * dark, 0 = on, 1 = off. The X-ray sequence drives `dim`, the monitors going
- * quiet is the cue that says something is about to happen to the scene, and it
- * is applied to the screen materials by the workstation tick rather than
- * redrawn into the canvases, which would cost a repaint per frame.
+ * `blend` walks the panels (see CROPS); `dim` is how far they have gone dark,
+ * 0 = on, 1 = off. The X-ray sequence drives `dim`, the monitors going quiet is
+ * the cue that says something is about to happen to the scene, and it is applied
+ * to the screen materials by the workstation tick rather than redrawn into the
+ * canvases, which would cost a repaint per frame.
  */
 const state = { blend: 0, dim: 0 };
-let lastDrawn = -1;
-let fontsReady = false;
+let lastBlend = -1;
+/** Cleared once a frame has been drawn with the atlas actually present. */
+let drawnWithAtlas = false;
 
 const init = () => {
   if (left) return;
   left = new Screen("left");
   right = new Screen("right");
-  redraw(0);
-
-  // ProFontWindows arrives after first paint; redraw once it lands so the
-  // screens use the site's own face rather than the monospace fallback.
-  document.fonts.ready.then(() => {
-    fontsReady = true;
-    redraw(0);
-  });
+  redraw();
 };
 
-const redraw = (phase: number) => {
-  left?.draw(state.blend, phase);
-  right?.draw(state.blend, phase);
+const redraw = () => {
+  left?.draw(state.blend);
+  right?.draw(state.blend);
+  drawnWithAtlas = atlas() !== null;
 };
 
 /**
- * Called from the workstation tick. Redraws at ~6fps while the scene is on
- * stage and never otherwise, the canvases are the only per-frame cost in the
- * office and this keeps them off the budget.
+ * Called from the workstation tick. The panels are a still image now, so there
+ * is nothing to animate: redraw only when `blend` has actually moved, or while
+ * the atlas has still not turned up.
  */
-const update = (time: number) => {
-  const step = Math.floor(time * 6);
-  if (step === lastDrawn && fontsReady) return;
-  lastDrawn = step;
-  redraw(time);
+const update = (_time: number) => {
+  const step = Math.round(state.blend * 240);
+  if (step === lastBlend && drawnWithAtlas) return;
+  lastBlend = step;
+  redraw();
 };
 
 const destroy = () => {
@@ -451,8 +163,8 @@ const destroy = () => {
   right?.dispose();
   left = null;
   right = null;
-  lastDrawn = -1;
-  fontsReady = false;
+  lastBlend = -1;
+  drawnWithAtlas = false;
   state.blend = 0;
   state.dim = 0;
 };

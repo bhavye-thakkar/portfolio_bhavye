@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!--
-      The domain below is still the project's placeholder. It appears here, in
-      public/sitemap.xml, in public/robots.txt and in public/llms.txt, change
-      all four in one edit when the real one exists. Nothing else in this head
-      is a placeholder: the title, the description and the profile links are
-      what the portfolio actually publishes.
+      The domain below is the canonical origin. It appears here, in
+      public/sitemap.xml, in public/robots.txt, in public/llms.txt and in
+      src/content/profile.ts's `site`; change all five in one edit.
+
+      This build is deployed to several addresses (they are in `sameAs` below
+      and in profile.ts's `portfolioLinks`). They all serve THIS canonical, so
+      a crawler is told which copy is the original rather than being handed
+      five identical sites to choose between.
     -->
     <title>Bhavye Thakkar - Data Scientist &amp; Flutter Developer</title>
     <meta
@@ -17,7 +20,7 @@
       content="Portfolio of Bhavye Thakkar, a Data Scientist and Flutter Engineer. AI/ML, computer vision and data analytics work in Python and TensorFlow, and mobile apps built with Flutter."
     />
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://example.com/" />
+    <link rel="canonical" href="https://bhavyethakkar.netlify.app/" />
 
     <meta property="og:title" content="Bhavye Thakkar - Data Scientist &amp; Flutter Developer" />
     <meta
@@ -25,10 +28,10 @@
       content="Portfolio of Bhavye Thakkar, a Data Scientist and Flutter Engineer. AI/ML, computer vision and data analytics work in Python and TensorFlow, and mobile apps built with Flutter."
     />
     <meta property="og:type" content="profile" />
-    <meta property="og:url" content="https://example.com/" />
+    <meta property="og:url" content="https://bhavyethakkar.netlify.app/" />
     <meta property="og:site_name" content="Bhavye Thakkar" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:image" content="https://example.com/meta/og-image.webp" />
+    <meta property="og:image" content="https://bhavyethakkar.netlify.app/meta/og-image.webp" />
     <meta property="og:image:alt" content="Bhavye Thakkar - Data Scientist and Flutter Engineer" />
     <meta property="profile:first_name" content="Bhavye" />
     <meta property="profile:last_name" content="Thakkar" />
@@ -39,7 +42,7 @@
       name="twitter:description"
       content="Portfolio of Bhavye Thakkar, a Data Scientist and Flutter Engineer. AI/ML, computer vision and data analytics work in Python and TensorFlow, and mobile apps built with Flutter."
     />
-    <meta name="twitter:image" content="https://example.com/meta/twitter-image.webp" />
+    <meta name="twitter:image" content="https://bhavyethakkar.netlify.app/meta/twitter-image.webp" />
 
     <!--
       ── STRUCTURED DATA ───────────────────────────────────────────────────
@@ -48,9 +51,11 @@
       it is about and the site are linked by @id instead of asserted three
       times over. Every value is something the portfolio actually publishes:
 
-        · `sameAs` has GitHub and LinkedIn only. The social row also renders
-          an X button, but its URL is a placeholder, pointing a search engine
-          at a profile that does not exist is worse than omitting it.
+        · `sameAs` is GitHub, LinkedIn and the portfolio's other deployed
+          addresses (`portfolioLinks` in content/profile.ts). The social row
+          also renders an X button, but its URL is a placeholder, and pointing
+          a search engine at a profile that does not exist is worse than
+          omitting it.
         · `hasCredential` is the five real certificates, each with the URL the
           card links to.
         · There is deliberately no `worksFor` and no `alumniOf`. The
@@ -63,12 +68,12 @@
         "@graph": [
           {
             "@type": "Person",
-            "@id": "https://example.com/#person",
+            "@id": "https://bhavyethakkar.netlify.app/#person",
             "name": "Bhavye Thakkar",
             "givenName": "Bhavye",
             "familyName": "Thakkar",
-            "url": "https://example.com/",
-            "mainEntityOfPage": { "@id": "https://example.com/#webpage" },
+            "url": "https://bhavyethakkar.netlify.app/",
+            "mainEntityOfPage": { "@id": "https://bhavyethakkar.netlify.app/#webpage" },
             "jobTitle": "Data Scientist and Flutter Engineer",
             "description": "Data Scientist and Flutter Engineer working in AI/ML, computer vision and data analytics with Python and TensorFlow, and building mobile apps with Flutter.",
             "email": "mailto:thakkarbhavye1425@gmail.com",
@@ -78,25 +83,39 @@
               "addressRegion": "Gujarat",
               "addressCountry": "IN"
             },
-            "sameAs": ["https://github.com/bhavye-thakkar", "https://www.linkedin.com/in/bhavyethakkar/"],
+            "sameAs": [
+              "https://github.com/bhavye-thakkar",
+              "https://www.linkedin.com/in/bhavyethakkar/",
+              "https://bhavye.vercel.app",
+              "https://thakkarbhavya.netlify.app",
+              "https://bhavyathakkar.netlify.app",
+              "https://thakkarbhavye.netlify.app"
+            ],
             "knowsLanguage": "en",
             "knowsAbout": [
-              "Data Science",
-              "Machine Learning",
-              "Deep Learning",
-              "Artificial Intelligence",
-              "Computer Vision",
-              "Data Analytics",
+              "Three.js",
+              "WebGL",
+              "Node.js",
+              "WebSockets",
+              "React",
+              "Vue",
+              "Real-time Multiplayer",
+              "FastAPI",
               "Python",
               "TensorFlow",
+              "Keras",
+              "scikit-learn",
               "Pandas",
               "NumPy",
               "Matplotlib",
               "Seaborn",
-              "OpenCV",
-              "Flutter",
-              "Dart",
-              "JavaScript"
+              "Computer Vision",
+              "Natural Language Processing",
+              "Generative AI",
+              "Large Language Models",
+              "Machine Learning",
+              "Deep Learning",
+              "Flutter"
             ],
             "hasCredential": [
               {
@@ -143,20 +162,20 @@
           },
           {
             "@type": "ProfilePage",
-            "@id": "https://example.com/#webpage",
-            "url": "https://example.com/",
+            "@id": "https://bhavyethakkar.netlify.app/#webpage",
+            "url": "https://bhavyethakkar.netlify.app/",
             "name": "Bhavye Thakkar - Data Scientist & Flutter Developer",
-            "isPartOf": { "@id": "https://example.com/#website" },
-            "about": { "@id": "https://example.com/#person" },
-            "mainEntity": { "@id": "https://example.com/#person" },
+            "isPartOf": { "@id": "https://bhavyethakkar.netlify.app/#website" },
+            "about": { "@id": "https://bhavyethakkar.netlify.app/#person" },
+            "mainEntity": { "@id": "https://bhavyethakkar.netlify.app/#person" },
             "inLanguage": "en"
           },
           {
             "@type": "WebSite",
-            "@id": "https://example.com/#website",
-            "url": "https://example.com/",
+            "@id": "https://bhavyethakkar.netlify.app/#website",
+            "url": "https://bhavyethakkar.netlify.app/",
             "name": "Bhavye Thakkar",
-            "publisher": { "@id": "https://example.com/#person" },
+            "publisher": { "@id": "https://bhavyethakkar.netlify.app/#person" },
             "inLanguage": "en"
           }
         ]
@@ -174,6 +193,11 @@
     <link rel="shortcut icon" href="/meta/favicon.ico" />
 
     <meta name="theme-color" content="#dfd1bc" />
+    <!-- Offline support and installability. The worker that backs it is
+         public/sw.js, registered from src/composables/usePwa.ts after `load`
+         so it costs the first visit nothing. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/meta/icon-192.png" />
 
     <!--
       ── THE PRELOADER'S OWN STYLES, INLINE AND ON PURPOSE ─────────────────
@@ -284,8 +308,11 @@
         · It must stay TRUE to what the rendered page says. This is a no-JS
           fallback, not a keyword box, text here that the real page does not
           back up is cloaking, and it is what gets a site penalised.
-        · Every fact below is in src/content/profile.ts. Change it there and
-          mirror it here and in public/llms.txt.
+        · Every fact below is in src/content/profile.ts (the Experience list
+          in src/content/experience.ts). Change it there and mirror it here
+          and in public/llms.txt. It lists exactly what the site renders: the
+          HUD's skills, the Projects grid, the Experience section, the
+          certificates. Nothing the site does not show goes in.
     -->
     <div id="app"></div>
     <noscript>
@@ -303,13 +330,30 @@
 
       <h2>Skills</h2>
       <ul>
-        <li>Python: machine learning, deep learning and data analysis</li>
-        <li>TensorFlow: model building and training</li>
-        <li>Pandas and NumPy: data wrangling</li>
-        <li>Matplotlib and Seaborn: data visualisation</li>
-        <li>OpenCV: computer vision</li>
-        <li>Flutter and Dart: cross-platform mobile apps</li>
-        <li>JavaScript: web development</li>
+        <li>Three.js &amp; WebGL</li>
+        <li>Node.js &amp; WebSockets</li>
+        <li>React &amp; Vue</li>
+        <li>Real-time Multiplayer</li>
+        <li>FastAPI</li>
+        <li>Python &amp; TensorFlow</li>
+        <li>Keras &amp; scikit-learn</li>
+        <li>Pandas &amp; NumPy</li>
+        <li>Matplotlib &amp; Seaborn</li>
+        <li>Computer Vision &amp; NLP</li>
+        <li>Generative AI &amp; LLMs</li>
+        <li>Machine Learning</li>
+        <li>Deep Learning</li>
+      </ul>
+
+      <h2>Experience</h2>
+      <ul>
+        <li>
+          <a href="/experience/notionmind">NotionMind</a>: Software Developer Intern, Ahmedabad, India, October
+          2025 to March 2026
+        </li>
+        <li>
+          <a href="/experience/unispace">Unispace</a>: Data Science and Machine Learning Intern, Ahmedabad, India
+        </li>
       </ul>
 
       <h2>Certificates</h2>
@@ -343,30 +387,12 @@
 
       <h2>Projects</h2>
       <ul>
-        <li><a href="/project/garbacircle">Garba Circle</a>: Navratri and Garba app</li>
-        <li>
-          <a href="https://github.com/bhavye-thakkar/Expense-tracker">Mobile Finance App</a>: Flutter expense
-          tracking with budget analysis
-        </li>
-        <li>
-          <a href="https://github.com/bhavye-thakkar/Stock_MArket-prediction-AI-ML">Stock Market Analyzer</a>:
-          stock prediction with machine learning
-        </li>
-        <li>
-          <a href="https://github.com/bhavye-thakkar/house-price-prediction-with-the-help-of-streeamlit"
-            >House Price Prediction</a
-          >: regression model behind a Streamlit interface
-        </li>
-        <li>
-          <a href="https://github.com/bhavye-thakkar/note-taking-and-summarization-"
-            >Note Taking &amp; Summarization</a
-          >: collaborative notes with automatic summarisation
-        </li>
+        <li><a href="/project/garbacircle">Garba Circle</a>: Navratri and Garba app, the published case study</li>
       </ul>
 
       <h2>The room</h2>
       <p>
-        Two objects in the 3D workspace open a page of their own explaining why they are in the scene.
+        Three objects in the 3D workspace open a page of their own explaining why they are in the scene.
       </p>
       <ul>
         <li>
@@ -377,14 +403,10 @@
           <a href="/object/starry-night">The Starry Night</a>: Vincent van Gogh, 1889, a public-domain
           reproduction; on night, motion, and imagination made visible
         </li>
-      </ul>
-
-      <h2>Hackathons</h2>
-      <ul>
-        <li>InnoNova 24-Hour Hackathon, March 2025. Team Lead, Top 15 Finalist</li>
-        <li>HackHertz, September 2025. Team Lead, Finalist</li>
-        <li>Tic Tac Toe 2025, DA-IICT Gandhinagar, April 2025. Participant</li>
-        <li>Smart India Hackathon 2024. Participant</li>
+        <li>
+          <a href="/object/timex">The Timex</a>: a Timex wristwatch, reference T1000Q70200-YY (AR), on the desk
+          at home and on his wrist at work
+        </li>
       </ul>
 
       <h2>Contact</h2>

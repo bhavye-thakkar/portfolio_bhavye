@@ -17,6 +17,11 @@
  *     how the document reads; silently correcting them here would mean the page
  *     and the download no longer say the same thing.
  *
+ *     ⚠ ONE DELIBERATE EXCEPTION, on the owner's instruction (2026-09-03): the
+ *     CGPA below reads 7.95, the PDF still says 7.50. It is the one number
+ *     that goes stale on its own, and the current one is the true one. Re-export
+ *     the PDF and this exception goes away, until then do not "correct" it back.
+ *
  * ── WHY THIS IS NOT `profile.ts` ──────────────────────────────────────────
  *
  * `profile.ts` is what the source portfolio publishes, and the CV disagrees
@@ -75,7 +80,7 @@ export const cvSections: CvSection[] = [
       },
       {
         title: "Data Science and Machine Learning Intern",
-        subtitle: "BrainyBeam Technologies Pvt. Ltd. | Ahmedabad",
+        subtitle: "Unispace | Ahmedabad",
         bullets: [
           "Write unit tests and validation scripts to ensure the correctness and reliability of code.",
           "Handle file operations, string processing, and exception handling for real-world data processing tasks.",
@@ -91,7 +96,7 @@ export const cvSections: CvSection[] = [
       {
         title: "GUJARAT Technological university (GTU) | 2022– 2026",
         subtitle: "Bachelor in Computer Engineering (BE)",
-        bullets: ["CGPA: 7.50 / 10"],
+        bullets: ["CGPA: 7.95 / 10"],
       },
     ],
   },

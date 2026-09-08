@@ -27,64 +27,70 @@
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://example.com/</loc>
+    <loc>https://bhavyethakkar.netlify.app/</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
-    <loc>https://example.com/experience/notionmind</loc>
+    <loc>https://bhavyethakkar.netlify.app/experience/notionmind</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://example.com/experience/company-02</loc>
+    <loc>https://bhavyethakkar.netlify.app/experience/unispace</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
 
   <url>
-    <loc>https://example.com/object/orchid</loc>
+    <loc>https://bhavyethakkar.netlify.app/object/orchid</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://example.com/object/starry-night</loc>
+    <loc>https://bhavyethakkar.netlify.app/object/starry-night</loc>
     <lastmod>2026-08-29</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://bhavyethakkar.netlify.app/object/timex</loc>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
 
   <url>
-    <loc>https://example.com/project/garbacircle</loc>
+    <loc>https://bhavyethakkar.netlify.app/project/garbacircle</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://example.com/project/project-02</loc>
+    <loc>https://bhavyethakkar.netlify.app/project/project-02</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://example.com/project/project-03</loc>
+    <loc>https://bhavyethakkar.netlify.app/project/project-03</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://example.com/project/project-04</loc>
+    <loc>https://bhavyethakkar.netlify.app/project/project-04</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://example.com/project/project-05</loc>
+    <loc>https://bhavyethakkar.netlify.app/project/project-05</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

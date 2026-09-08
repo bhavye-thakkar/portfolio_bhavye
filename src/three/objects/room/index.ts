@@ -13,6 +13,7 @@ import { music } from "./music";
 import { orchid } from "./orchid";
 import { hotspots3D } from "./hotspots";
 import { createEnvelope } from "../envelope";
+import { createDeskWatch } from "../desk-watch";
 
 import type { Object3D } from "three";
 
@@ -40,6 +41,20 @@ const chairScrollRotation = new Euler();
  * a mouse.
  */
 let envelope: ReturnType<typeof createEnvelope> | null = null;
+
+/**
+ * The Timex, on the front edge of the desk between the keyboard and the mouse.
+ *
+ * Room-local, and anchored to things that are already there rather than picked:
+ * the mouse sits at (-0.8, 1.5, -0.56) and the speaker at (-1.68, 1.44, -1.95),
+ * so x runs from the monitors at the back toward the front edge and z runs
+ * along the desk. This is a little in front of the mouse and a little toward
+ * the middle, which is desk a hand rests on and nothing else occupies.
+ *
+ * This is the instance the inspect camera is told about (`framed`), because
+ * only the hero shot can be framed, see `animations/inspect.ts`.
+ */
+let deskWatch: ReturnType<typeof createDeskWatch> | null = null;
 
 let objects: {
   blackboard: Mesh;
@@ -90,6 +105,29 @@ const init = () => {
   });
   envelope.init();
   group.add(envelope.group);
+
+  // Same no-shadow rule as the envelope: the room's contact shadows are painted
+  // into its atlas and a second one reads as a smudge.
+  deskWatch = createDeskWatch({
+    /**
+     * x runs from the monitors at the back toward the near edge, which is at
+     * about x 0, and z runs along the desk. Both numbers are clearance:
+     *
+     *   · at x 0.02 the strap's long end hung off the front of the desk and
+     *     into the wall behind it, so the whole prop moved back;
+     *   · the mouse is at (-0.8, 1.5, -0.56) and the strap is 0.72 long, so at
+     *     yaw -0.42 it reaches z -0.79 at the near end, a comfortable 0.23
+     *     short of it. Any closer and the two props touch.
+     */
+    position: [-0.68, 1.5, -1.15],
+    yaw: -0.42,
+    scale: 0.92,
+    framed: true,
+    isOnStage: () => sceneWeights.hero > 0.5,
+    renderOrder: 6,
+  });
+  deskWatch.init();
+  group.add(deskWatch.group);
 };
 
 /**
@@ -169,7 +207,9 @@ const tick = () => {
   music.tick();
   orchid.tick();
   hotspots3D.tick();
-  envelope?.tick(gsap.ticker.deltaRatio(60));
+  const delta = gsap.ticker.deltaRatio(60);
+  envelope?.tick(delta);
+  deskWatch?.tick(delta);
 };
 
 const destroy = () => {
@@ -177,6 +217,8 @@ const destroy = () => {
   shadow.destroy();
   envelope?.destroy();
   envelope = null;
+  deskWatch?.destroy();
+  deskWatch = null;
   //group.clear();
   //objects = null;
   desktops.destroy();

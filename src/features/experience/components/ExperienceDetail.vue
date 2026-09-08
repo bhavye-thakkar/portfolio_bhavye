@@ -210,11 +210,11 @@ onBeforeUnmount(() => {
             <dt>{{ t("location") }}</dt>
             <dd><PinIcon class="story-masthead-meta-icon" />{{ entry.location }}</dd>
           </div>
-          <div class="story-masthead-meta-item">
+          <div v-if="entry.duration" class="story-masthead-meta-item">
             <dt>{{ t("dates") }}</dt>
             <dd>{{ entry.duration }}</dd>
           </div>
-          <div class="story-masthead-meta-item">
+          <div v-if="entry.type" class="story-masthead-meta-item">
             <dt>{{ t("type") }}</dt>
             <dd>{{ entry.type }}</dd>
           </div>

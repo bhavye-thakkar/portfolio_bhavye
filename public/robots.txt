@@ -38,10 +38,10 @@ Allow: /
 User-agent: CCBot
 Allow: /
 
-# A machine-readable summary of the public portfolio.
-# /llms.txt
+# A machine-readable summary of the public portfolio, kept in step with what
+# the site shows: /llms.txt
 
-# Placeholder domain, change this in the same edit as index.html's canonical
-# and og:url, `site` in src/content/profile.ts, and the <loc> values in
-# sitemap.xml. Until it is real, nothing here can rank.
-Sitemap: https://example.com/sitemap.xml
+# The canonical origin. It is also index.html's canonical and og:url, `site`
+# in src/content/profile.ts, and the <loc> values in sitemap.xml; change all
+# of them in one edit.
+Sitemap: https://bhavyethakkar.netlify.app/sitemap.xml

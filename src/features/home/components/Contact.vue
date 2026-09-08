@@ -4,7 +4,6 @@ import { transitions } from "../../../animations";
 import { storyActive } from "../../../animations/story";
 import { t } from "../../../i18n/utils/translate";
 import Social from "../../../components/Social.vue";
-import PortfolioLinks from "../../../components/PortfolioLinks.vue";
 
 const contactElement = ref<HTMLElement | null>(null);
 
@@ -28,20 +27,18 @@ watchEffect((onInvalidate) => {
       <!-- What happens after they click. A contact section that only shows
            icons asks for a message without saying whether one comes back. -->
       <p class="contact-promise">{{ t("response-time") }}</p>
+      <!-- The icon row is the whole call to action. The list of every mirror
+           this portfolio is deployed at used to sit under it and was a link
+           dump: five hosts, no way to tell them apart, and the primary one
+           impossible to pick out. Those addresses are still the site's own,
+           they just belong in metadata and `public/llms.txt`, not in a second
+           list under an invitation to get in touch. See `content/profile.ts`. -->
       <Social variant="background" />
-      <!-- Every address this portfolio lives at, from one array in
-           `content/profile.ts`. Below the icon row because it is a footnote to
-           the invitation, not a second call to action. -->
-      <PortfolioLinks class="contact-portfolio" />
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.contact-portfolio {
-  padding-top: var(--space-md);
-}
-
 .contact {
   width: 100%;
   max-width: calc(var(--svw) * 100);
