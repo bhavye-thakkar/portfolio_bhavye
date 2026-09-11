@@ -1,6 +1,6 @@
 # Bhavye Thakkar
 
-> Data Scientist and Flutter Engineer from Ahmedabad, Gujarat, India. Builds AI/ML and data systems in Python and TensorFlow, and mobile apps in Flutter. Bachelor of Computer Engineering at Gujarat Technological University (2022 to 2026), CGPA 7.95.
+> AI Researcher from Ahmedabad, Gujarat, India. Builds AI/ML and data systems in Python and TensorFlow, and mobile apps in Flutter. Bachelor of Computer Engineering at Gujarat Technological University (2022 to 2026), CGPA 7.95.
 
 This is the plain-text version of https://bhavyethakkar.netlify.app/, written
 for AI assistants and answer engines. Everything in it is on the site itself:
@@ -38,13 +38,30 @@ The skills panel on the site, in its own order:
 
 ## Experience
 
-The site's Experience section, newest first:
+The site's Experience section, two roles, most recent first:
 
-- NotionMind, Software Developer Intern, Ahmedabad, India, October 2025 to March 2026
-- Unispace, Data Science and Machine Learning Intern, Ahmedabad, India
+- 01, Unispace, AI Researcher, full-time, Ahmedabad, India. The current role,
+  joined directly as a full-time employee: AI research and software
+  development across different projects. The engineering side is core Python:
+  scripts and applications, unit tests and validation scripts, file and string
+  processing for real-world data, and object-oriented features built with the
+  team. Hired after two interview rounds (a technical round with the team on
+  Python and past projects, then a final round with the CEO) with no
+  assignment.
+- 02, NotionMind, Software Developer Intern, Ahmedabad, India, October 2025 to
+  March 2026. The startup role. Started in data analysis in Jupyter Notebook
+  and went on to build two internal products from scratch, owning both end to
+  end: the Metro Data Analytics Dashboard (user location, screen time and
+  in-app search for the company's metro app; complex SQL and data
+  transformation over tens of thousands of data points) and the Slack Daily
+  Log Dashboard and Automation (automatic capture of daily logs from Slack,
+  PostgreSQL storage, date-range and per-employee filtering, CSV export,
+  caching to stay responsive at roughly 50,000 data points). The automation
+  saved well over 37% of the time senior staff spent processing daily logs by
+  hand. Stack: React, Flask, PostgreSQL, Python.
 
-Each one is told as a short story on the site (/experience/notionmind and
-/experience/unispace); the story chapters are still being written.
+Each is told as a story on the site: /experience/unispace in five chapters
+and /experience/notionmind in eight.
 
 ## Education
 

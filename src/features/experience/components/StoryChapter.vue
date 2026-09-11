@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { t } from "../../../i18n/utils/translate";
-import { chapterNumber, isDraft } from "../../../content/experience";
+import { chapterNumber } from "../../../content/experience";
 
 import type { StoryChapter } from "../../../content/experience";
 
@@ -16,21 +15,10 @@ const props = defineProps<{
     <p class="chapter-number" aria-hidden="true">{{ chapterNumber(props.index) }}</p>
     <div class="chapter-body">
       <h2 class="chapter-label">{{ props.chapter.label }}</h2>
-
-      <template v-if="isDraft(props.chapter)">
-        <div class="chapter-draft">
-          <p class="chapter-draft-tag">{{ t("draft") }}</p>
-          <p class="chapter-draft-prompt">{{ props.chapter.prompt }}</p>
-        </div>
-      </template>
-
-      <template v-else>
-        <p v-if="props.chapter.headline" class="chapter-headline">{{ props.chapter.headline }}</p>
-        <p v-for="(paragraph, i) in props.chapter.body" :key="i" class="chapter-paragraph">
-          {{ paragraph }}
-        </p>
-      </template>
-
+      <p class="chapter-headline">{{ props.chapter.headline }}</p>
+      <p v-for="(paragraph, i) in props.chapter.body" :key="i" class="chapter-paragraph">
+        {{ paragraph }}
+      </p>
       <p v-if="props.chapter.meta" class="chapter-meta">{{ props.chapter.meta }}</p>
     </div>
   </li>
@@ -117,31 +105,6 @@ const props = defineProps<{
     text-transform: uppercase;
     color: var(--color-text-cyan-300);
     padding-top: var(--space-xxs);
-  }
-
-  /* An unwritten chapter is a slot, not a blank. It says what belongs here so
-     the page is honest about being half-finished instead of inventing a life. */
-  &-draft {
-    border: var(--stroke-sm) dashed rgba(129, 189, 216, 0.5);
-    border-radius: var(--radius-md);
-    padding: var(--space-sm) var(--space-md);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xxs);
-    max-width: 46ch;
-
-    &-tag {
-      font-size: var(--font-size-xs);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--color-cyan-400);
-    }
-
-    &-prompt {
-      font-size: var(--font-size-md);
-      line-height: var(--line-height-copy);
-      color: var(--color-text-cyan-300);
-    }
   }
 }
 </style>

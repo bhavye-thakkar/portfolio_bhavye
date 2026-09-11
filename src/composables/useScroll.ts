@@ -4,6 +4,7 @@ import Lenis from "lenis";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import { isTransitioning } from "./useProjectTransition";
+import { story } from "../animations/story";
 
 export const lenis = ref<Lenis | null>(null);
 export const velocity = ref(0);
@@ -42,6 +43,10 @@ export const useScroll = () => {
       qa.__lenis = lenis.value;
       qa.__cv = { cvStage, cv };
       qa.__gsap = gsap;
+      // Story poses are driven by an IntersectionObserver, which never fires in
+      // a headless or inactive tab; this is the only way to reach a chapter
+      // beat without a real scroll.
+      qa.__story = story;
       qa.__ScrollTrigger = ScrollTrigger;
       // Headless/inactive tabs never fire rAF, so scrubbed timelines never
       // render. Seek, then pump the ticker by hand.

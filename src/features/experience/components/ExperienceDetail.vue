@@ -20,7 +20,7 @@ import { sizes } from "../../../utils/sizes";
  *
  * Same overlay mechanics as a project page, home goes fixed, this takes the
  * document scroll, the header swaps in its back button, but where a project
- * shows a gallery, this shows the six beats of how the job happened.
+ * shows a gallery, this shows the chapters of what the job actually was.
  *
  * The 3D stage is not a screenshot behind glass: Home teleports the live canvas
  * into this page's stage element, so the avatar you scrolled past is the same
@@ -111,6 +111,14 @@ watch(
       // page. `experienceId` is now null for a slug with no entry, so this
       // only runs for a real one and the 404 gets to render.
       activeChapter.value = 0;
+      // The pose for THIS entry's first chapter. Both calls below used to pass
+      // "discovery" as a literal, which was right only while every story
+      // happened to open on it. Unispace opens on `interview`, so it arrived
+      // framed for a chapter it does not have, and the observer never fixed
+      // it: chapter 0 is already `activeChapter`, so it is skipped. Read off
+      // `id`, not `entry`, so it does not depend on which of the two route
+      // refs updates first.
+      const opening = experienceBySlug(id)?.story[0]?.key ?? "discovery";
       wasLandscape = sizes.isLandscape;
       sizes.off("resize", handleResize);
       sizes.on("resize", handleResize);
@@ -120,7 +128,7 @@ watch(
       // pose, the scroll and the observer are reset by hand and the scroll to
       // go back to stays whatever the first entry recorded.
       if (story.getIsActive()) {
-        story.goTo("discovery");
+        story.goTo(opening);
         lenis.value?.scrollTo(0, { immediate: true, force: true });
         await nextTick();
         setupObserver();
@@ -130,7 +138,7 @@ watch(
       // window.scrollY, not lenis.scroll: Lenis drives the real window scroll,
       // and its own smoothed value is not settled at the moment of the click.
       returnScroll = window.scrollY;
-      story.enter("discovery");
+      story.enter(opening);
       return;
     }
 
@@ -199,8 +207,8 @@ onBeforeUnmount(() => {
         <p class="story-masthead-eyebrow">
           {{ chapterNumber(entryIndex) }}, {{ entry.chapter }}
         </p>
-        <p v-if="entry.placeholder || entry.sampleStory" class="story-masthead-slot">
-          {{ entry.placeholder ? t("to-be-added") : t("sample-content") }}
+        <p v-if="entry.placeholder" class="story-masthead-slot">
+          {{ t("to-be-added") }}
         </p>
         <h1 class="story-masthead-company">{{ entry.company }}</h1>
         <p class="story-masthead-role">{{ entry.role }}</p>
@@ -224,7 +232,7 @@ onBeforeUnmount(() => {
       </header>
 
       <div class="story-body">
-        <nav class="story-rail" :aria-label="t('how-i-got-there')">
+        <nav class="story-rail" :aria-label="t('chapters')">
           <ol>
             <li v-for="(chapter, index) in entry.story" :key="chapter.key">
               <button
@@ -243,7 +251,7 @@ onBeforeUnmount(() => {
         </nav>
 
         <div class="story-column">
-          <p class="story-column-title">{{ t("how-i-got-there") }}</p>
+          <p class="story-column-title">{{ t("chapters") }}</p>
           <ol class="story-chapters">
             <StoryChapterItem
               v-for="(chapter, index) in entry.story"

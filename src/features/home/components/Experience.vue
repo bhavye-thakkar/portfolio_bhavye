@@ -168,8 +168,8 @@ watchEffect((onInvalidate) => {
         <div class="experience-chapter-body">
           <p class="experience-chapter-title">
             {{ entry.chapter }}
-            <span v-if="entry.placeholder || entry.sampleStory" class="experience-chapter-slot">
-              {{ entry.placeholder ? t("to-be-added") : t("sample-content") }}
+            <span v-if="entry.placeholder" class="experience-chapter-slot">
+              {{ t("to-be-added") }}
             </span>
           </p>
           <h3 class="experience-chapter-company">

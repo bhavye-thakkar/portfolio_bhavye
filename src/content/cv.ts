@@ -17,19 +17,41 @@
  *     how the document reads; silently correcting them here would mean the page
  *     and the download no longer say the same thing.
  *
- *     ⚠ ONE DELIBERATE EXCEPTION, on the owner's instruction (2026-09-03): the
- *     CGPA below reads 7.95, the PDF still says 7.50. It is the one number
- *     that goes stale on its own, and the current one is the true one. Re-export
- *     the PDF and this exception goes away, until then do not "correct" it back.
+ *     ⚠ TWO DELIBERATE EXCEPTIONS, both on the owner's instruction, both of
+ *     them facts the PDF has simply gone stale on. Re-export the PDF and both
+ *     go away; until then do NOT "correct" either back to what the file says.
+ *
+ *       · 2026-09-03, the CGPA below reads 7.95, the PDF still says 7.50.
+ *       · 2026-09-10, the Unispace entry reads "AI Researcher", the PDF still
+ *         says "Data Science and Machine Learning Intern". He was never an
+ *         intern there (owner, 2026-09-11): he joined directly as a full-time
+ *         employee, so the PDF's title is wrong, not merely old. Its four
+ *         bullets (unit tests, file and string handling, core-Python
+ *         features) are the PDF's own and he has not disowned them; the
+ *         Unispace story in `experience.ts` uses them for the engineering side
+ *         of the role. Do not write researcher-sounding bullets here to make
+ *         the entry match its new title.
  *
  * ── WHY THIS IS NOT `profile.ts` ──────────────────────────────────────────
  *
- * `profile.ts` is what the source portfolio publishes, and the CV disagrees
- * with it in two places on purpose: the CV leads with "AI/ML Engineer" where
- * the site leads with "Data Scientist and Flutter Engineer", and it names a
- * second internship the site does not list. Both are the owner's own claims in
- * their own documents, so neither is corrected against the other, the CV panel
- * reads this file and the rest of the site goes on reading `profile.ts`.
+ * `profile.ts` is what the source portfolio publishes, and this file disagrees
+ * with the rest of the site on purpose, in three places now:
+ *
+ *   · The CV masthead leads with "AI/ML Engineer"; the site leads with
+ *     "AI Researcher" (`profile.role`).
+ *   · The Notionmind bullets here are SVM/k-NN from scratch and an S&P500
+ *     pipeline. `content/experience.ts` tells that same job as data analysis
+ *     turning into two React/Flask/PostgreSQL products. Both are the owner's
+ *     own account of his own job in his own document.
+ *   · The Unispace title here is corrected against the PDF. See the exception
+ *     note above.
+ *
+ * None of these is corrected against the others. The CV panel reads this file,
+ * the rest of the site goes on reading `profile.ts` and `experience.ts`.
+ *
+ * (The old note here claimed the CV names an internship the site does not
+ * list. That stopped being true when Unispace became a real entry in
+ * `experience.ts`; the site lists both.)
  */
 
 export interface CvEntry {
@@ -79,7 +101,9 @@ export const cvSections: CvSection[] = [
         ],
       },
       {
-        title: "Data Science and Machine Learning Intern",
+        // ⚠ Exception, see the header: the PDF still says "Data Science and
+        //   Machine Learning Intern" here.
+        title: "AI Researcher",
         subtitle: "Unispace | Ahmedabad",
         bullets: [
           "Write unit tests and validation scripts to ensure the correctness and reliability of code.",

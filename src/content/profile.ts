@@ -49,7 +49,7 @@ export const profile = {
   firstName: "Bhavye",
   fullName: "Bhavye Thakkar",
   /** The role line the site leads with. */
-  role: "Data Scientist and Flutter Engineer",
+  role: "AI Researcher",
   /** `addressCountry` in the Person schema. Nothing narrower is published here. */
   country: "India",
   /** The About copy. Kept as one string; the HUD's shorter lines live in the i18n bundle. */

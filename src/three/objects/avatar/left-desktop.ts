@@ -13,6 +13,12 @@ const isActive = { value: false };
 
 const INTERVAL_DURATION = 7;
 
+/**
+ * Hero room, visible tab, nobody else driving the rig. Checked both to start a
+ * glance and, every frame, to keep one running, see the timeline below.
+ */
+const onScreen = () => sceneWeights.hero > 0.95 && sizes.visible && !stageHold.value;
+
 const init = () => {
   startInterval();
   sizes.on("show", handleWindowVisible);
@@ -51,19 +57,38 @@ const startInterval = () => {
     // stage. Experience's gaze is deterministic now, per-beat, in
     // avatar/index.ts, and the story page plays this clip itself on the
     // chapters where the glance IS the beat.
-    const onStage = sceneWeights.hero > 0.95;
     // ...but NOT while a detail page owns the stage. The story page fires this
     // same clip deliberately, on the chapters where looking at the other screen
     // is the beat; a random one landing on top of it makes the avatar look
     // twitchy and makes the chapter motion non-deterministic.
-    if (!onStage || !sizes.visible || stageHold.value) return;
+    if (!onScreen()) return;
+
+    // ── THE GUARD ABOVE IS A START CONDITION, NOT A RUNNING ONE ───────────
+    //
+    // It was the only check, and the clip runs for several real seconds after
+    // it passes. Scroll fast out of the hero inside that window and the glance
+    // kept playing through the handover: he arrived at the Experience desk
+    // latched ~70° left, with the per-beat gaze in avatar/index.ts stacking its
+    // own yaw on top of an already-turned head, and the keyboard sound firing
+    // in a room that was no longer on screen. Slow scrolling hid it, the clip
+    // had time to finish. So the stage leaving ends the beat, mid-clip.
+    const stop = () => {
+      avatarAnimations.play("desktop-idle", 0.3);
+      isActive.value = false;
+      if (currentId) {
+        sprites.room.howl.stop(currentId);
+        currentId = undefined;
+      }
+    };
 
     const tl = gsap.timeline({
       duration: clip.duration + 0.2,
-      onComplete: () => {
-        avatarAnimations.play("desktop-idle", 0.3);
-        isActive.value = false;
+      onUpdate: () => {
+        if (onScreen()) return;
+        tl.kill();
+        stop();
       },
+      onComplete: stop,
     });
 
     isActive.value = true;

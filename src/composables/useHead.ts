@@ -135,7 +135,10 @@ const forExperience = (slug: string): Meta | null => {
   const place = entry.location ? `, ${entry.location}` : "";
   const description = entry.placeholder
     ? `A chapter of ${SUFFIX}'s career journal that has not been filled in yet.`
-    : `${entry.role} at ${entry.company}${place}${entry.duration ? `, ${entry.duration}` : ""}. How the role came about, in six chapters.`;
+    : // The card's own summary sentence, the one line this entry already has
+      // for "what was this job", rather than a generic one about chapter
+      // counts that every entry shared word for word.
+      `${entry.role} at ${entry.company}${place}${entry.duration ? `, ${entry.duration}` : ""}. ${entry.statement || `How the role came about and what it turned into, in ${entry.story.length} chapters.`}`;
 
   return {
     title: `${entry.company}, Experience | ${SUFFIX}`,

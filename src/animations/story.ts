@@ -42,8 +42,8 @@ type Pose = {
   /**
    * ── THE AVATAR'S OWN BEAT FOR THIS CHAPTER ──────────────────────────────
    *
-   * The camera used to do all of the storytelling and he sat through six
-   * chapters in one idle loop, which read as a photograph the camera was
+   * The camera used to do all of the storytelling and he sat through every
+   * chapter in one idle loop, which read as a photograph the camera was
    * circling. These three fields are what make him a participant instead -
    * and they are deliberately small, because the rig has no walk that works
    * seated and no gesture library. What it does have is a root yaw, one
@@ -75,7 +75,7 @@ type Pose = {
 };
 
 /**
- * ── HE STAYS SEATED, ALL SIX CHAPTERS. ───────────────────────────────────
+ * ── HE STAYS SEATED, EVERY CHAPTER. ───────────────────────────────────
  *
  * Three of these poses used to stand him up. His root is the chair, and the
  * desk is measured off his *seated* pose, so standing put his hips through the
@@ -106,7 +106,7 @@ type Pose = {
 const LANDSCAPE: Record<StoryChapterKey, Pose> = {
   // Wide from his front-left: the bay is a place across the room. Clears the
   // right monitor at x −2.86. He is reading about the place on the other
-  // screen, the strongest beat of the six, and the one that establishes that
+  // screen, the strongest beat in the set, and the one that establishes that
   // he moves at all.
   discovery: { position: [-7.6, 3.2, 9.9], focus: [0, 2.3, 6.5], blend: 0, turn: 0.2, clip: "left-desktop" },
   // Over the right shoulder, the applying-at-a-laptop beat. Behind him, so
@@ -125,9 +125,45 @@ const LANDSCAPE: Record<StoryChapterKey, Pose> = {
   // face. The pose was never the problem, see `avatar.storyTurn`.
   hired: { position: [-7.0, 2.5, 9.6], focus: [0, 2.35, 6.4], blend: 0, turn: -0.3, face: "proud-0" },
   // Over the other shoulder, second scenario on the monitors: the work itself.
-  // The second and last chapter to get a clip, five chapters away from the
-  // first one, so it reads as a beat rather than a loop.
+  // The second and last chapter to get a clip, three chapters after the
+  // first, so it reads as a beat rather than a loop.
   experience: { position: [3.6, 4.2, 2.4], focus: [-0.6, 2.3, 7.0], blend: 1, turn: 0.26, clip: "left-desktop" },
+  // ── THE TWO PROJECT CHAPTERS ────────────────────────────────────────────
+  // Both sit behind the monitor plane (z < 7.78), where nothing can be in the
+  // way, because these two chapters are about what was ON the screens. They
+  // are told apart by geometry rather than by bearing: one is down at the desk
+  // over his right shoulder, the other is up behind his head looking over it.
+  // Mirroring `experience` for the second one was the obvious move and the
+  // wrong one, two over-the-left-shoulder shots two chapters apart read as the
+  // same shot with a jog in it.
+  //
+  // Both were a third closer on the first pass and both were wrong for the same
+  // reason: an over-the-shoulder pose puts him BETWEEN the camera and the focus
+  // plane, so backing off shrinks him faster than it shrinks the desk. At 5.0
+  // units he was a shapeless dark mass across the right half of the copy column;
+  // at 6.8 he is a shoulder and the workstation is the subject. Any further
+  // tuning here should also move along the pose's own axis, that is what keeps
+  // the sight lines above cleared.
+  projectOne: { position: [-5.3, 3.1, 1.9], focus: [0.35, 2.3, 7.15], blend: 1, turn: -0.1 },
+  // Raised and SQUARE behind him, the only centred shot in the set: the desk
+  // and both monitors under the top of his head, the one frame that shows the
+  // whole workstation as a single thing. The second product is the one that
+  // tied the desk together, so it gets it.
+  //
+  // ── ≈17° DOWN, NOT THE 30° IT STARTED AT ───────────────────────────────
+  //
+  // The first version sat at y 6.4 / z 0.2 and looked down at ≈30°. It framed
+  // the desk well but it hovered ABOVE him rather than sitting behind him, and
+  // at that angle the monitors are raked far enough that their text stops
+  // reading, which is the whole point of a chapter about what was on them.
+  // Flattened to ≈17°, which also happens to be where every other pose in this
+  // table already sits (none exceeds 16°), so the set holds one family of
+  // elevations instead of one outlier. Checked in both orientations.
+  projectTwo: { position: [0.4, 4.6, 0.0], focus: [0, 2.4, 7.2], blend: 1, turn: 0.14 },
+  // Low, close, near his own eyeline and turned a little towards it. The
+  // retrospective beat, and the only pose in the set that looks slightly UP at
+  // him. Clears the near monitor at x 3.44.
+  lessons: { position: [6.4, 2.2, 9.0], focus: [0.1, 2.35, 6.4], blend: 1, turn: -0.16 },
   // Back and high, the chapter closes, he settles square to the desk and the
   // room gets its scale back. Clears at x 2.83.
   learned: { position: [8.6, 4.6, 10.6], focus: [0, 2.3, 6.4], blend: 1, turn: 0 },
@@ -305,7 +341,7 @@ let beatClip: string | null = null;
  *
  * `duration` is the camera's; the turn takes slightly less so the body has
  * settled by the time the frame does. Nothing here touches his position, he
- * stays in the chair for all six chapters, and moving the root is what made
+ * stays in the chair for every chapter, and moving the root is what made
  * earlier attempts slide him through the desk.
  */
 const applyBeat = (pose: Pose, duration: number) => {
