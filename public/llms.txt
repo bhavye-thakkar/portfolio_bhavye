@@ -40,16 +40,16 @@ The skills panel on the site, in its own order:
 
 The site's Experience section, two roles, most recent first:
 
-- 01, Unispace, AI Researcher, full-time, Ahmedabad, India. The current role,
-  joined directly as a full-time employee: AI research and software
-  development across different projects. The engineering side is core Python:
-  scripts and applications, unit tests and validation scripts, file and string
-  processing for real-world data, and object-oriented features built with the
-  team. Hired after two interview rounds (a technical round with the team on
-  Python and past projects, then a final round with the CEO) with no
-  assignment.
+- 01, Unispace, AI Researcher, full-time, Ahmedabad, India. The current role
+  and the startup experience, joined directly as a full-time employee: AI
+  research and software development across different projects. The
+  engineering side is core Python: scripts and applications, unit tests and
+  validation scripts, file and string processing for real-world data, and
+  object-oriented features built with the team. Hired after two interview
+  rounds (a technical round with the team on Python and past projects, then a
+  final round with the CEO) with no assignment.
 - 02, NotionMind, Software Developer Intern, Ahmedabad, India, October 2025 to
-  March 2026. The startup role. Started in data analysis in Jupyter Notebook
+  March 2026. The internship. Started in data analysis in Jupyter Notebook
   and went on to build two internal products from scratch, owning both end to
   end: the Metro Data Analytics Dashboard (user location, screen time and
   in-app search for the company's metro app; complex SQL and data

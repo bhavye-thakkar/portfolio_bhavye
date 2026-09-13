@@ -23,7 +23,7 @@ import ProjectBackground from "./features/projects/components/ProjectBackground.
 import { useClickSound } from "./features/sounds/composables/useClickSounds";
 //import { useHoverSound } from "./features/sounds/composables/useHoverSounds";
 
-import { experienceClosing } from "./composables/useProjectTransition";
+import { experienceClosing, projectClosing } from "./composables/useProjectTransition";
 
 const { isTransitioning } = useProjectTransition();
 
@@ -141,6 +141,7 @@ const { isTouch } = useAgent();
     :class="{
       'project-wrapper-visible': projectVisible,
       'project-wrapper-transitioning': isTransitioning,
+      'project-wrapper-closing': projectClosing,
     }"
   >
     <div class="project-content">
@@ -313,10 +314,27 @@ const { isTouch } = useAgent();
   visibility: hidden;
   pointer-events: none; /* avoid interaction before fully opened */
 
+  /* `relative`, not `static`, for the reason spelled out on the story wrapper:
+     a static element ignores z-index, so the page sat UNDER the fixed sheet it
+     grows out of (ProjectBackground, z 47) and stayed invisible until the sheet
+     hid, then popped in. Relative keeps the document scroll and paints the page
+     above the sheet while the sheet finishes opening. */
   &-visible {
     visibility: visible;
     pointer-events: auto;
-    position: static;
+    position: relative;
+  }
+
+  /* Leaving: back to `fixed` so home can take the document scroll again, held
+     at the offset the page was read to (Project.vue records it), so it
+     recedes from where the visitor was instead of snapping to its top. Same
+     idiom as the Experience story's closing fade. */
+  &-closing {
+    visibility: visible;
+
+    .project-content {
+      transform: translateY(calc(var(--project-exit-scroll, 0px) * -1));
+    }
   }
 }
 

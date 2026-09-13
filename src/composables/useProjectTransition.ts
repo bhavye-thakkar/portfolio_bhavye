@@ -1,7 +1,14 @@
 import { ref, watch } from "vue";
-import { experienceId, overlayId } from "./useRouteObserver";
+import { experienceId, overlayId, projectId } from "./useRouteObserver";
 
 export const ROUTE_TRANSITION_DURATION = 500;
+/**
+ * A project page mounts sooner than a story page. Its sheet grows out of the
+ * clicked card on an expo curve and is ~95% open by 380ms, and at 500ms the
+ * visitor was left looking at an empty sheet for a beat before the page began
+ * to fade in. The story overlay keeps 500: its own fade is timed to it.
+ */
+export const PROJECT_TRANSITION_DURATION = 380;
 export const isTransitioning = ref(false);
 
 /**
@@ -12,6 +19,14 @@ export const isTransitioning = ref(false);
  */
 export const experienceClosing = ref(false);
 
+/**
+ * The same for a project page. Its content used to be unmounted the instant
+ * the route changed, so leaving a project cut the page out in a single frame
+ * and the home page appeared behind a flat grey wash. It now stays mounted and
+ * recedes while the sheet folds back into its card (ProjectBackground.vue).
+ */
+export const projectClosing = ref(false);
+
 let timeout: ReturnType<typeof setTimeout> | null = null;
 
 export const useProjectTransition = () => {
@@ -21,6 +36,10 @@ export const useProjectTransition = () => {
   // fading. The id's own before/after is right either way.
   watch(experienceId, (newId, oldId) => {
     if (oldId !== null && newId === null) experienceClosing.value = true;
+  });
+
+  watch(projectId, (newId, oldId) => {
+    if (oldId !== null && newId === null) projectClosing.value = true;
   });
 
   watch(overlayId, (newId, oldId, onInvalidate) => {
@@ -38,11 +57,19 @@ export const useProjectTransition = () => {
 
     isTransitioning.value = true;
 
-    timeout = setTimeout(() => {
-      isTransitioning.value = false;
-      experienceClosing.value = false;
-      timeout = null;
-    }, ROUTE_TRANSITION_DURATION);
+    // The projectId watcher above has already run for this change, so
+    // `projectClosing` is set by now on the way out of a project.
+    const isProject = projectId.value !== null || projectClosing.value;
+
+    timeout = setTimeout(
+      () => {
+        isTransitioning.value = false;
+        experienceClosing.value = false;
+        projectClosing.value = false;
+        timeout = null;
+      },
+      isProject ? PROJECT_TRANSITION_DURATION : ROUTE_TRANSITION_DURATION,
+    );
 
     onInvalidate(() => {
       if (timeout) clearTimeout(timeout);

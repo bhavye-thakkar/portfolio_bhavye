@@ -14,12 +14,12 @@
  *
  * ── THE ORDER IS MOST RECENT FIRST ────────────────────────────────────────
  *
- * 01 Unispace (most recent), then 02 NotionMind (the startup one). The owner
- * chose this on 2026-09-10: a visitor reads the top card first, and the top
- * card should be where he is now, not where he began. The section still reads
- * as one journey, it just tells it in reverse, so `chapter` carries the
- * placement in words ("Most recent experience" / "Startup experience") rather
- * than leaving the number to imply a chronology it does not have.
+ * 01 Unispace (most recent), then 02 NotionMind. The owner chose this on
+ * 2026-09-10: a visitor reads the top card first, and the top card should be
+ * where the owner is now, not where the career began. `chapter` names the kind
+ * of experience in words: Unispace is the "Startup experience" and NotionMind
+ * the "Internship experience" (owner, 2026-09-13, who moved "Startup" from
+ * NotionMind to Unispace).
  *
  * TWO COMPANIES, AND ONLY TWO. There is no reserved third slot: an empty
  * chapter that exists to lengthen the scroll is scroll for its own sake.
@@ -130,7 +130,7 @@ export const experiences: ExperienceEntry[] = [
    */
   {
     slug: "unispace",
-    chapter: "Most recent experience",
+    chapter: "Startup experience",
     company: "Unispace",
     role: "AI Researcher",
     type: "Full-time",
@@ -193,7 +193,7 @@ export const experiences: ExperienceEntry[] = [
   },
   {
     slug: "notionmind",
-    chapter: "Startup experience",
+    chapter: "Internship experience",
     company: "NotionMind",
     role: "Software Developer Intern",
     type: "Internship",

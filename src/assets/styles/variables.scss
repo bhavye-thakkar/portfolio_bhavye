@@ -21,6 +21,10 @@
   --ease-smooth: cubic-bezier(0.6, 0, 0.25, 1);
   --ease-power2-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-power2-in: cubic-bezier(0.165, 0.84, 0.44, 1);
+  /* Exponential ease-outs for things that answer the pointer: most of the move
+     happens in the first 100ms, so they feel instant and still settle softly. */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   --transition-route-duration: 0.5s;
   --transition-route-ease: cubic-bezier(0.6, 0, 0.25, 1);

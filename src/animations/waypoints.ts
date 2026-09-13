@@ -1,5 +1,6 @@
 import gsap from "gsap";
 import { sizes } from "../utils/sizes";
+import { smoothstep } from "../utils/math";
 import { sceneWeights, stageHold } from "./scenes";
 import { points } from "./waypoints-data";
 import { Vector3 } from "three";
@@ -70,7 +71,22 @@ function updateReferences() {
 
   positions = active.map(([key]) => resolvedPoints[key as keyof typeof resolvedPoints]!.position);
   focuses = active.map(([key]) => resolvedPoints[key as keyof typeof resolvedPoints]!.focus);
-  weights = active.map(([, w]) => w);
+  /**
+   * ── EASED FOR THE CAMERA ONLY ───────────────────────────────────────────
+   *
+   * Most scene weights ramp linearly with scroll, which is right for the fades
+   * and thresholds that also read them, and wrong for a camera: a linear blend
+   * travels at constant speed and stops dead where the ramp ends. Measured on
+   * the whole page (1440×900, 12px steps): hero → About ran at a flat 0.38
+   * units per 100px of scroll and fell to 0 in a single step, and About →
+   * Experience accelerated to 1.57 and then dropped to 0.16 at the hand-over.
+   *
+   * Smoothstep has zero slope at both ends, so every move now eases out of one
+   * framing and into the next, whichever ramp drives it. Only the camera sees
+   * the eased value; `sceneWeights` itself is untouched. The Experience swings
+   * are linear ramps for the same reason, easing them twice whipped the middle.
+   */
+  weights = active.map(([, w]) => smoothstep(w));
 }
 
 const tick = () => {

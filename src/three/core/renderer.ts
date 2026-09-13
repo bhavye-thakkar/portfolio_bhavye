@@ -14,6 +14,21 @@ let canvas: HTMLCanvasElement | null = null;
 let visible = true;
 let isActive = false;
 
+/**
+ * ── NO FRAMES FOR A CANVAS NOBODY CAN SEE ──────────────────────────────────
+ *
+ * Between the Experience ride-out and the Contact section the canvas is parked
+ * below the Projects grid, entirely off-screen, and it used to render the full
+ * scene every frame anyway. That is the whole GPU budget spent while the
+ * visitor reads a DOM section, and it is also what the project page transition
+ * competed with: the card grid is exactly where that click happens.
+ *
+ * The margin wakes the renderer a quarter of a screen before the canvas
+ * scrolls in, so it never shows a stale frame on the way back into view.
+ */
+let onScreen = true;
+let onScreenObserver: IntersectionObserver | null = null;
+
 const emptyVector = new Vector3();
 
 const init = (_canvas: HTMLCanvasElement | null) => {
@@ -24,6 +39,21 @@ const init = (_canvas: HTMLCanvasElement | null) => {
     antialias: true,
     alpha: false,
   });
+  // Error checking reads each program's link status and info logs right after
+  // linking, which blocks the main thread until the driver has finished, the
+  // opposite of what compileAsync is for. Profiled at 84ms of getShaderInfoLog
+  // on the way back from a project page. Kept in dev, where the logs are wanted.
+  instance.debug.checkShaderErrors = import.meta.env.DEV;
+
+  if (canvas && "IntersectionObserver" in window) {
+    onScreenObserver = new IntersectionObserver(
+      (entries) => {
+        onScreen = entries[entries.length - 1]?.isIntersecting ?? true;
+      },
+      { rootMargin: "25% 0px" },
+    );
+    onScreenObserver.observe(canvas);
+  }
 
   gsap.ticker.add(tick);
   threeSizes.on("resize", resize);
@@ -49,7 +79,7 @@ const tick = () => {
     visible = shouldBeVisible;
   }
 
-  if (!instance || !shouldBeVisible) return;
+  if (!instance || !shouldBeVisible || !onScreen) return;
 
   // The Experience scene keeps the same grid-floor backdrop, so it needs the
   // render target refreshed too, its camera moves through three beats.
@@ -115,6 +145,9 @@ const destroy = () => {
   if (!instance) return;
   instance.dispose();
   gsap.ticker.remove(tick);
+  onScreenObserver?.disconnect();
+  onScreenObserver = null;
+  onScreen = true;
   instance = null;
   visible = true;
 };

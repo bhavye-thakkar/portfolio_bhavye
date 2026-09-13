@@ -133,10 +133,32 @@ watch(
   },
   { immediate: true },
 );
+
+/**
+ * The route transitions scale this wrapper, and its default origin is its own
+ * centre, which on a ~19,000px page is nowhere near the screen: at the Projects
+ * grid a 3% scale around y≈9,700 is a 240px vertical shove, so the grid slid
+ * upwards under the opening sheet and the card was not where the closing
+ * sheet folded back to. Pin the origin to the middle of the viewport instead.
+ *
+ * In a frame callback, not straight away: on the way out the overlay restores
+ * the home scroll offset in its own post-flush watcher, and the origin has to
+ * be measured after that, yet before the first animated frame is painted.
+ */
+const wrapperRef = ref<HTMLElement | null>(null);
+watch(isTransitioning, (active) => {
+  if (!active) return;
+  requestAnimationFrame(() => {
+    if (wrapperRef.value) {
+      wrapperRef.value.style.transformOrigin = `50% ${Math.round(window.scrollY + window.innerHeight / 2)}px`;
+    }
+  });
+});
 </script>
 
 <template>
   <div
+    ref="wrapperRef"
     :class="[
       'home-wrapper',
       objectVisible && 'home-wrapper-inspecting',
@@ -180,7 +202,10 @@ watch(
           class="experience-spacer"
           ref="experienceSpacerRef"
           id="experience"
-          :style="{ '--span': sectionHeightVh(experiences.length) }"
+          :style="{
+            '--span': sectionHeightVh(experiences.length),
+            '--span-landscape': sectionHeightVh(experiences.length, true),
+          }"
         ></div>
       </div>
       <Projects id="projects" @loaded="handleProjectsLoaded" />
@@ -248,12 +273,16 @@ watch(
       transition: opacity var(--transition-route-duration) var(--transition-route-ease);
     }
 
+    /* Ease-OUT, not the route's slow-start curve: the page steps back on the
+       frames right after the click, which is what makes the click feel
+       answered. 0.97 rather than 0.95, the sheet opening over it carries the
+       move; the page only has to give way. */
     &-out {
-      animation: home-wrapper-out var(--transition-route-duration) var(--transition-route-ease);
+      animation: home-wrapper-out var(--transition-route-duration) var(--ease-out-quint) both;
     }
 
     &-in {
-      animation: home-wrapper-in var(--transition-route-duration) var(--transition-route-ease);
+      animation: home-wrapper-in 0.7s var(--ease-out-quint);
     }
 
     @keyframes home-wrapper-out {
@@ -261,16 +290,23 @@ watch(
         transform: scale(1);
       }
       100% {
-        transform: scale(0.95);
+        transform: scale(0.97);
       }
     }
 
     @keyframes home-wrapper-in {
       0% {
-        transform: scale(0.95);
+        transform: scale(0.97);
       }
       100% {
         transform: scale(1);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      &-out,
+      &-in {
+        animation: none;
       }
     }
   }
@@ -293,6 +329,14 @@ watch(
 .experience-spacer {
   max-height: calc(var(--lvh) * var(--span));
   min-height: calc(var(--lvh) * var(--span));
+
+  /* The timeline's own query (utils/matchMedia), not the orientation mixin:
+     the two disagree at exactly square, and one frame of disagreement is a
+     close whose fractions do not fit its spacer. */
+  @media (min-aspect-ratio: 1) {
+    max-height: calc(var(--lvh) * var(--span-landscape));
+    min-height: calc(var(--lvh) * var(--span-landscape));
+  }
 }
 
 .intro-wrapper {

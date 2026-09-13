@@ -14,13 +14,22 @@ export const points = {
       position: { x: 0, y: 4.5, z: 15.5 },
       focus: { x: 0, y: 2.2, z: 6 },
     },
+    /**
+     * about-1 pushed 5% along its own sight line: (position → focus) × 0.05.
+     * The two used to be identical, so the whole About section, ~2,200px of
+     * scroll, moved panels and nothing else, and the world sat still under the
+     * wheel. The scenes timeline blends 1 → 2 across the section, so this is a
+     * slow push-in the visitor drives. Along the sight line so nothing reframes
+     * and the HUD panels, which are projected from world points, only drift a
+     * few pixels outward with him.
+     */
     "about-2": {
       //position: { x: 0, y: 4.7, z: 14.5 },
       //position: { x: 0, y: 3, z: 15.5 },
       //focus: { x: 0, y: 2.5, z: 6 },
       //focus: { x: 0, y: 1.2, z: 6 },
 
-      position: { x: 0, y: 4.5, z: 15.5 },
+      position: { x: 0, y: 4.385, z: 15.025 },
       focus: { x: 0, y: 2.2, z: 6 },
     },
     /**
@@ -110,10 +119,11 @@ export const points = {
       position: { x: 0, y: 4.75, z: 19.5 },
       focus: { x: 0, y: 0.8, z: 6 },
     },
+    // Same push as landscape, 4%: portrait already frames him closer.
     "about-2": {
       //position: { x: 0, y: 5.5, z: 20 },
       //focus: { x: 0, y: 1.8, z: 6 },
-      position: { x: 0, y: 4.75, z: 19.5 },
+      position: { x: 0, y: 4.592, z: 18.96 },
       focus: { x: 0, y: 0.8, z: 6 },
     },
     /**

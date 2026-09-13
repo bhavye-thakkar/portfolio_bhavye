@@ -171,8 +171,10 @@ const setupScenesAnimation = (about: HTMLElement) => {
     const { waypointsRotation } = avatar;
     tl.to(waypointsRotation, { x: 0, y: -Math.PI, z: 0, duration: duration, ease: "power1.inOut" }, delay);
 
-    tl.to(sceneWeightsInOut["about-2"], { in: 1, duration: duration, ease: "power1.inOut" }, delay);
-    tl.to(sceneWeightsInOut["about-1"], { out: 1, duration: duration, ease: "power1.inOut" }, delay);
+    // Linear: the camera smoothsteps every waypoint weight itself (waypoints.ts),
+    // an eased ramp here would ease the push twice.
+    tl.to(sceneWeightsInOut["about-2"], { in: 1, duration: duration, ease: "none" }, delay);
+    tl.to(sceneWeightsInOut["about-1"], { out: 1, duration: duration, ease: "none" }, delay);
   });
 };
 

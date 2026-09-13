@@ -53,7 +53,8 @@ import type { SceneKey } from "../types";
  *   spacer -100vh .. 0     in      (overlaps About's out exactly)
  *   spacer    0   .. -100  beats   opening, chapters, settle, x-ray, close
  *                                                                    [pinned]
- *   spacer -100   .. end   out     the stage rides out; nothing animates
+ *   spacer -100   .. end   out     the stage rides out, the hologram scans
+ *                                  away as it goes (see setupOut)
  *
  * Everything below is written for N companies. `content/experience.ts` is the
  * only place another one has to be added, the spacer height, the scroll
@@ -98,6 +99,14 @@ export const SECTION_VH = {
   chapter: 280,
   settle: 110,
   /**
+   * The crane back to the establishing shot after the last card was the
+   * fastest camera move on the page at 1366×768: 7.9 world units in 68vh,
+   * peaking at 2.26 units per 100px against 1.69–1.91 for every other swing.
+   * On a laptop the swing gets 115vh of a 160vh settle (`settleSwing`); the
+   * hold after it keeps the ~45vh it had.
+   */
+  settleLandscape: 160,
+  /**
    * ── THE X-RAY ────────────────────────────────────────────────────────────
    *
    * A phase of its own, and the second longest in the section.
@@ -115,17 +124,42 @@ export const SECTION_VH = {
    * something in it, no empty scroll.
    */
   xray: 280,
+  /**
+   * ── THE CLOSE IS TWICE AS LONG ON A LAPTOP ────────────────────────────────
+   *
+   * At 110vh a laptop ran the whole hand-over to Projects, the readout
+   * leaving, him standing up, the office coming apart and the stage riding
+   * out, in about a second and a half of ordinary wheel: 845px of close at
+   * 1366×768 against 2150px for the X-ray before it. A wheel notch is a fixed
+   * number of pixels, so a short viewport gets through the same vh in fewer
+   * notches, and the section that takes its time everywhere else ended in a
+   * rush. Landscape gets 220vh (see the close in `setupBeats`); portrait keeps
+   * 110vh, a thumb flick covers a tall phone screen at a very different rate.
+   */
   close: 110,
+  closeLandscape: 220,
   exit: 100,
 } as const;
 
-/** Total spacer height for N companies, in vh. */
-export const sectionHeightVh = (count: number) =>
+/**
+ * The phases that run longer on a laptop. `isLandscape` is the one from
+ * utils/matchMedia, which is what sizes the timeline.
+ */
+const orientedVh = (isLandscape: boolean) =>
+  isLandscape
+    ? { settle: SECTION_VH.settleLandscape, close: SECTION_VH.closeLandscape }
+    : { settle: SECTION_VH.settle, close: SECTION_VH.close };
+
+/**
+ * Total spacer height for N companies, in vh. Home.vue binds both orientations
+ * and picks one with the same `(min-aspect-ratio: 1)` query the timeline uses.
+ */
+export const sectionHeightVh = (count: number, isLandscape = false) =>
   SECTION_VH.opening +
   SECTION_VH.chapter * Math.max(count, 1) +
-  SECTION_VH.settle +
+  orientedVh(isLandscape).settle +
   SECTION_VH.xray +
-  SECTION_VH.close +
+  orientedVh(isLandscape).close +
   SECTION_VH.exit;
 
 /**
@@ -194,6 +228,16 @@ const setup = (options: ExperienceOptions) => {
  * runs the same rule backwards: he stands back up while the desk is still
  * solid, and the office only comes apart after he is clear of it.
  */
+/**
+ * 190vh, not the 100vh of "top top": the pod-to-office hand-over - shrink,
+ * assemble, sit, scan, was the single most compressed moment on the page, a
+ * whole set change inside one wheel-page. The window now runs ~90vh INTO the
+ * pinned opening, so the assembly finishes full-frame under a held camera. The
+ * stage is pinned for all of it either way; the opening card and the first
+ * swing start later than this ends (see SECTION_VH.opening), so nothing overlaps.
+ */
+const IN_VH = 190;
+
 const setupIn = (spacer: HTMLElement) => {
   inMm = createMatchMedia((_context) => {
     const tl = gsap.timeline({
@@ -201,16 +245,7 @@ const setupIn = (spacer: HTMLElement) => {
       scrollTrigger: {
         trigger: spacer,
         start: "top bottom",
-        /**
-         * 190vh, not the 100vh of "top top": the pod-to-office hand-over -
-         * shrink, assemble, sit, scan, was the single most compressed
-         * moment on the page, a whole set change inside one wheel-page. The
-         * window now runs ~90vh INTO the pinned opening, so the assembly
-         * finishes full-frame under a held camera. The stage is pinned for
-         * all of it either way; the opening card and the first swing start
-         * later than this ends (see SECTION_VH.opening), so nothing overlaps.
-         */
-        end: "+=190%",
+        end: `+=${IN_VH}%`,
         scrub: true,
       },
     });
@@ -221,7 +256,13 @@ const setupIn = (spacer: HTMLElement) => {
     tl.fromTo(".about-content", { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.2, ease: "none" }, 0.05);
 
     tl.fromTo(sceneWeightsInOut.experience, { in: 0 }, { in: 1, duration: 1, ease: "none" }, 0);
-    tl.fromTo(sceneWeightsInOut[ESTABLISHING], { in: 0, out: 0 }, { in: 1, duration: 1, ease: "none" }, 0);
+    // The camera beat arrives over the same 100vh About's framing leaves over
+    // (its out-timeline is `bottom bottom → bottom top`), NOT over this whole
+    // 190vh window. With the two ramps at different lengths, About's weight hit
+    // zero while this one was at half, and the blend between them accelerated
+    // right up to the hand-over and then stopped: the fastest camera move on
+    // the page ended in its hardest stop.
+    tl.fromTo(sceneWeightsInOut[ESTABLISHING], { in: 0, out: 0 }, { in: 1, duration: 100 / IN_VH, ease: "none" }, 0);
 
     // The lab pod is the About scene's floor; it steps aside for the deck.
     tl.fromTo(
@@ -263,12 +304,13 @@ const setupBeats = ({ spacer, opening, chapters, xray }: ExperienceOptions) => {
     });
 
     const count = Math.max(chapters.length, 1);
-    const beatsVh =
-      SECTION_VH.opening + SECTION_VH.chapter * count + SECTION_VH.settle + SECTION_VH.xray + SECTION_VH.close;
+    const oriented = orientedVh(isLandscape);
+    const beatsVh = SECTION_VH.opening + SECTION_VH.chapter * count + oriented.settle + SECTION_VH.xray + oriented.close;
     const openingEnd = SECTION_VH.opening / beatsVh;
     const span = SECTION_VH.chapter / beatsVh;
     const settleStart = openingEnd + span * count;
-    const settleSpan = SECTION_VH.settle / beatsVh;
+    const settleSpan = oriented.settle / beatsVh;
+    const settleSwing = settleSpan * (isLandscape ? 0.72 : 0.62);
     const xrayStart = settleStart + settleSpan;
     const xraySpan = SECTION_VH.xray / beatsVh;
     const closeStart = xrayStart + xraySpan;
@@ -305,15 +347,15 @@ const setupBeats = ({ spacer, opening, chapters, xray }: ExperienceOptions) => {
      * averages every active waypoint, so a cross is a straight line between
      * the two positions, `out` is reset on the incoming side so a framing can
      * be arrived at more than once, which the closing relies on.
+     *
+     * Linear on purpose: `waypoints` smoothsteps every camera weight, so the
+     * move already eases in and out. A power1.inOut here on top of that doubled
+     * the peak speed in the middle of the swing.
      */
     const swing = (from: SceneKey, to: SceneKey, at: number, duration: number) => {
       if (from === to) return;
-      tl.to(sceneWeightsInOut[from as keyof typeof sceneWeightsInOut], { out: 1, duration, ease: "power1.inOut" }, at);
-      tl.to(
-        sceneWeightsInOut[to as keyof typeof sceneWeightsInOut],
-        { in: 1, out: 0, duration, ease: "power1.inOut" },
-        at,
-      );
+      tl.to(sceneWeightsInOut[from as keyof typeof sceneWeightsInOut], { out: 1, duration, ease: "none" }, at);
+      tl.to(sceneWeightsInOut[to as keyof typeof sceneWeightsInOut], { in: 1, out: 0, duration, ease: "none" }, at);
     };
 
     // ── the opening. Who this is and what the set of chapters is, on the
@@ -326,6 +368,19 @@ const setupBeats = ({ spacer, opening, chapters, xray }: ExperienceOptions) => {
 
     let camera: SceneKey = ESTABLISHING;
     const swingDur = span * 0.3;
+    /**
+     * ── THE HELD SHOT STILL MOVES WITH THE WHEEL ───────────────────────────
+     *
+     * Between two swings a chapter holds its framing for ~70% of its scroll,
+     * which is right for reading the card and wrong for the feel: nearly two
+     * screens of wheel with the world frozen under it. The camera now creeps in
+     * along its own sight line while the chapter is held and eases back out
+     * during the next swing, so each swing still starts and ends on the solved
+     * waypoint. `dolly` is a lerp toward the focus, so it cannot change the
+     * sight line or break the monitor clearance (see waypoints.ts), and this
+     * timeline already owns it for the X-ray.
+     */
+    const chapterPush = isLandscape ? 0.05 : 0.03;
 
     chapters.forEach((panel, index) => {
       const start = openingEnd + index * span;
@@ -335,6 +390,21 @@ const setupBeats = ({ spacer, opening, chapters, xray }: ExperienceOptions) => {
       // card leaves and has settled before the next one lands.
       swing(camera, beat, Math.max(0, start - swingDur * 0.55), swingDur);
       camera = beat;
+
+      const isLast = index === chapters.length - 1;
+      const holdStart = start + swingDur * 0.45;
+      const holdEnd = isLast ? settleStart : start + span - swingDur * 0.55;
+      tl.fromTo(
+        waypoints.dolly,
+        { value: 0 },
+        { value: chapterPush, duration: holdEnd - holdStart, ease: "sine.inOut", immediateRender: false },
+        holdStart,
+      );
+      tl.to(
+        waypoints.dolly,
+        { value: 0, duration: isLast ? settleSwing : swingDur, ease: "sine.inOut" },
+        holdEnd,
+      );
 
       // The chapter's own second state. No camera move, the screens change
       // under a held shot, which is a beat rather than a cut.
@@ -352,7 +422,7 @@ const setupBeats = ({ spacer, opening, chapters, xray }: ExperienceOptions) => {
     // back to the shot the section opened on, over the desk rather than
     // through it, see the note in waypoints-data, then holds there so the
     // office gets its scale back before anything comes apart.
-    swing(camera, ESTABLISHING, settleStart, settleSpan * 0.62);
+    swing(camera, ESTABLISHING, settleStart, settleSwing);
     // Both scenarios have been up by now; the section closes on the one it
     // opened on.
     tl.to(screens.state, { blend: 0, duration: settleSpan * 0.4 }, settleStart);
@@ -378,8 +448,9 @@ const setupBeats = ({ spacer, opening, chapters, xray }: ExperienceOptions) => {
      *                             and the readout card, which arrives at 0.60
      *                             - a fifth of the phase after he is fully an
      *                             X-ray, so the image lands before the words.
-     *   0.88 – 1.00  HAND-OVER    the card leaves and the push eases back out,
-     *                             so the close starts from a settled frame.
+     *   0.88 – 1.00  HAND-OVER    the card leaves and the push starts to ease
+     *                             back out, one move that settles 40% into
+     *                             the close, as he finishes standing.
      *
      * The camera never changes waypoint here. `waypoints.dolly` slides it
      * along the sight line the settle already arrived at, which cannot break
@@ -418,7 +489,16 @@ const setupBeats = ({ spacer, opening, chapters, xray }: ExperienceOptions) => {
     // head against the left edge, so it takes half.
     const push = isLandscape ? 0.13 : 0.07;
     tl.to(waypoints.dolly, { value: push, duration: xraySpan * 0.74, ease: "none" }, xrayAt(0.14));
-    tl.to(waypoints.dolly, { value: push * 0.46, duration: xraySpan * 0.12, ease: "power1.inOut" }, xrayAt(0.88));
+    // One pull-back, from the hand-over to 40% into the close. It used to be
+    // two: this eased to a stop at 46% of the push right on the close
+    // boundary, and the close's own power1.out restarted it at full speed, so
+    // the camera hiccuped exactly where he starts to stand (the largest speed
+    // step anywhere in the hand-over, measured off camcurve).
+    tl.to(
+      waypoints.dolly,
+      { value: 0, duration: xraySpan * 0.12 + closeSpan * 0.4, ease: "sine.inOut" },
+      xrayAt(0.88),
+    );
 
     enter(xray, xrayAt(0.6));
     leave(xray, xrayAt(0.88));
@@ -443,7 +523,6 @@ const setupBeats = ({ spacer, opening, chapters, xray }: ExperienceOptions) => {
      */
     const closeAt = (fraction: number) => closeStart + closeSpan * fraction;
 
-    tl.to(waypoints.dolly, { value: 0, duration: closeSpan * 0.4, ease: "power1.out" }, closeAt(0));
     /**
      * The last of the scan, and it is invisible on purpose.
      *
@@ -480,22 +559,45 @@ const setupBeats = ({ spacer, opening, chapters, xray }: ExperienceOptions) => {
       closeAt(0.34),
     );
     // He is standing and alone on the grid floor again, the frame About handed
-    // over, and only then does the hologram scan away.
-    tl.fromTo(
-      avatarHologram.dissolve,
-      { value: 0 },
-      { value: 1, duration: closeSpan * 0.32, ease: "power1.in", immediateRender: false },
-      closeAt(0.68),
-    );
+    // over. The hologram's scan-away is NOT here any more, it belongs to the
+    // ride-out below.
+    //
+    // The fractions above are shared, so on a laptop's 220vh every move simply
+    // gets twice the scroll (seated and materialise scale together, the scan
+    // line still leads his head up), and the tail after the un-build grows to
+    // ~60vh. A held frame that long needs the wheel to still move something,
+    // so it creeps in the way a chapter does, from after the office has gone
+    // (nothing left to clear) to the moment the stage starts to ride out.
+    if (isLandscape) {
+      tl.fromTo(
+        waypoints.dolly,
+        { value: 0 },
+        { value: chapterPush, duration: closeSpan * 0.26, ease: "sine.inOut", immediateRender: false },
+        closeAt(0.74),
+      );
+    }
   });
 };
 
 /**
- * The ride-out. The stage is leaving the viewport under its own scroll and
- * there is nothing left on it, so the only thing that runs here is the weight
- * that keeps the dark plane open. It is linear and only reaches 1 at the very
- * end: dropping it early swaps the clear colour to beige while the stage is
- * still on screen, which is the white flash the old closing had.
+ * The ride-out. The stage is leaving the viewport under its own scroll. The
+ * weight that keeps the dark plane open is linear and only reaches 1 at the
+ * very end: dropping it early swaps the clear colour to beige while the stage
+ * is still on screen, which is the white flash the old closing had.
+ *
+ * ── HE LEAVES WITH THE STAGE ────────────────────────────────────────────────
+ *
+ * The hologram's scan-away used to finish inside the close, so the stage rode
+ * out EMPTY: about 70vh of bare blue floor between the last figure and the
+ * Projects title, the one place on the page that read as "this section has
+ * closed, the next one has not started". Now the standing hologram is still
+ * there when the stage starts to move and scans away while it goes, top down,
+ * the direction the page is already taking him, and it is gone by 42% of the
+ * ride-out. The camera holds still here (camera.ts: About's drop used to come
+ * back as this weight fell and carried him out ahead of the page), so he
+ * leaves at the scroll's own speed. The office un-build stays in the pinned
+ * close, which is the letterbox rule above: nothing that needs the whole frame
+ * runs here.
  */
 const setupOut = (spacer: HTMLElement) => {
   outTl = gsap.timeline({
@@ -508,6 +610,12 @@ const setupOut = (spacer: HTMLElement) => {
   });
 
   outTl.fromTo(sceneWeightsInOut.experience, { out: 0 }, { out: 1, duration: 1, ease: "none" }, 0);
+  outTl.fromTo(
+    avatarHologram.dissolve,
+    { value: 0 },
+    { value: 1, duration: 0.4, ease: "power1.in", immediateRender: false },
+    0.02,
+  );
 };
 
 const destroy = () => {

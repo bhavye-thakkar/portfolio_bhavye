@@ -21,21 +21,45 @@ const props = defineProps<{
 }>();
 
 onMounted(async () => {
-  if (!wrapperRef.value || ScrollTrigger.isInViewport(wrapperRef.value)) {
+  if (
+    !wrapperRef.value ||
+    ScrollTrigger.isInViewport(wrapperRef.value) ||
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
     return;
   }
 
+  // The card settles into place as it arrives rather than popping from 80%:
+  // a smaller start, a longer exponential tail, and the artwork travelling a
+  // little further than its frame so the two read as layers.
   const tl = gsap.timeline({
     scrollTrigger: {
       trigger: wrapperRef.value,
-      start: "top bottom",
+      start: "top bottom-=8%",
     },
   });
-  tl.fromTo(wrapperRef.value, { scale: 0.8 }, { scale: 1, duration: 0.4, ease: "power1.out" }, 0);
-  tl.fromTo(imageRef.value, { scale: 1.2 }, { scale: 1, duration: 0.4, ease: "power1.out" }, 0);
+  tl.fromTo(wrapperRef.value, { scale: 0.92, y: 24 }, { scale: 1, y: 0, duration: 0.9, ease: "expo.out" }, 0);
+  tl.fromTo(imageRef.value, { scale: 1.14 }, { scale: 1, duration: 1.1, ease: "expo.out" }, 0);
 
   tlRef.value = tl;
 });
+
+/**
+ * Hover parallax: the artwork drifts a few pixels against the pointer inside
+ * its frame. Written as two custom properties, so the transform itself stays
+ * in CSS with the hover scale and one transition covers both.
+ */
+const handlePointerMove = (event: PointerEvent) => {
+  if (event.pointerType !== "mouse" || !wrapperRef.value) return;
+  const rect = wrapperRef.value.getBoundingClientRect();
+  wrapperRef.value.style.setProperty("--mx", ((event.clientX - rect.left) / rect.width - 0.5).toFixed(3));
+  wrapperRef.value.style.setProperty("--my", ((event.clientY - rect.top) / rect.height - 0.5).toFixed(3));
+};
+
+const handlePointerLeave = () => {
+  wrapperRef.value?.style.setProperty("--mx", "0");
+  wrapperRef.value?.style.setProperty("--my", "0");
+};
 
 onUnmounted(() => {
   if (tlRef.value) {
@@ -54,6 +78,8 @@ onUnmounted(() => {
     data-sound="click"
     data-hoversound="hover"
     v-if="props.preview"
+    @pointermove="handlePointerMove"
+    @pointerleave="handlePointerLeave"
   >
     <div class="preview-card-top" ref="wrapperRef">
       <div class="preview-card-image-wrapper">
@@ -104,6 +130,7 @@ onUnmounted(() => {
   position: relative;
   border-radius: var(--radius-xl);
   z-index: var(--z-index-layout);
+  transition: scale 0.2s var(--ease-out-quint);
 
   &::after {
     content: "";
@@ -116,8 +143,11 @@ onUnmounted(() => {
     border-radius: var(--radius-xl);
     z-index: -1;
     opacity: 0;
+    transform: scale(0.985);
     pointer-events: none;
-    transition: opacity 0.1s ease-in-out;
+    transition:
+      opacity 0.2s ease-out,
+      transform 0.45s var(--ease-out-quint);
   }
 
   @include mixins.hover {
@@ -126,8 +156,17 @@ onUnmounted(() => {
 
       &::after {
         opacity: 1;
+        transform: scale(1);
       }
     }
+  }
+
+  /* Press: the card gives a little under the pointer on the down-stroke, so
+     the click is acknowledged before the page has started to open. On the link
+     itself, not on `-top`: the entrance tween below writes an inline
+     `scale: none` on `-top`, which silently beat this rule. */
+  &:active {
+    scale: 0.98;
   }
 
   &-content {
@@ -175,7 +214,7 @@ onUnmounted(() => {
 
   &-button {
     &-arrow {
-      transition: transform 0.1s ease-in-out;
+      transition: transform 0.35s var(--ease-out-quint);
       width: 100%;
       transform: rotate(calc(var(--hover) * -45deg));
     }
@@ -186,9 +225,13 @@ onUnmounted(() => {
     height: 100%;
     object-fit: cover;
 
+    /* Scale on hover plus a few pixels of drift against the pointer (--mx/--my
+       from the script). Exponential ease-out: it answers on the first frames
+       and settles softly, instead of the old 0.1s linear-ish snap. */
     &-container {
-      transition: transform 0.1s ease-in-out;
-      transform: scale(calc(1 + var(--hover) * 0.02));
+      transition: transform 0.6s var(--ease-out-quint);
+      transform: translate3d(calc(var(--mx, 0) * var(--hover) * -10px), calc(var(--my, 0) * var(--hover) * -8px), 0)
+        scale(calc(1 + var(--hover) * 0.045));
       aspect-ratio: 16/9;
     }
 
@@ -236,6 +279,16 @@ onUnmounted(() => {
     font-size: var(--font-size-md);
     color: var(--color-text-300);
     font-weight: 500;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .preview-card-image-container {
+    transform: none;
+    transition: none;
+  }
+
+  .preview-card {
+    transition: none;
   }
 }
 </style>

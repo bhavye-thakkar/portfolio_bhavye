@@ -6,6 +6,7 @@ import { scene } from "./scene";
 import { waypoints } from "../../animations/waypoints";
 import { sceneWeights, sceneWeightsInOut } from "../../animations/scenes";
 import { sizes } from "../../utils/sizes";
+import { clamp, damp, smoothstep } from "../../utils/math";
 
 const PARALLAX_INTENSITY = 1;
 const PARALLAX_SPEED = 0.6;
@@ -43,14 +44,19 @@ const handleMouseMove = (event: MouseEvent) => {
   cursor.y = event.clientY / threeSizes.height - 0.5;
 };
 
+/**
+ * The sway follows the pointer with a frame-rate independent ease, and each
+ * frame's step is CLAMPED to 0.05 rather than skipped above it. The old guard
+ * skipped the whole step whenever it was larger, and the step grows with the
+ * frame delta, so on a slow frame, or after a quick flick of the mouse across
+ * the window, the camera froze in place until the pointer came back towards it.
+ */
 const updateParallax = (object: Object3D) => {
-  const delta = gsap.ticker.deltaRatio();
+  const delta = Math.min(gsap.ticker.deltaRatio(), 4);
   const parallaxX = cursor.x * PARALLAX_INTENSITY;
   const parallaxY = -cursor.y * PARALLAX_INTENSITY;
-  const byX = (parallaxX - object.position.x) * PARALLAX_SPEED * 0.1 * delta;
-  const byY = (parallaxY - object.position.y) * PARALLAX_SPEED * 0.1 * delta;
-  if (byX < 0.05 && byX > -0.05) object.position.x += byX;
-  if (byY < 0.05 && byY > -0.05) object.position.y += byY;
+  object.position.x += clamp(damp(object.position.x, parallaxX, PARALLAX_SPEED * 0.1, delta) - object.position.x, -0.05, 0.05);
+  object.position.y += clamp(damp(object.position.y, parallaxY, PARALLAX_SPEED * 0.1, delta) - object.position.y, -0.05, 0.05);
 };
 
 const calculateContactTransform = () => {
@@ -80,8 +86,17 @@ const tick = () => {
 
     if (sizes.matchMedia("md")) {
       // About's exit drop would fight the Experience beats, which own the
-      // camera once the stage is handed over.
-      instance.position.y -= sceneWeightsInOut.about.out * 2.75 * (1 - sceneWeights.experience);
+      // camera once the stage is handed over. Both factors are smoothstepped
+      // like the waypoint weights, so the drop eases in and out instead of
+      // starting and stopping at full speed on the linear ramps behind it.
+      //
+      // Experience's `in`, not its weight: the weight falls back to 0 as the
+      // stage rides out, which brought the whole 2.75 drop back in over those
+      // 100vh and carried him up out of the frame faster than the page was
+      // scrolling, so on a laptop the hand-over to Projects ran at double
+      // speed. Past the ride-out the stage is off screen and this is unseen.
+      instance.position.y -=
+        smoothstep(sceneWeightsInOut.about.out) * 2.75 * (1 - smoothstep(sceneWeightsInOut.experience.in));
     }
   }
 

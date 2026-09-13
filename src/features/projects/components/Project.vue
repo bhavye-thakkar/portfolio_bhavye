@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { projectId, projectVisible, recentProjectId } from "../../../composables/useRouteObserver";
-import { isTransitioning } from "../../../composables/useProjectTransition";
-import { ref, watch } from "vue";
+import { isTransitioning, projectClosing } from "../../../composables/useProjectTransition";
+import { ref, watch, watchEffect } from "vue";
 import { projectModules } from "../../../content/projects";
 import ProjectContent from "./ProjectContent.vue";
 import Footer from "../../../components/Footer.vue";
@@ -44,6 +44,32 @@ watch(
   },
   { immediate: true },
 );
+
+/**
+ * How far the page was read, kept from Lenis's own scroll events while it is
+ * open. `window.scrollY` cannot be trusted at the moment of leaving: on the
+ * browser's Back button the history traversal restores home's scroll offset
+ * before our route watcher runs, and clamps it to this page's height.
+ */
+let readTo = 0;
+const trackScroll = () => {
+  if (projectVisible.value && lenis.value) readTo = lenis.value.scroll;
+};
+watchEffect((onInvalidate) => {
+  const instance = lenis.value;
+  if (!instance) return;
+  instance.on("scroll", trackScroll);
+  onInvalidate(() => instance.off("scroll", trackScroll));
+});
+
+// `pre` flush: the offset has to be on the root before the wrapper turns
+// `fixed` in the same update, or the page shows its top for one frame.
+watch(projectId, (id, previous) => {
+  if (previous && !id) {
+    document.documentElement.style.setProperty("--project-exit-scroll", `${readTo}px`);
+  }
+  if (id) readTo = 0;
+});
 </script>
 
 <template>
@@ -56,9 +82,15 @@ watch(
       projectVisible && `project-visible`,
     ]"
   >
-    <div :class="['project-content-wrapper', projectVisible && `project-content-wrapper-visible`]">
+    <div
+      :class="[
+        'project-content-wrapper',
+        projectVisible && `project-content-wrapper-visible`,
+        projectClosing && `project-content-wrapper-closing`,
+      ]"
+    >
       <ProjectContent
-        v-if="content && recentProjectId && projectVisible"
+        v-if="content && recentProjectId && (projectVisible || projectClosing)"
         :content="content"
         :projectId="recentProjectId"
       />
@@ -74,6 +106,13 @@ watch(
   max-width: calc(var(--lvw) * 100);
   overflow: hidden;
 
+  /* The sheet behind (ProjectBackground.vue) is the background while the page
+     comes and goes. An opaque page here would hide it folding back into the
+     card until the route timer ran out. */
+  &-transitioning {
+    background-color: transparent;
+  }
+
   &-content-wrapper {
     display: flex;
     flex-direction: column;
@@ -84,6 +123,18 @@ watch(
 
     &-visible {
       opacity: 1;
+    }
+
+    /* Recedes rather than cuts: a short fade with a small lift that starts on
+       the first frame, overlapping the sheet folding back into the card behind
+       it, so the two read as one move. */
+    &-closing {
+      opacity: 0;
+      transform: translateY(-16px) scale(0.99);
+      transform-origin: 50% 0;
+      transition:
+        opacity 0.18s linear,
+        transform 0.4s var(--ease-out-quint);
     }
   }
 
@@ -103,6 +154,12 @@ watch(
     background: var(--color-accent-400);
     color: var(--color-accent-text-400);
     text-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-content-wrapper-closing {
+    transform: none;
   }
 }
 </style>
