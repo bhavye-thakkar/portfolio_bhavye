@@ -1,41 +1,106 @@
-# Everything on this site is public. Nothing here is disallowed.
+# Everything on this site is public and every crawler is welcome on every page:
+# search engines, AI assistants, AI search, AI training and link previews. The
+# owner's instruction (2026-09-14): all bots may read, scrape and index all of it.
+# Nothing is disallowed and there is no crawl delay.
+#
+# The wildcard group alone already allows every bot. The named groups below say
+# the same thing explicitly, because several AI crawlers treat an unnamed
+# default as "no opinion", and so a future edit that tightens the wildcard has
+# to think about each of them separately.
+#
+# Most AI crawlers do not run JavaScript. What they read is the static HTML the
+# build writes for every page (scripts/routePages.ts), its <noscript> text and
+# /llms.txt, not the 3D app.
+
 User-agent: *
 Allow: /
+# Cloudflare's Content Signals: yes to search, to AI answers that quote the
+# site, and to AI training. Crawlers that do not know the line ignore it.
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
 
-# ── AI crawlers, allowed on purpose ───────────────────────────────────────
-# These are the agents behind AI answers and assistant citations. They are
-# covered by the wildcard above; they are named explicitly because several of
-# them treat an unnamed default as "no opinion" and because a future edit that
-# tightens the wildcard should have to think about them separately.
-#
-# Most of them do NOT execute JavaScript, so what they can actually read is
-# the <noscript> fallback in index.html and /llms.txt, not the 3D app.
+# ── Google (Search, Images, Video, News, Gemini and Vertex AI grounding) ────
+User-agent: Googlebot
+User-agent: Googlebot-Image
+User-agent: Googlebot-Video
+User-agent: Googlebot-News
+User-agent: Google-InspectionTool
+User-agent: GoogleOther
+User-agent: GoogleOther-Image
+User-agent: GoogleOther-Video
+User-agent: Google-Extended
+User-agent: Google-CloudVertexBot
+User-agent: Storebot-Google
+User-agent: AdsBot-Google
+User-agent: AdsBot-Google-Mobile
+User-agent: Mediapartners-Google
+User-agent: FeedFetcher-Google
+Allow: /
 
+# ── Anthropic (Claude) ───────────────────────────────────────────────────────
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: Claude-Web
+User-agent: anthropic-ai
+Allow: /
+
+# ── OpenAI (ChatGPT) ─────────────────────────────────────────────────────────
 User-agent: GPTBot
-Allow: /
-
 User-agent: OAI-SearchBot
-Allow: /
-
 User-agent: ChatGPT-User
 Allow: /
 
-User-agent: ClaudeBot
+# ── Mistral (Le Chat) ────────────────────────────────────────────────────────
+User-agent: MistralAI-User
 Allow: /
 
-User-agent: Claude-User
-Allow: /
-
+# ── Perplexity ───────────────────────────────────────────────────────────────
 User-agent: PerplexityBot
+User-agent: Perplexity-User
 Allow: /
 
-User-agent: Google-Extended
+# ── Microsoft (Bing, Copilot) ────────────────────────────────────────────────
+User-agent: Bingbot
+User-agent: BingPreview
+User-agent: MSNBot
+User-agent: AdIdxBot
 Allow: /
 
+# ── Apple (Siri, Spotlight, Apple Intelligence) ──────────────────────────────
+User-agent: Applebot
 User-agent: Applebot-Extended
 Allow: /
 
+# ── Meta, Amazon, ByteDance, Cohere, DuckDuckGo, You.com and others ─────────
+User-agent: meta-externalagent
+User-agent: meta-externalfetcher
+User-agent: FacebookBot
+User-agent: facebookexternalhit
+User-agent: Amazonbot
+User-agent: Bytespider
+User-agent: TikTokSpider
+User-agent: cohere-ai
+User-agent: cohere-training-data-crawler
+User-agent: DuckDuckBot
+User-agent: DuckAssistBot
+User-agent: YouBot
 User-agent: CCBot
+User-agent: Diffbot
+User-agent: AI2Bot
+User-agent: PetalBot
+User-agent: YandexBot
+User-agent: Baiduspider
+User-agent: Slurp
+User-agent: SeznamBot
+Allow: /
+
+# ── Link previews (X, LinkedIn, Slack, Discord, WhatsApp, Telegram) ──────────
+User-agent: Twitterbot
+User-agent: LinkedInBot
+User-agent: Slackbot
+User-agent: Discordbot
+User-agent: WhatsApp
+User-agent: TelegramBot
 Allow: /
 
 # A machine-readable summary of the public portfolio, kept in step with what

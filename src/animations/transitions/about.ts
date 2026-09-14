@@ -1,6 +1,6 @@
 import { avatar } from "../../three/objects/avatar";
 import { sceneWeightsInOut } from "../scenes";
-import { createMatchMedia } from "../utils/matchMedia";
+import { createMatchMedia, PORTRAIT_PACE } from "../utils/matchMedia";
 import { room } from "../../three/objects/room";
 import { lab } from "../../three/objects/lab";
 import gsap from "gsap";
@@ -12,6 +12,14 @@ let sectionsMm: gsap.MatchMedia | null = null;
 let scenesMm: gsap.MatchMedia | null = null;
 
 export const aboutProgress = { value: 0 };
+
+/**
+ * The About spacer's height in vh, bound in Home.vue. Every timeline here runs
+ * off the spacer's own edges, so this is the only number. 100vh of it is the
+ * screen the stage sits in; the 300vh the scenes scrub through is what a phone
+ * shortens (PORTRAIT_PACE, utils/matchMedia).
+ */
+export const aboutHeightVh = (isLandscape = false) => 100 + 300 * (isLandscape ? 1 : PORTRAIT_PACE);
 
 type SectionsOptions = {
   about: HTMLElement;

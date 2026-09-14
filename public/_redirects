@@ -8,7 +8,21 @@
 #
 # This is Netlify's format (the existing portfolio is hosted there). On other
 # hosts the equivalent is:
-#   Vercel   vercel.json  → { "rewrites": [{ "source": "/(.*)", "destination": "/" }] }
+#   Vercel   vercel.json in the repo root (bhavye.vercel.app deploys this repo)
 #   GH Pages copy dist/index.html to dist/404.html
 #   Nginx    try_files $uri $uri/ /index.html;
+#
+# /sitemap is the sitemap, not the app's 404 page. Rules match top-down, so it
+# has to come before the catch-all. (vercel.json and vite.config.ts do the same.)
+/sitemap   /sitemap.xml  200
+/sitemap/  /sitemap.xml  200
+
+# Every real page has its own built HTML file (scripts/routePages.ts) with its
+# own title, canonical and text, so a crawler that does not run JavaScript
+# indexes the page and not a copy of home. A slug with no file is a real 404,
+# answered by dist/404.html, which boots the app on its not-found page.
+/experience/:slug  /experience/:slug.html  200
+/object/:slug      /object/:slug.html      200
+/project/:slug     /project/:slug.html     200
+
 /*  /index.html  200

@@ -84,7 +84,14 @@ onUnmounted(() => {
     <div class="preview-card-top" ref="wrapperRef">
       <div class="preview-card-image-wrapper">
         <div class="preview-card-image-container">
-          <img :src="props.preview.thumbnail" :alt="props.preview.title" class="preview-card-image" ref="imageRef" />
+          <img
+            :src="props.preview.thumbnail"
+            :alt="props.preview.title"
+            loading="lazy"
+            decoding="async"
+            class="preview-card-image"
+            ref="imageRef"
+          />
         </div>
       </div>
       <div class="preview-card-overlay">

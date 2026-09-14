@@ -1,9 +1,10 @@
 import { watch } from "vue";
 import { path, experienceId, projectId, objectId, notFound } from "./useRouteObserver";
-import { experienceBySlug } from "../content/experience";
-import { objectBySlug } from "../content/objects";
 import { previews } from "../content/projects/previews";
-import { profile, site } from "../content/profile";
+import { site } from "../content/profile";
+import { SUFFIX, experienceMeta, objectMeta, projectMeta } from "../content/routeMeta";
+
+import type { Crumb, Meta } from "../content/routeMeta";
 
 /**
  * ─── PER-ROUTE HEAD ───────────────────────────────────────────────────────
@@ -18,26 +19,26 @@ import { profile, site } from "../content/profile";
  *
  * So: one watcher, three tags. No library, `document.title` and two
  * `setAttribute` calls do the whole job, and a head manager would be four
- * dependencies to avoid writing them.
+ * dependencies to avoid writing them. The values themselves come from
+ * `content/routeMeta.ts`, which the build also writes into a static HTML file
+ * per route (`scripts/routePages.ts`).
  *
  * The base values live in index.html and are read back on first run, so the
  * home page keeps exactly what is in the static markup and only the deep
- * routes override it.
+ * routes override it. A visit that starts on a deep route loads that route's
+ * static file, whose head is not the home page's, so the build copies the home
+ * title and description onto `<html data-home-title data-home-description>`.
  */
-
-const SUFFIX = "Bhavye Thakkar";
-
-type Crumb = { name: string; url: string };
-type Meta = { title: string; description: string; url: string; breadcrumb?: Crumb[] };
 
 let base: Meta | null = null;
 
 const readBase = (): Meta => {
   if (base) return base;
+  const home = document.documentElement.dataset;
   base = {
-    title: document.title,
-    description: document.querySelector('meta[name="description"]')?.getAttribute("content") ?? "",
-    url: document.querySelector('link[rel="canonical"]')?.getAttribute("href") ?? `${site}/`,
+    title: home.homeTitle ?? document.title,
+    description: home.homeDescription ?? document.querySelector('meta[name="description"]')?.getAttribute("content") ?? "",
+    url: `${site}/`,
   };
   return base;
 };
@@ -55,7 +56,8 @@ const setMeta = (selector: string, attribute: string, value: string, create: () 
 /**
  * `BreadcrumbList` for the detail routes, matching the trail `Breadcrumbs.vue`
  * renders. One tag, replaced in place, the home page removes it rather than
- * leaving a stale trail behind after a client-side navigation back.
+ * leaving a stale trail behind after a client-side navigation back. The static
+ * route files ship the same tag with the same id, so it is reused, not doubled.
  */
 const BREADCRUMB_ID = "route-breadcrumb";
 
@@ -120,76 +122,12 @@ const apply = ({ title, description, url, breadcrumb }: Meta) => {
   }
 };
 
-/** Titles come from the same content files the pages render from. */
-const forExperience = (slug: string): Meta | null => {
-  const entry = experienceBySlug(slug);
-  if (!entry) return null;
-
-  // A reserved slot has no statement and no dates; describing it as a role
-  // that happened would be a lie in a search result.
-  // The location goes in because this entry actually has one, not to put a city
-  // in a meta tag: it is the page's own `location` field, the same string the
-  // page renders, and an entry without one simply does not get the clause.
-  // The only other geographic assertion is the Person schema in index.html
-  // (Ahmedabad, Gujarat, IN), the city he actually publishes as his base.
-  const place = entry.location ? `, ${entry.location}` : "";
-  const description = entry.placeholder
-    ? `A chapter of ${SUFFIX}'s career journal that has not been filled in yet.`
-    : // The card's own summary sentence, the one line this entry already has
-      // for "what was this job", rather than a generic one about chapter
-      // counts that every entry shared word for word.
-      `${entry.role} at ${entry.company}${place}${entry.duration ? `, ${entry.duration}` : ""}. ${entry.statement || `How the role came about and what it turned into, in ${entry.story.length} chapters.`}`;
-
-  return {
-    title: `${entry.company}, Experience | ${SUFFIX}`,
-    description,
-    url: `${site}/experience/${slug}`,
-    breadcrumb: [
-      { name: SUFFIX, url: `${site}/` },
-      { name: "Experience", url: `${site}/#experience` },
-      { name: entry.company, url: `${site}/experience/${slug}` },
-    ],
-  };
-};
-
-/**
- * The two clickable props. Their copy is the only thing on the site that is
- * about a decision rather than about work, so the description is the one
- * written for the purpose in content/objects.ts rather than a stitched-up
- * sentence.
- */
-const forObject = (slug: string): Meta | null => {
-  const entry = objectBySlug(slug);
-  if (!entry) return null;
-
-  return {
-    title: `${entry.title}, ${entry.eyebrow} | ${SUFFIX}`,
-    description: entry.description,
-    url: `${site}/object/${slug}`,
-    breadcrumb: [
-      { name: SUFFIX, url: `${site}/` },
-      { name: entry.title, url: `${site}/object/${slug}` },
-    ],
-  };
-};
-
-const projectMeta = new Map<string, Meta>();
+const projectMetaBySlug = new Map<string, Meta>();
 
 const loadProjectMeta = async () => {
-  if (projectMeta.size) return;
+  if (projectMetaBySlug.size) return;
   const module = await previews.en();
-  for (const preview of module.default) {
-    projectMeta.set(preview.slug, {
-      title: `${preview.title}, Project | ${SUFFIX}`,
-      description: `${preview.title}: ${preview.description}. A project by ${SUFFIX}, ${profile.role}.`,
-      url: `${site}/project/${preview.slug}`,
-      breadcrumb: [
-        { name: SUFFIX, url: `${site}/` },
-        { name: "Projects", url: `${site}/#projects` },
-        { name: preview.title, url: `${site}/project/${preview.slug}` },
-      ],
-    });
-  }
+  for (const preview of module.default) projectMetaBySlug.set(preview.slug, projectMeta(preview));
 };
 
 const update = async () => {
@@ -209,12 +147,12 @@ const update = async () => {
   }
 
   if (experienceId.value) {
-    apply(forExperience(experienceId.value) ?? fallback);
+    apply(experienceMeta(experienceId.value) ?? fallback);
     return;
   }
 
   if (objectId.value) {
-    apply(forObject(objectId.value) ?? fallback);
+    apply(objectMeta(objectId.value) ?? fallback);
     return;
   }
 
@@ -223,7 +161,7 @@ const update = async () => {
     // than blocking, then correct it, crawlers read the settled DOM.
     await loadProjectMeta();
     if (!projectId.value) return;
-    apply(projectMeta.get(projectId.value) ?? fallback);
+    apply(projectMetaBySlug.get(projectId.value) ?? fallback);
     return;
   }
 

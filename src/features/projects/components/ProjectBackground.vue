@@ -242,8 +242,13 @@ watch(
 
 // A cold link straight to a project never runs `enter`: home builds its
 // triggers underneath while the preloader is up, so hold them once it is gone.
+// The card artwork is lazy and has never been near the viewport on this visit,
+// so fetch it now; otherwise Back folds the sheet into a card that has no art.
 watch(preloaderVisible, (visible) => {
-  if (!visible && projectId.value) holdHome();
+  if (!visible && projectId.value) {
+    holdHome();
+    setArt(projectId.value);
+  }
 });
 </script>
 

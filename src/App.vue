@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { defineAsyncComponent } from "vue";
 import Header from "./components/Header.vue";
 import { useTranslations } from "./i18n/composables/useTranslations";
 import { usePreloader } from "./composables/usePreloader";
@@ -14,9 +15,7 @@ import { useProjectTransition } from "./composables/useProjectTransition";
 import { useScroll } from "./composables/useScroll";
 import { projectVisible, experienceId, experienceVisible, objectId, objectVisible, notFound } from "./composables/useRouteObserver";
 import ObjectDetail from "./features/objects/components/ObjectDetail.vue";
-import NotFound from "./components/NotFound.vue";
 import ExperienceDetail from "./features/experience/components/ExperienceDetail.vue";
-import CvPanel from "./features/cv/components/CvPanel.vue";
 import CvPrompt from "./features/cv/components/CvPrompt.vue";
 import { cvReading } from "./features/cv/state";
 import ProjectBackground from "./features/projects/components/ProjectBackground.vue";
@@ -24,6 +23,13 @@ import { useClickSound } from "./features/sounds/composables/useClickSounds";
 //import { useHoverSound } from "./features/sounds/composables/useHoverSounds";
 
 import { experienceClosing, projectClosing } from "./composables/useProjectTransition";
+
+// Lazy: both mount behind a `v-if` that a visitor may never trip, so they are
+// chunks of their own rather than part of the first download. The story,
+// project and object pages stay eager, they are always mounted and drive the
+// 3D stage's transitions from their watchers.
+const NotFound = defineAsyncComponent(() => import("./components/NotFound.vue"));
+const CvPanel = defineAsyncComponent(() => import("./features/cv/components/CvPanel.vue"));
 
 const { isTransitioning } = useProjectTransition();
 

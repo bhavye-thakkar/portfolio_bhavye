@@ -40,7 +40,7 @@ const contentClasses = computed(() => {
 
 <template>
   <div :class="imageClasses">
-    <img :src="props.src" :alt="props.alt" loading="lazy" fetchpriority="high" :class="imageContentClasses" />
+    <img :src="props.src" :alt="props.alt" loading="lazy" decoding="async" :class="imageContentClasses" />
   </div>
   <div :class="contentClasses" v-if="props.component">
     <ProjectComponent :type="props.component.type" :props="props.component.props" :index="0" />

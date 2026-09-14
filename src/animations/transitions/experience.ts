@@ -1,6 +1,6 @@
 import gsap from "gsap";
 import { sceneWeightsInOut } from "../scenes";
-import { createMatchMedia } from "../utils/matchMedia";
+import { createMatchMedia, PORTRAIT_PACE } from "../utils/matchMedia";
 import { avatar } from "../../three/objects/avatar";
 import { avatarHologram } from "../../three/objects/avatar/hologram";
 import { lab } from "../../three/objects/lab";
@@ -153,14 +153,16 @@ const orientedVh = (isLandscape: boolean) =>
 /**
  * Total spacer height for N companies, in vh. Home.vue binds both orientations
  * and picks one with the same `(min-aspect-ratio: 1)` query the timeline uses.
+ *
+ * Portrait scales the beats by PORTRAIT_PACE. `setupBeats` needs no change for
+ * it: its fractions are ratios of these same numbers, which a uniform scale
+ * leaves alone. The exit does not scale, it is the stage riding out.
  */
-export const sectionHeightVh = (count: number, isLandscape = false) =>
-  SECTION_VH.opening +
-  SECTION_VH.chapter * Math.max(count, 1) +
-  orientedVh(isLandscape).settle +
-  SECTION_VH.xray +
-  orientedVh(isLandscape).close +
-  SECTION_VH.exit;
+export const sectionHeightVh = (count: number, isLandscape = false) => {
+  const { settle, close } = orientedVh(isLandscape);
+  const beats = SECTION_VH.opening + SECTION_VH.chapter * Math.max(count, 1) + settle + SECTION_VH.xray + close;
+  return beats * (isLandscape ? 1 : PORTRAIT_PACE) + SECTION_VH.exit;
+};
 
 /**
  * ── WHERE THE SCAN IS ACTUALLY VISIBLE ────────────────────────────────────
@@ -235,17 +237,21 @@ const setup = (options: ExperienceOptions) => {
  * pinned opening, so the assembly finishes full-frame under a held camera. The
  * stage is pinned for all of it either way; the opening card and the first
  * swing start later than this ends (see SECTION_VH.opening), so nothing overlaps.
+ *
+ * On a phone only the part inside the pinned opening scales with it: the first
+ * 100vh is About's own out-ramp, which is one screen everywhere.
  */
 const IN_VH = 190;
 
 const setupIn = (spacer: HTMLElement) => {
-  inMm = createMatchMedia((_context) => {
+  inMm = createMatchMedia((_context, { isLandscape }) => {
+    const inVh = 100 + (IN_VH - 100) * (isLandscape ? 1 : PORTRAIT_PACE);
     const tl = gsap.timeline({
       duration: 1,
       scrollTrigger: {
         trigger: spacer,
         start: "top bottom",
-        end: `+=${IN_VH}%`,
+        end: `+=${inVh}%`,
         scrub: true,
       },
     });
@@ -262,7 +268,7 @@ const setupIn = (spacer: HTMLElement) => {
     // zero while this one was at half, and the blend between them accelerated
     // right up to the hand-over and then stopped: the fastest camera move on
     // the page ended in its hardest stop.
-    tl.fromTo(sceneWeightsInOut[ESTABLISHING], { in: 0, out: 0 }, { in: 1, duration: 100 / IN_VH, ease: "none" }, 0);
+    tl.fromTo(sceneWeightsInOut[ESTABLISHING], { in: 0, out: 0 }, { in: 1, duration: 100 / inVh, ease: "none" }, 0);
 
     // The lab pod is the About scene's floor; it steps aside for the deck.
     tl.fromTo(

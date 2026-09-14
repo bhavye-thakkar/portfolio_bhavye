@@ -1,6 +1,23 @@
 import gsap from "gsap";
 import { BREAKPOINTS } from "../../utils/sizes";
 
+/**
+ * ── PHONES SCROLL THROUGH THE 3D SECTIONS FASTER ──────────────────────────
+ *
+ * Share of the laptop scroll length that About and Experience take on a
+ * portrait screen. The owner, 2026-09-14: "in phone the overall scroll
+ * animation is slow". Both sections are sized in lvh, so a 844px phone
+ * scrolled ~19 screens of choreography, and a thumb covers far less of it per
+ * swipe than a trackpad does. Only the scrubbed part scales: the 100vh
+ * hand-overs between sections are the sticky stage physically arriving and
+ * leaving and stay one screen. Every timeline inside is a fraction of its
+ * range, so the order and overlap of every beat is unchanged, it just takes
+ * less thumb.
+ *
+ * Portrait is `!isLandscape` below, the same split the spacer CSS uses.
+ */
+export const PORTRAIT_PACE = 0.6;
+
 export type MatchMediaConditions = {
   isMobile: boolean;
   isDesktop: boolean;

@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/sitemap", "destination": "/sitemap.xml" },
+    { "source": "/sitemap/", "destination": "/sitemap.xml" },
+    { "source": "/experience/:slug", "destination": "/experience/:slug.html" },
+    { "source": "/object/:slug", "destination": "/object/:slug.html" },
+    { "source": "/project/:slug", "destination": "/project/:slug.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

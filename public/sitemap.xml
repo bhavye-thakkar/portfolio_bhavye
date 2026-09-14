@@ -24,24 +24,31 @@
   <h1>, their own copy and their own canonical, not because they are 3D
   props. A prop that only opened a modal would have no URL to list and must
   not be given an invented one.
+
+  ALL of them are listed and indexable, the reserved project slot included
+  (owner, 2026-09-14: "index all my website"). Each one also has a static HTML
+  file of its own in the build (scripts/routePages.ts), so a crawler that does
+  not run JavaScript gets that page's title, canonical and text.
+
+  Also served at /sitemap (vite.config.ts, public/_redirects, vercel.json).
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://bhavyethakkar.netlify.app/</loc>
-    <lastmod>2026-08-28</lastmod>
+    <lastmod>2026-09-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
     <loc>https://bhavyethakkar.netlify.app/experience/notionmind</loc>
-    <lastmod>2026-08-28</lastmod>
+    <lastmod>2026-09-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://bhavyethakkar.netlify.app/experience/unispace</loc>
-    <lastmod>2026-08-28</lastmod>
+    <lastmod>2026-09-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -61,7 +68,7 @@
 
   <url>
     <loc>https://bhavyethakkar.netlify.app/project/garbacircle</loc>
-    <lastmod>2026-08-28</lastmod>
+    <lastmod>2026-09-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

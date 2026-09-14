@@ -20,6 +20,7 @@ import { isTransitioning } from "../../../composables/useProjectTransition";
 import { renderer } from "../../../three/core/renderer";
 import { experiences } from "../../../content/experience";
 import { sectionHeightVh } from "../../../animations/transitions/experience";
+import { aboutHeightVh } from "../../../animations/transitions/about";
 
 const introRef = ref<HTMLElement | null>(null);
 const stickyObserver = ref<IntersectionObserver | null>(null);
@@ -197,7 +198,12 @@ watch(isTransitioning, (active) => {
         </div>
         <Hero class="intro-hero" id="hero" />
         <div class="intro-wrapper-spacer"></div>
-        <div class="about-spacer" ref="aboutSpacerRef" id="about"></div>
+        <div
+          class="about-spacer"
+          ref="aboutSpacerRef"
+          id="about"
+          :style="{ '--span': aboutHeightVh(), '--span-landscape': aboutHeightVh(true) }"
+        ></div>
         <div
           class="experience-spacer"
           ref="experienceSpacerRef"
@@ -318,9 +324,16 @@ watch(isTransitioning, (active) => {
   }
 }
 
+/* Same pattern as the Experience spacer below: `aboutHeightVh` for both
+   orientations, switched by the timelines' own landscape query. */
 .about-spacer {
-  max-height: calc(var(--lvh) * 400);
-  min-height: calc(var(--lvh) * 400);
+  max-height: calc(var(--lvh) * var(--span));
+  min-height: calc(var(--lvh) * var(--span));
+
+  @media (min-aspect-ratio: 1) {
+    max-height: calc(var(--lvh) * var(--span-landscape));
+    min-height: calc(var(--lvh) * var(--span-landscape));
+  }
 }
 
 /* Height comes from `sectionHeightVh` so the spacer and the timeline are built

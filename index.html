@@ -14,12 +14,27 @@
       a crawler is told which copy is the original rather than being handed
       five identical sites to choose between.
     -->
-    <title>Bhavye Thakkar - AI Researcher</title>
+    <!--
+      ── BOTH SPELLINGS OF THE NAME ────────────────────────────────────────
+
+      The owner is searched for as "Bhavye" and as "Bhavya" (two of the
+      mirrors are bhavyathakkar.netlify.app and thakkarbhavya.netlify.app) and
+      asked for the site to come up for both (2026-09-14). The page itself
+      only ever writes "Bhavye", so the other spelling is stated where search
+      engines read a name: the title, the description, and `alternateName` in
+      the Person and WebSite schema below. It is one name transliterated two
+      ways, not a keyword, so it appears once per tag (and once in llms.txt).
+    -->
+    <title>Bhavye Thakkar (Bhavya Thakkar) - AI Researcher</title>
     <meta
       name="description"
-      content="Portfolio of Bhavye Thakkar, an AI Researcher. AI/ML, computer vision and data analytics work in Python and TensorFlow, and mobile apps built with Flutter."
+      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India. Portfolio of AI/ML, computer vision and data analytics work in Python and TensorFlow, and Flutter apps."
     />
-    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Bhavye Thakkar" />
+    <!-- Index everything, follow everything, and put no limit on how much of
+         a page (text, image preview, video) a search result may show. Every
+         route's static file copies this tag (scripts/routePages.ts). -->
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <link rel="canonical" href="https://bhavyethakkar.netlify.app/" />
 
     <!--
@@ -30,10 +45,10 @@
     -->
     <meta name="google-site-verification" content="ftyrrWQdem0RDC_u3KxgDZjlHom6hLwjGkLxm0YmwdM" />
 
-    <meta property="og:title" content="Bhavye Thakkar - AI Researcher" />
+    <meta property="og:title" content="Bhavye Thakkar (Bhavya Thakkar) - AI Researcher" />
     <meta
       property="og:description"
-      content="Portfolio of Bhavye Thakkar, an AI Researcher. AI/ML, computer vision and data analytics work in Python and TensorFlow, and mobile apps built with Flutter."
+      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India. Portfolio of AI/ML, computer vision and data analytics work in Python and TensorFlow, and Flutter apps."
     />
     <meta property="og:type" content="profile" />
     <meta property="og:url" content="https://bhavyethakkar.netlify.app/" />
@@ -45,10 +60,10 @@
     <meta property="profile:last_name" content="Thakkar" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Bhavye Thakkar - AI Researcher" />
+    <meta name="twitter:title" content="Bhavye Thakkar (Bhavya Thakkar) - AI Researcher" />
     <meta
       name="twitter:description"
-      content="Portfolio of Bhavye Thakkar, an AI Researcher. AI/ML, computer vision and data analytics work in Python and TensorFlow, and mobile apps built with Flutter."
+      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India. Portfolio of AI/ML, computer vision and data analytics work in Python and TensorFlow, and Flutter apps."
     />
     <meta name="twitter:image" content="https://bhavyethakkar.netlify.app/meta/twitter-image.webp" />
 
@@ -77,6 +92,7 @@
             "@type": "Person",
             "@id": "https://bhavyethakkar.netlify.app/#person",
             "name": "Bhavye Thakkar",
+            "alternateName": "Bhavya Thakkar",
             "givenName": "Bhavye",
             "familyName": "Thakkar",
             "url": "https://bhavyethakkar.netlify.app/",
@@ -172,7 +188,7 @@
             "@type": "ProfilePage",
             "@id": "https://bhavyethakkar.netlify.app/#webpage",
             "url": "https://bhavyethakkar.netlify.app/",
-            "name": "Bhavye Thakkar - AI Researcher",
+            "name": "Bhavye Thakkar (Bhavya Thakkar) - AI Researcher",
             "isPartOf": { "@id": "https://bhavyethakkar.netlify.app/#website" },
             "about": { "@id": "https://bhavyethakkar.netlify.app/#person" },
             "mainEntity": { "@id": "https://bhavyethakkar.netlify.app/#person" },
@@ -183,6 +199,7 @@
             "@id": "https://bhavyethakkar.netlify.app/#website",
             "url": "https://bhavyethakkar.netlify.app/",
             "name": "Bhavye Thakkar",
+            "alternateName": "Bhavya Thakkar",
             "publisher": { "@id": "https://bhavyethakkar.netlify.app/#person" },
             "inLanguage": "en"
           }
@@ -400,6 +417,7 @@
       <h2>Projects</h2>
       <ul>
         <li><a href="/project/garbacircle">Garba Circle</a>: Navratri and Garba app, the published case study</li>
+        <li><a href="/project/project-02">Project 02</a>: a reserved slot, case study coming soon</li>
       </ul>
 
       <h2>The room</h2>

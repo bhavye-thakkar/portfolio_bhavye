@@ -42,4 +42,4 @@ jobs:
 
       # A build that emits nothing still exits 0. This is the actual gate.
       - name: Check the bundle exists
-        run: test -f dist/index.html && test -f dist/sitemap.xml && test -f dist/robots.txt
+        run: test -f dist/index.html && test -f dist/sitemap.xml && test -f dist/robots.txt && test -f dist/project/garbacircle.html && test -f dist/404.html
