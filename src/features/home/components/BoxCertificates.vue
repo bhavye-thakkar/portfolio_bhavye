@@ -203,7 +203,6 @@ const setCardRef = (el: unknown, index: number) => {
               :src="certificate.image"
               :alt="`${certificate.organisation}, ${certificate.name}`"
               loading="lazy"
-              decoding="async"
             />
           </div>
           <!-- Not the shared accent button any more: that variant is filled
@@ -247,7 +246,6 @@ const setCardRef = (el: unknown, index: number) => {
               :src="certificate.image"
               :alt="`${certificate.organisation}, ${certificate.name}`"
               loading="lazy"
-              decoding="async"
             />
           </div>
           <!-- Not the shared accent button any more: that variant is filled

@@ -60,16 +60,25 @@ onBeforeUnmount(() => observer?.disconnect());
  * Scrubbed on the page scroll (Lenis already smooths it), so the media arrives
  * at the speed the visitor is reading rather than on a timer:
  *
- *   · the frame opens from a slightly inset clip to its full rectangle and
- *     grows from 94% as it comes up the screen. It has finished by the time
- *     its top is a little above the middle, so it is always full size while
- *     it is actually being looked at;
+ *   · the frame grows from 90% as it comes up the screen. It has finished by
+ *     the time its top is a little above the middle, so it is always full
+ *     size while it is actually being looked at;
  *   · inside it the picture drifts from 5% below to 5% above over the whole
  *     pass, scaled 1.12 so the drift never shows an edge. The difference in
  *     speed between the frame and the picture is the depth;
  *   · leaving, the frame gives back 3% as it goes off the top.
  *
- * clip-path and transform only: no layout, and no filters over video.
+ * ── TRANSFORM ONLY, ON LAYERS THAT STAY PUT ────────────────────────────────
+ *
+ * The owner saw these pictures and clips flicker (2026-09-16). The frame used
+ * to open with an animated `clip-path` too, and a clip-path is repainted on the
+ * main thread every scroll frame, around a playing video that the compositor
+ * then has to re-clip. GSAP also swapped each element between a 3D transform
+ * (its own GPU layer) and a 2D one (painted into the page) whenever a tween
+ * reached either end, which throws the layer away and rasterises it again.
+ * Now the rounded frame is a static CSS clip, only `transform` moves,
+ * `force3D: true` keeps the 3D form throughout, and the CSS below pins
+ * `will-change` so the layers exist for the life of the page.
  */
 useScrollMotion(wrapperRef, (wrapper) => {
   const frame = mediaContentRef.value;
@@ -78,11 +87,11 @@ useScrollMotion(wrapperRef, (wrapper) => {
 
   gsap.fromTo(
     frame,
-    { clipPath: "inset(7% 5% 7% 5% round 28px)", scale: 0.94 },
+    { scale: 0.9 },
     {
-      clipPath: "inset(0% 0% 0% 0% round 16px)",
       scale: 1,
       ease: "none",
+      force3D: true,
       scrollTrigger: { trigger: wrapper, start: "top bottom", end: "top 42%", scrub: true },
     },
   );
@@ -93,12 +102,14 @@ useScrollMotion(wrapperRef, (wrapper) => {
       yPercent: -5,
       scale: 1.12,
       ease: "none",
+      force3D: true,
       scrollTrigger: { trigger: wrapper, start: "top bottom", end: "bottom top", scrub: true },
     },
   );
   gsap.to(frame, {
     scale: 0.97,
     ease: "none",
+    force3D: true,
     immediateRender: false,
     scrollTrigger: { trigger: wrapper, start: "bottom 35%", end: "bottom top", scrub: true },
   });
@@ -117,7 +128,6 @@ useScrollMotion(wrapperRef, (wrapper) => {
         :src="props.src"
         :alt="props.alt"
         loading="lazy"
-        decoding="async"
         class="project-media-image"
         ref="mediaRef"
       />
@@ -209,12 +219,16 @@ useScrollMotion(wrapperRef, (wrapper) => {
     }
   }
 
+  /* Layers for the life of the page, see "TRANSFORM ONLY" in the script. No
+     `decoding="async"` on the image either: with it, a picture that moves on
+     its own layer can paint one empty frame before its decode lands. */
   &-image,
   &-video {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    will-change: transform;
   }
 
   &-focus {
@@ -235,6 +249,7 @@ useScrollMotion(wrapperRef, (wrapper) => {
     background-color: var(--color-beige-500);
     width: 100%;
     height: 100%;
+    will-change: transform;
   }
 }
 </style>

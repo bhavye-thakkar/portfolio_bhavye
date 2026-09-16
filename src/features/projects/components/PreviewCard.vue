@@ -88,7 +88,6 @@ onUnmounted(() => {
             :src="props.preview.thumbnail"
             :alt="props.preview.title"
             loading="lazy"
-            decoding="async"
             class="preview-card-image"
             ref="imageRef"
           />
