@@ -14,6 +14,8 @@ export interface ProjectContent {
   live?: string;
   /** application build (store page, APK, TestFlight…), shown as its own button */
   app?: string;
+  /** an Android package to download, a path under public/downloads, shown as a download button */
+  apk?: string;
   source?: string;
   components?: ProjectComponent[];
 }

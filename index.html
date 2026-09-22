@@ -21,11 +21,13 @@
       mirrors are bhavyathakkar.netlify.app and thakkarbhavya.netlify.app) and
       asked for the site to come up for both (2026-09-14). The page itself
       only ever writes "Bhavye", so the other spelling is stated where search
-      engines read a name: the title, the description, and `alternateName` in
-      the Person and WebSite schema below. It is one name transliterated two
-      ways, not a keyword, so it appears once per tag (and once in llms.txt).
+      engines read a name: the description, the share-card titles, and
+      `alternateName` in the Person and WebSite schema below. It is one name
+      transliterated two ways, not a keyword, so it appears once per tag (and
+      once in llms.txt). NOT in <title>: that is the browser tab, and the owner
+      wants the tab to read "Bhavye" alone (2026-09-18).
     -->
-    <title>Bhavye Thakkar (Bhavya Thakkar) - AI Researcher</title>
+    <title>Bhavye Thakkar - AI Researcher</title>
     <meta
       name="description"
       content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India. Portfolio of AI/ML, computer vision and data analytics work in Python and TensorFlow, and Flutter apps."
@@ -188,7 +190,7 @@
             "@type": "ProfilePage",
             "@id": "https://bhavyethakkar.netlify.app/#webpage",
             "url": "https://bhavyethakkar.netlify.app/",
-            "name": "Bhavye Thakkar (Bhavya Thakkar) - AI Researcher",
+            "name": "Bhavye Thakkar - AI Researcher",
             "isPartOf": { "@id": "https://bhavyethakkar.netlify.app/#website" },
             "about": { "@id": "https://bhavyethakkar.netlify.app/#person" },
             "mainEntity": { "@id": "https://bhavyethakkar.netlify.app/#person" },
@@ -244,9 +246,47 @@
       the literal for the first paint, then the token, which wins the moment
       colors.scss lands. Keep these values in step with:
         --color-beige-400 / --color-text-400   src/assets/styles/colors.scss
-        --z-index-preloader / --ease-power2-in src/assets/styles/variables.scss
+        --z-index-preloader                    src/assets/styles/variables.scss
+
+      ── THE CHOREOGRAPHY ──────────────────────────────────────────────────
+
+      The avatar walks in from the left pushing a dark door, pushes it right
+      across the screen and off it, walking off after it, and the name is
+      left alone. Then the page wipes away from the top to reveal Home.
+      usePreloader.ts runs it as one state machine:
+
+        shut    The door waits for him (.preloader-nudge breathes a sliver of
+                light at its edge if that takes a while). Dark, as the
+                reference is for its first half second.
+        push    .preloader-arrive. The door is ONE linear animation, created by
+                usePreloader.ts, from shut to off the far edge, at about 40% of
+                the screen a second: the reference's pace. He rides its edge
+                with his hands on it, and his legs follow the distance it has
+                moved (loader-avatar.ts), so nothing slides. It never pauses:
+                on a slow connection he walks off and the name waits alone.
+                It used to run on CSS timings of its own (a 0.5s shove and
+                four heaves), which dragged him eleven strides per step, and
+                then at a 2-steps-a-second stroll with a stop beside the name,
+                which read as sluggish and unfinished.
+        boot    Once he is off the screen and the assets are in, Home's 3D
+                scene boots: its long tasks land on the still name.
+        exit    .preloader-exit, the wipe, once the room's first frame exists.
+
+      Every moving part is transform or opacity, so the compositor runs it.
     -->
     <style>
+      /* The display face for the name, under its own family name so it cannot
+         touch the site's own faces in fonts.scss. Same file, already preloaded
+         above, so it costs no second request. `block`: the door covers the
+         name for its first half second, a fallback face would only be seen
+         being swapped out. */
+      @font-face {
+        font-family: "Urbanist Preloader";
+        src: url(/fonts/urbanist-900.woff2) format("woff2");
+        font-weight: 900;
+        font-display: block;
+      }
+
       .is-loading {
         overscroll-behavior: none;
         position: fixed;
@@ -255,6 +295,9 @@
       }
 
       .preloader {
+        --preloader-avatar: min(42vh, 60vw);
+        --preloader-ease-wipe: cubic-bezier(0.76, 0, 0.24, 1);
+        --preloader-ease-give: cubic-bezier(0.32, 0, 0.67, 0);
         position: fixed;
         z-index: 100;
         z-index: var(--z-index-preloader, 100);
@@ -262,47 +305,185 @@
         left: 0;
         width: 100%;
         height: 100%;
+        overflow: hidden;
         background-color: #f5efe6;
         background-color: var(--color-beige-400, #f5efe6);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        transition: opacity 0.3s ease-in-out;
+        transition: transform 0.6s var(--preloader-ease-wipe);
+      }
+
+      /* The wipe is two opposite moves: the window slides down while the stage
+         inside it slides up by the same amount, so the name stays put and a
+         straight edge travels down over it. Two transforms instead of an
+         animated clip-path, which Chrome still paints on the main thread. */
+      .preloader-stage,
+      .preloader-curtain,
+      .preloader-nudge,
+      .preloader-door {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .preloader-stage {
+        transition: transform 0.6s var(--preloader-ease-wipe);
+      }
+
+      .preloader-exit {
+        transform: translateY(100%);
+        pointer-events: none;
+      }
+
+      .preloader-exit .preloader-stage {
+        transform: translateY(-100%);
+      }
+
+      .preloader-name {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin: 0;
+        transform: translate(-50%, -50%);
+        color: #2d2a24;
+        color: var(--color-text-400, #2d2a24);
+        font-family: "Urbanist Preloader", sans-serif;
+        font-weight: 900;
+        font-size: clamp(52px, min(11vw, 14vh), 120px);
+        line-height: 1.09;
+        letter-spacing: 0.02em;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      /* While the door is still waiting for him: someone is at it. A sliver of
+         light at its edge, opening and closing, so a wait that runs past half a
+         second (a slow connection, the unbundled dev server) never looks like
+         a dead black page. Its delay keeps it off a fast load entirely, and it
+         is frozen where it stands the moment he arrives. */
+      .preloader-nudge {
+        animation: preloader-nudge 1.5s cubic-bezier(0.45, 0, 0.55, 1) 0.7s infinite;
+      }
+
+      .preloader-arrive .preloader-nudge {
+        animation-play-state: paused;
+      }
+
+      .preloader-door {
+        background-color: #2d2a24;
+        background-color: var(--color-text-400, #2d2a24);
+      }
+
+      /* Rides the door's left edge, inside the nudge so the two never part.
+         The canvas overlaps the door by 6% of its width (0.054 of 0.9): his
+         hands are framed to end 1% past the door's edge (loader-avatar.ts,
+         PALMS_AT), pressing on it, so no rounding can open a gap between them. */
+      .preloader-walker {
+        position: absolute;
+        right: calc(100% - var(--preloader-avatar) * 0.054);
+        bottom: calc(50% - var(--preloader-avatar) * 0.56);
+        width: calc(var(--preloader-avatar) * 0.9);
+        height: var(--preloader-avatar);
+      }
+
+      /* The 3D avatar, drawn by src/three/loader-avatar.ts into this canvas.
+         Hidden until his first frame exists (.preloader-live). No fade: the
+         door waits for him, so he is off-screen at that moment and walks in
+         solid. A translucent 3D body reads as a glitch, not an entrance. Only
+         when the wait ran out and the door left without him (.preloader-late)
+         does he have to appear in plain sight, and then he fades. */
+      .preloader-avatar {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+      }
+
+      .preloader-live .preloader-avatar {
         opacity: 1;
       }
 
-      .preloader-svg {
-        width: 120px;
-        height: 120px;
-        transition:
-          transform 0.2s var(--ease-power2-in, cubic-bezier(0.165, 0.84, 0.44, 1)),
-          opacity 0.2s var(--ease-power2-in, cubic-bezier(0.165, 0.84, 0.44, 1));
+      .preloader-late .preloader-avatar {
+        transition: opacity 0.3s ease-out;
       }
 
-      .preloader-rect {
-        transform-origin: bottom center;
-        transition: transform 0.3s ease-in-out;
+      /* A soft pool of shadow under his feet, so he stands on the floor
+         instead of floating in front of it. */
+      .preloader-avatar::after {
+        content: "";
+        position: absolute;
+        left: 8%;
+        right: 24%;
+        bottom: -2.5%;
+        height: 6%;
+        background: radial-gradient(ellipse at center, rgba(45, 42, 36, 0.22) 0%, rgba(45, 42, 36, 0) 68%);
       }
 
-      .preloader-path {
-        fill: #2d2a24;
-        fill: var(--color-text-400, #2d2a24);
+      .preloader-avatar canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
       }
 
-      .preloader-hidden {
-        opacity: 0;
-        pointer-events: none !important;
+      /* No WebGL: the canvas is swapped for a sheet of his pre-rendered frames,
+         one frame's worth of it shown at a time (loader-avatar.ts, mountSheet). */
+      .preloader-sheet {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
       }
 
-      .preloader-hidden * {
-        pointer-events: none !important;
+      .preloader-sheet img {
+        display: block;
+        max-width: none;
       }
 
-      .preloader-hidden svg {
-        transform: scale(0.4);
-        opacity: 0;
+      /* Portrait has no room beside the name, and plenty above and below it:
+         the name goes up and he walks underneath it. */
+      @media (orientation: portrait) {
+        .preloader-name {
+          top: 33%;
+        }
+
+        .preloader-walker {
+          bottom: 21%;
+        }
+      }
+
+      @keyframes preloader-nudge {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        50% {
+          transform: translateX(1.1%);
+        }
+      }
+
+      /* No door, no walk: the name is simply there, and leaves with a fade. */
+      @media (prefers-reduced-motion: reduce) {
+        .preloader-curtain {
+          display: none;
+        }
+
+        .preloader,
+        .preloader-stage {
+          transition: opacity 0.4s ease;
+        }
+
+        .preloader-exit {
+          opacity: 0;
+        }
+
+        .preloader-exit,
+        .preloader-exit .preloader-stage {
+          transform: none;
+        }
       }
     </style>
+    <!-- Without JS nothing ever takes the loader down, and it would sit over
+         the text fallback below for good. -->
+    <noscript><style>.preloader { display: none; }</style></noscript>
   </head>
   <body class="is-loading">
     <svg style="display: none" viewBox="0 0 56 61" xmlns="http://www.w3.org/2000/svg">
@@ -446,16 +627,19 @@
       <p><a href="/llms.txt">Machine-readable summary of this portfolio</a></p>
     </main>
     </noscript>
-    <div class="preloader">
-      <svg class="preloader-svg" viewBox="0 0 56 61" xmlns="http://www.w3.org/2000/svg">
-        <mask id="preloader-mask">
-          <rect fill="black" height="61" width="61"></rect>
-          <rect fill="white" height="61" width="61" class="preloader-rect" style="transform: scaleY(0)"></rect>
-        </mask>
-
-        <use href="#logo-path" class="preloader-path" opacity="0.3"></use>
-        <use href="#logo-path" class="preloader-path" mask="url(#preloader-mask)"></use>
-      </svg>
+    <!-- Decorative: the page underneath carries the same name as its h1. -->
+    <div class="preloader" aria-hidden="true">
+      <div class="preloader-stage">
+        <p class="preloader-name">Bhavye<br />Thakkar</p>
+        <div class="preloader-curtain">
+          <div class="preloader-nudge">
+            <div class="preloader-door"></div>
+            <div class="preloader-walker">
+              <div class="preloader-avatar"><canvas></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- QA-SHIM temporary, remove before ship -->
     <script>

@@ -9,6 +9,38 @@ import { threeSizes } from "../utils/sizes";
 
 import type { Camera, Object3D, Scene } from "three";
 
+/**
+ * False when the browser will not hand out a WebGL2 context: hardware
+ * acceleration switched off, a policy, a blocklisted GPU, or, as measured on
+ * the owner's own Chrome, the browser disabling its GPU for the rest of the
+ * session after the GPU process crashed twice (the system disk was full).
+ * Current Chrome has no software fallback, so `new WebGLRenderer` just throws.
+ * Everything that needs a context asks this first: the scene boot in
+ * three/index.ts, the loader's avatar and its first-frame wait in
+ * usePreloader.ts, and NoWebgl.vue, which tells the visitor why.
+ *
+ * `webglSoftware` is the middle case: a context is granted but drawn on the
+ * CPU (Windows hands Chrome the "Microsoft Basic Render Driver" when the GPU
+ * is off, elsewhere it is SwiftShader or llvmpipe). Everything works, slowly,
+ * and shader compiles stall the whole compositor; see `bootNow` in
+ * three/index.ts for what that does to the loader.
+ */
+const probe = () => {
+  try {
+    const gl = document.createElement("canvas").getContext("webgl2");
+    if (!gl) return { available: false, software: false };
+    const info = gl.getExtension("WEBGL_debug_renderer_info");
+    const name = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+    // hand the probe's context straight back, browsers only allow a few
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    return { available: true, software: /swiftshader|basic render|llvmpipe|softpipe|software/i.test(name) };
+  } catch {
+    return { available: false, software: false };
+  }
+};
+
+export const { available: webglAvailable, software: webglSoftware } = probe();
+
 let instance: WebGLRenderer | null = null;
 let canvas: HTMLCanvasElement | null = null;
 let visible = true;

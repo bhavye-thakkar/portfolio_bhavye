@@ -10,7 +10,7 @@ import { ref, onMounted, onUnmounted, watchEffect, computed, watch } from "vue";
 import { three } from "../../../three";
 import { animations } from "../../../animations";
 import HeaderHome from "../../../components/HeaderHome.vue";
-import { preloaderVisible } from "../../../composables/usePreloader";
+import { preloaderLoaded, preloaderVisible } from "../../../composables/usePreloader";
 import ScrollIcon from "../../../components/ScrollIcon.vue";
 import { raycast } from "../../../three/utils/raycast";
 import gsap from "gsap";
@@ -117,7 +117,9 @@ watchEffect((onInvalidate) => {
     projectsLoaded &&
     threeInitialized &&
     //(projectId.value === null || isTransitioning.value) &&
-    !preloaderVisible.value
+    // Under the loader, not after it: the first render links the hero's
+    // shaders, and the loader holds until that frame exists.
+    preloaderLoaded.value
   ) {
     animations.init();
   }

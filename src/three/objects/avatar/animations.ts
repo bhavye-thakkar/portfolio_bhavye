@@ -9,12 +9,13 @@ import { sleepingSprite } from "../contact/sleeping-sprite";
 import { playSound } from "../../../features/sounds/utils/sounds";
 import { isFeatureEnabled } from "../../../utils/features";
 import { stopSnoreRepetition } from "../../../features/sounds/core/contact";
-import { createWalkClip } from "./walk-clip";
+import { createGaitClip } from "./gait";
 import { goodbye } from "./goodbye";
 
 import type { AnimationClip, Object3D } from "three";
 
 let mixer: AnimationMixer;
+let walkStride = 0;
 let activeAction: string | null = null;
 const actions = new Map<string, AnimationAction>();
 let isAwake = false;
@@ -85,13 +86,29 @@ const setupActions = () => {
   wave.clampWhenFinished = true;
   wave.loop = LoopOnce;
   actions.set("wave", wave);
+};
 
-  //walk, authored from t-idle's standing pose, the rig ships no walk clip
-  const walk = mixer.clipAction(createWalkClip(getActionFromMesh("t-idle")));
-  walk.loop = LoopRepeat;
-  actions.set("walk", walk);
-  walk.weight = 0;
-  walk.play();
+/**
+ * The goodbye's walk-away, built the first time it is asked for: the rig ships
+ * no walk clip, the goodbye is switched off (transitions/contact.ts), and a clip
+ * nobody plays is not worth building on every visit. Must be called with the
+ * avatar standing where he will walk from: the gait is authored in world space.
+ * Returns the ground one cycle covers, in world units, so the caller can move
+ * him at exactly the speed his feet do.
+ */
+const ensureWalk = (cycleSeconds: number) => {
+  if (!walkStride) {
+    const gait = createGaitClip(avatar.getMesh() as Object3D, getActionFromMesh("t-idle"), { lean: 0.04 });
+    const walk = mixer.clipAction(gait.clip);
+    walk.loop = LoopRepeat;
+    // the clip is one second a cycle, see gait.ts
+    walk.timeScale = 1 / cycleSeconds;
+    walk.weight = 0;
+    walk.play();
+    actions.set("walk", walk);
+    walkStride = gait.stride;
+  }
+  return walkStride;
 };
 
 const setupHologramActions = () => {
@@ -242,4 +259,4 @@ const update = () => {
   hologramMixer.update(delta / 60);
 };
 
-export const animations = { init, play, actions, update, wakeUp, getIsAwake: () => isAwake, wave };
+export const animations = { init, play, actions, update, wakeUp, getIsAwake: () => isAwake, wave, ensureWalk };

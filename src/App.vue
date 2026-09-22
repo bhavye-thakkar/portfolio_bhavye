@@ -20,6 +20,7 @@ import CvPrompt from "./features/cv/components/CvPrompt.vue";
 import { cvReading } from "./features/cv/state";
 import ProjectBackground from "./features/projects/components/ProjectBackground.vue";
 import { useClickSound } from "./features/sounds/composables/useClickSounds";
+import { webglAvailable } from "./three/core/renderer";
 //import { useHoverSound } from "./features/sounds/composables/useHoverSounds";
 
 import { experienceClosing, projectClosing } from "./composables/useProjectTransition";
@@ -30,6 +31,7 @@ import { experienceClosing, projectClosing } from "./composables/useProjectTrans
 // 3D stage's transitions from their watchers.
 const NotFound = defineAsyncComponent(() => import("./components/NotFound.vue"));
 const CvPanel = defineAsyncComponent(() => import("./features/cv/components/CvPanel.vue"));
+const NoWebgl = defineAsyncComponent(() => import("./components/NoWebgl.vue"));
 
 const { isTransitioning } = useProjectTransition();
 
@@ -52,6 +54,9 @@ const { isTouch } = useAgent();
        chrome competing with the one thing the visitor opened. The panel carries
        its own back link, Escape closes it, and so does the browser's own Back. -->
   <Header v-if="objectId === null" />
+
+  <!-- Only ever mounted in a browser that refuses a WebGL context. -->
+  <NoWebgl v-if="!webglAvailable" />
 
   <!-- Experience story stage. Home teleports its live three canvas in here
        while the story is open, so the avatar on the story page is the same

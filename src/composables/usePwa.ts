@@ -59,7 +59,7 @@ const warmCache = () => {
     const urls = performance
       .getEntriesByType("resource")
       .map((entry) => entry.name)
-      .filter((url) => url.startsWith(location.origin));
+      .filter((url) => url.startsWith(location.origin) && !url.includes("/downloads/"));
 
     caches
       .open("portfolio-v1")

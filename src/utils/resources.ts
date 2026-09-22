@@ -9,6 +9,17 @@ import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 const isProd = import.meta.env.PROD;
 
+/** Keep in step with NEEDS in three/loader-avatar.ts. */
+const AVATAR_FIRST = new Set([
+  "avatar-model",
+  "matcap-black",
+  "matcap-gray",
+  "matcap-skin",
+  "matcap-white",
+  "head-texture",
+  "face-texture",
+]);
+
 type ResourceType = Texture | GLTF;
 
 class Resources extends EventEmitter<{
@@ -36,20 +47,48 @@ class Resources extends EventEmitter<{
     };
   }
 
+  /**
+   * Two waves rather than nineteen requests at once: the loader's avatar (see
+   * three/loader-avatar.ts) needs his model and six textures, and with every
+   * request sharing the bandwidth those were finishing alongside everything
+   * else, so he only ever appeared as the door was already giving way. His
+   * files go first and the rest wait for ALL of them: starting the rest as
+   * soon as his small textures were in put twelve requests alongside his
+   * model's tail and, on 4G, he still arrived after the last asset.
+   */
   startLoading() {
     if (this.isReady) return;
 
-    for (const source of sources) {
-      if (source.type === "gltfModel") {
-        this.loaders.gltfLoader.load(source.path, (file) => {
-          this.sourceLoaded(source, file);
-        });
-      } else if (source.type === "texture") {
-        this.loaders.textureLoader.load(source.path, (file: Texture) => {
-          file.colorSpace = SRGBColorSpace;
-          this.sourceLoaded(source, file);
-        });
-      }
+    const first = sources.filter((source) => AVATAR_FIRST.has(source.name));
+    const rest = sources.filter((source) => !AVATAR_FIRST.has(source.name));
+    let pending = first.length;
+    let restStarted = false;
+    const startRest = () => {
+      if (restStarted) return;
+      restStarted = true;
+      rest.forEach((source) => this.loadSource(source));
+    };
+
+    first.forEach((source) =>
+      this.loadSource(source, () => {
+        if (--pending === 0) startRest();
+      }),
+    );
+    if (!first.length) startRest();
+  }
+
+  loadSource(source: (typeof sources)[number], then?: () => void) {
+    if (source.type === "gltfModel") {
+      this.loaders.gltfLoader.load(source.path, (file) => {
+        this.sourceLoaded(source, file);
+        then?.();
+      });
+    } else if (source.type === "texture") {
+      this.loaders.textureLoader.load(source.path, (file: Texture) => {
+        file.colorSpace = SRGBColorSpace;
+        this.sourceLoaded(source, file);
+        then?.();
+      });
     }
   }
 

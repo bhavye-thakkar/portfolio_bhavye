@@ -3,6 +3,7 @@ import Tag from "../../../components/Tag.vue";
 import Button from "../../../components/Button.vue";
 import { t } from "../../../i18n/utils/translate";
 import Link from "../../../components/Link.vue";
+import Download from "../../../components/icons/Download.vue";
 import { projectId } from "../../../composables/useRouteObserver";
 import { ref, watch } from "vue";
 
@@ -44,6 +45,19 @@ watch(projectId, () => {
           t("live-view-app")
         }}</Button>
       </Link>
+      <!-- A plain anchor, not Link: `download` must not open a tab, and the
+           router must not try to route to a file. -->
+      <a v-if="content.apk" :href="content.apk" download class="project-hero-button" data-cursor="arrow-external">
+        <Button
+          renderAs="div"
+          variant="border"
+          class="children-unclickable project-hero-download"
+          data-hoversound="hover"
+        >
+          <Download class="project-hero-download-icon" />
+          {{ t("download-android") }}
+        </Button>
+      </a>
       <Link
         v-if="content.source"
         :href="content.source"
@@ -74,6 +88,17 @@ watch(projectId, () => {
 
     @include mixins.mq("md") {
       width: fit-content;
+    }
+  }
+
+  &-download {
+    gap: var(--space-xs);
+
+    &-icon {
+      --icon-color: currentColor;
+      flex: none;
+      width: var(--icon-size-xs);
+      height: var(--icon-size-xs);
     }
   }
 

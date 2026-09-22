@@ -36,11 +36,14 @@ export default {
   tags: ["flutter", "node", "postgresql"],
   videoBorder: false,
   // ─── LINKS ──────────────────────────────────────────────────────────────
-  // `live` is the website, `app` is the application build. The app is still on
-  // pre-register, so there is no store page yet, drop the Play/App Store URL
-  // into `app` and its button appears next to Live View.
+  // `live` is the website, `app` is a store page, `apk` the Android build to
+  // download. There is no store page yet, so the APK is offered directly: the
+  // same file garbacircle.in serves (copied from that site's repo, 2026-09-22),
+  // hosted here under public/downloads so the button works without the other
+  // site. Drop the Play Store URL into `app` when there is one.
   live: "https://garbacircle.in",
   app: "",
+  apk: "/downloads/garba-circle.apk",
   description:
     "The search ends. The ultimate garba app.<br/><br/>From your city to the garba floor. Discover major garba grounds, build your team, compete, and earn your place as a Garba champion, all from one beautiful app.",
   components: [

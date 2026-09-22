@@ -55,7 +55,7 @@ const setup = (contact: HTMLElement) => {
   // contact scene facing the visitor. `goodbye.state` stays at its defaults, so
   // avatar/index.ts and contact/shadow.ts read zeroes and behave as they did
   // before it existed.
-  // ponytail: one call rather than unpicking goodbye/walk-clip/figure-shadow -
+  // ponytail: one call rather than unpicking goodbye/gait/figure-shadow -
   // re-enable by restoring this line; delete those three modules to be rid of it.
   void setupGoodbye;
 };
@@ -75,7 +75,10 @@ const setupGoodbye = (contact: HTMLElement) => {
       return;
     }
 
-    goodbye.init(document.querySelector<HTMLCanvasElement>("canvas.three-canvas"));
+    goodbye.init(
+      document.querySelector<HTMLCanvasElement>("canvas.three-canvas"),
+      avatarAnimations.ensureWalk(goodbye.CYCLE_S),
+    );
 
     const trigger = ScrollTrigger.create({
       trigger: contact,

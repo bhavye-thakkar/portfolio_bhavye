@@ -103,6 +103,9 @@ self.addEventListener("activate", (event) => {
 /** Store a copy, but never a redirect, an error or an opaque cross-origin body. */
 const put = async (request, response) => {
   if (!response || !response.ok || response.type !== "basic") return response;
+  // The APK under /downloads is 26 MB and downloaded once on purpose; a copy in
+  // the offline cache would be a copy nobody asked for.
+  if (new URL(request.url).pathname.startsWith("/downloads/")) return response;
   const cache = await caches.open(VERSION);
   cache.put(request, response.clone());
   return response;

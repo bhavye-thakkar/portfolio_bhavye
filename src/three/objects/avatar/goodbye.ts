@@ -1,7 +1,5 @@
 import gsap from "gsap";
 
-import { WALK_DURATION, walkSpeed } from "./walk-clip";
-
 /**
  * The closing beat of the site: the avatar is standing in the contact scene
  * facing the visitor, then turns and walks off into the distance while the scene
@@ -13,13 +11,16 @@ import { WALK_DURATION, walkSpeed } from "./walk-clip";
  * the mobile ending keeps its current behaviour.
  */
 
-/** roughly hip height to sole, in scene units, sets the stride/speed match */
-const LEG_LENGTH = 3;
 /** how far he gets before the fade has finished; the floor plane runs well past this */
 const DISTANCE = 12.4;
-
-const SPEED = walkSpeed(LEG_LENGTH);
-const WALK_TIME = DISTANCE / SPEED;
+/** seconds per walk cycle (two steps): an unhurried walk-away */
+const CYCLE_S = 1.25;
+/**
+ * Ground covered per cycle, in scene units, handed in by whoever builds the
+ * walk (`animations.ensureWalk`): moving him at stride / cycle is what keeps
+ * his feet from skating. Until then, a number that gives a sane duration.
+ */
+let stride = 4;
 
 export const state = {
   /** extra yaw on top of the contact rotation: 0 faces the visitor, PI faces away */
@@ -67,16 +68,18 @@ const build = () => {
   tl.to(state, { shadow: 1, duration: 0.4, ease: "none" }, "turn+=0.7");
 
   // 3. walk away at the speed the stride was built for, so the feet do not skate
-  tl.to(state, { distance: DISTANCE, duration: WALK_TIME, ease: "none" }, "turn+=1.1");
+  const walkTime = DISTANCE / (stride / CYCLE_S);
+  tl.to(state, { distance: DISTANCE, duration: walkTime, ease: "none" }, "turn+=1.1");
 
   // 4. the scene dissolves into the page behind it once he is well away
-  tl.to(state, { fade: 0, duration: WALK_TIME * 0.45, ease: "power1.in" }, `turn+=${1.1 + WALK_TIME * 0.55}`);
+  tl.to(state, { fade: 0, duration: walkTime * 0.45, ease: "power1.in" }, `turn+=${1.1 + walkTime * 0.55}`);
 
   return tl;
 };
 
-const init = (element: HTMLCanvasElement | null) => {
+const init = (element: HTMLCanvasElement | null, walkStride: number) => {
   canvas = element;
+  stride = walkStride;
 };
 
 /**
@@ -108,4 +111,4 @@ const destroy = () => {
   reset();
 };
 
-export const goodbye = { init, play, rewind, destroy, state, reset, clearFade, WALK_DURATION };
+export const goodbye = { init, play, rewind, destroy, state, reset, clearFade, CYCLE_S };
