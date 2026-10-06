@@ -29,7 +29,23 @@ import type { Plugin } from "vite";
  * for the hosts to answer an unknown slug with a real 404 status.
  */
 
-type Meta = { title: string; description: string; url: string; breadcrumb?: { name: string; url: string }[] };
+type Meta = {
+  title: string;
+  description: string;
+  url: string;
+  breadcrumb?: { name: string; url: string }[];
+  jsonLd?: Record<string, unknown>;
+};
+type Book = {
+  slug: string;
+  title: string;
+  author: string;
+  year: string;
+  pages: number;
+  series?: { name: string; volume: number; of?: number };
+  description: string;
+  personalNote: string | null;
+};
 type Chapter = { label: string; headline: string; body: string[]; meta?: string };
 type Component = { type: string; props: Record<string, any> };
 type Route =
@@ -49,7 +65,9 @@ type Route =
       preview: { title: string; description: string };
       content?: { title: string; description?: string; live?: string; app?: string; components?: Component[] };
       tags: string[];
-    };
+    }
+  | { kind: "library"; meta: Meta; shelves: { title: string; books: string[] }[]; books: Book[] }
+  | { kind: "book"; meta: Meta; book: Book; shelf?: { title: string } };
 
 const ENTITIES: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
 const escape = (value: string) => value.replace(/[&<>"]/g, (char) => ENTITIES[char]!);
@@ -104,6 +122,30 @@ const body = (route: Route) => {
         `<p><strong>${escape(entry.statement)}</strong></p>`,
         paragraphs(entry.body),
         `<dl>${entry.facts.map((fact) => `<dt>${escape(fact.label)}</dt><dd>${escape(fact.value)}</dd>`).join("")}</dl>`,
+      );
+    }
+    case "library": {
+      const bySlug = new Map(route.books.map((book) => [book.slug, book]));
+      const line = (book: Book) =>
+        `<li><a href="/library/${book.slug}">${escape(book.title)}</a>, ${escape(book.author)}, ${escape(book.year)}${
+          book.series ? ` (${escape(book.series.name)}, book ${book.series.volume}${book.series.of ? ` of ${book.series.of}` : ""})` : ""
+        }</li>`;
+      return lines(
+        `<h1>Library</h1>`,
+        `<p>A personal reading archive: ${route.books.length} books on one shelf, in ${route.shelves.length} groups, each with a page of its own.</p>`,
+        ...route.shelves.map((shelf) =>
+          lines(`<h2>${escape(shelf.title)}</h2>`, `<ul>${shelf.books.map((slug) => bySlug.get(slug)).filter((book): book is Book => !!book).map(line).join("")}</ul>`),
+        ),
+      );
+    }
+    case "book": {
+      const { book, shelf } = route;
+      return lines(
+        `<h1>${escape(book.title)}</h1>`,
+        `<p>${escape(book.author)}, ${escape(book.year)}${book.series ? `. ${escape(book.series.name)}, book ${book.series.volume}${book.series.of ? ` of ${book.series.of}` : ""}` : ""}</p>`,
+        `<p>${escape(book.description)}</p>`,
+        `<p>About ${book.pages} pages.${shelf ? ` Group: ${escape(shelf.title)}, in <a href="/library">the library</a>.` : ""}</p>`,
+        book.personalNote ? `<p>${escape(book.personalNote)}</p>` : undefined,
       );
     }
     case "project": {
@@ -202,6 +244,9 @@ export const routePages = (): Plugin => {
             itemListElement: breadcrumb.map((crumb, i) => ({ "@type": "ListItem", position: i + 1, name: crumb.name, item: crumb.url })),
           };
           html = replace(html, /<\/head>/, `    <script type="application/ld+json" id="route-breadcrumb">${json(crumbs)}</script>\n  </head>`);
+        }
+        if (route.meta.jsonLd) {
+          html = replace(html, /<\/head>/, `    <script type="application/ld+json" id="route-jsonld">${json(route.meta.jsonLd)}</script>\n  </head>`);
         }
         html = replace(
           html,

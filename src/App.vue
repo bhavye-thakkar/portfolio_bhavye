@@ -13,9 +13,21 @@ import Home from "./features/home/components/Home.vue";
 import Project from "./features/projects/components/Project.vue";
 import { useProjectTransition } from "./composables/useProjectTransition";
 import { useScroll } from "./composables/useScroll";
-import { projectVisible, experienceId, experienceVisible, objectId, objectVisible, notFound } from "./composables/useRouteObserver";
+import {
+  projectVisible,
+  experienceId,
+  experienceVisible,
+  objectId,
+  objectVisible,
+  notFound,
+  libraryActive,
+  libraryVisible,
+  bookId,
+} from "./composables/useRouteObserver";
 import ObjectDetail from "./features/objects/components/ObjectDetail.vue";
 import ExperienceDetail from "./features/experience/components/ExperienceDetail.vue";
+import Library from "./features/library/components/Library.vue";
+import BookDetail from "./features/library/components/BookDetail.vue";
 import CvPrompt from "./features/cv/components/CvPrompt.vue";
 import { cvReading } from "./features/cv/state";
 import ProjectBackground from "./features/projects/components/ProjectBackground.vue";
@@ -23,7 +35,7 @@ import { useClickSound } from "./features/sounds/composables/useClickSounds";
 import { webglAvailable } from "./three/core/renderer";
 //import { useHoverSound } from "./features/sounds/composables/useHoverSounds";
 
-import { experienceClosing, projectClosing } from "./composables/useProjectTransition";
+import { experienceClosing, libraryClosing, projectClosing } from "./composables/useProjectTransition";
 
 // Lazy: both mount behind a `v-if` that a visitor may never trip, so they are
 // chunks of their own rather than part of the first download. The story,
@@ -70,8 +82,30 @@ const { isTouch } = useAgent();
   ></div>
 
   <!-- main page -->
-  <div :class="{ 'home-wrapper-projectIsReady': projectVisible || experienceVisible }">
+  <div :class="{ 'home-wrapper-projectIsReady': projectVisible || experienceVisible || libraryVisible }">
     <Home />
+  </div>
+
+  <!-- The library. A page that replaces home, like a project: home goes fixed
+       and hidden, the renderer stops (Home.vue) and the home ScrollTriggers are
+       held (Library.vue). It fades in on top of home from the first frame of
+       the route and takes the document once the transition has settled. -->
+  <div
+    class="library-wrapper"
+    :class="{
+      'library-wrapper-visible': libraryActive,
+      'library-wrapper-settled': libraryVisible,
+      'library-wrapper-closing': libraryClosing,
+    }"
+  >
+    <Library />
+  </div>
+
+  <!-- One book, over the shelves. Same shell as the object panel below and
+       for the same reasons: its own scroller, and the two STATIC attributes
+       that keep Lenis and the 3D scene's window-level click out of it. -->
+  <div class="book-wrapper" :class="{ 'book-wrapper-visible': bookId !== null }" data-scene-blocker data-lenis-prevent>
+    <BookDetail />
   </div>
 
   <div
@@ -231,6 +265,75 @@ const { isTouch } = useAgent();
   }
 }
 
+/* The library page's shell. Fixed and fading in while the route transition
+   runs, then `relative` so it owns the document; `relative` and not `static`
+   for the reason on the story wrapper: a static element drops its z-index and
+   ends up under the fixed 3D stage. */
+.library-wrapper {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: var(--z-index-layout-project);
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity var(--transition-route-duration) var(--transition-route-ease),
+    visibility 0s linear var(--transition-route-duration);
+
+  &-visible {
+    visibility: visible;
+    pointer-events: auto;
+    opacity: 1;
+    transition: opacity var(--transition-route-duration) var(--transition-route-ease);
+  }
+
+  &-settled {
+    position: relative;
+    overflow: visible;
+  }
+
+  &-closing {
+    visibility: visible;
+    opacity: 0;
+  }
+}
+
+/* The book page: the object panel's shell, over the library and under the
+   site header, which stays and carries the way back. */
+.book-wrapper {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  z-index: var(--z-index-book);
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity var(--transition-route-duration) var(--transition-route-ease),
+    visibility 0s linear var(--transition-route-duration);
+
+  .book-page-inner {
+    transform: translateY(24px);
+    transition: transform 0.7s var(--transition-route-ease);
+  }
+
+  &-visible {
+    visibility: visible;
+    pointer-events: auto;
+    opacity: 1;
+    transition:
+      opacity var(--transition-route-duration) var(--transition-route-ease),
+      visibility 0s;
+
+    .book-page-inner {
+      transform: translateY(0);
+    }
+  }
+}
+
 /* The object panel's shell. `fixed` with its own scroll, never `static` and
    never in flow: home keeps the document scroll the whole time it is open, so
    there is nothing to save and nothing to restore when it closes.
@@ -312,7 +415,10 @@ const { isTouch } = useAgent();
   .object-wrapper,
   .object-wrapper .object-panel-inner,
   .cv-wrapper,
-  .cv-wrapper .cv-sheet {
+  .cv-wrapper .cv-sheet,
+  .library-wrapper,
+  .book-wrapper,
+  .book-wrapper .book-page-inner {
     transition-duration: 0.01s;
   }
 }

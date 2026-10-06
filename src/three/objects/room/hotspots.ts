@@ -1,4 +1,4 @@
-import { Box3, Color, Mesh, MeshBasicMaterial } from "three";
+import { Box3, Color, Mesh, MeshBasicMaterial, Vector3 } from "three";
 import gsap from "gsap";
 import { raycast } from "../../utils/raycast";
 import { registerInspectTarget } from "../../../animations/inspect";
@@ -32,6 +32,10 @@ const HERO_VISIBLE = 0.5;
 
 type Hotspot = {
   slug: string;
+  /** The route a click opens. */
+  to: string;
+  /** Whether `animations/inspect.ts` frames the camera on this box for its page. */
+  inspect: boolean;
   box: ClickableBox3;
   /** Recomputes the world box, the room group is yawed by the hero timeline. */
   measure: (box: Box3) => void;
@@ -61,15 +65,52 @@ const add = (hotspot: Omit<Hotspot, "hover">) => {
     // hit, but the guard is cheap and the failure mode, navigating to an
     // object page from halfway down the site, is bad.
     if (sceneWeights.hero < HERO_VISIBLE) return;
-    router.push(`/object/${hotspot.slug}`);
+    router.push(hotspot.to);
   };
   box.hoverSound = "hover";
   raycast.boxesToCheck.push(box);
   hotspots.push({ ...hotspot, hover: 0 });
-  registerInspectTarget(hotspot.slug, box);
+  if (hotspot.inspect) registerInspectTarget(hotspot.slug, box);
 };
 
-const init = (frame: Mesh | undefined) => {
+/**
+ * ─── THE BOOKS ON THE SHELF OPEN THE LIBRARY ──────────────────────────────
+ *
+ * The third thing in the room worth asking about is not a prop with a page of
+ * its own but the row of books beside the orchid: they open /library, the
+ * reading archive. It was a pill in the navigation first and read as bolted
+ * on; a shelf of books that is already in the scene is the way into a shelf
+ * of books that is not.
+ *
+ * The books are part of the shelf mesh (board, books and, until
+ * `hideShelfPlant` drops it, a pot plant), so their box is taken from the
+ * geometry itself: every vertex the mesh still draws that sits above the
+ * board's top. The board's own top vertices are at exactly that height and
+ * stay out; the plant's are past the draw range and stay out. Measured once in
+ * the shelf's own space and carried to world space each frame, the room group
+ * is yawed by the hero timeline.
+ */
+const BOARD_TOP = 4.037;
+
+let shelfMesh: Mesh | null = null;
+let shelfMaterial: MeshBasicMaterial | null = null;
+const booksLocal = new Box3();
+const vertex = new Vector3();
+
+const measureBooks = (shelf: Mesh) => {
+  booksLocal.makeEmpty();
+  const index = shelf.geometry.getIndex();
+  const position = shelf.geometry.getAttribute("position");
+  if (!index) return;
+  const count = Math.min(index.count, shelf.geometry.drawRange.count);
+  for (let i = 0; i < count; i++) {
+    const v = index.getX(i);
+    if (position.getY(v) <= BOARD_TOP + 0.01) continue;
+    booksLocal.expandByPoint(vertex.set(position.getX(v), position.getY(v), position.getZ(v)));
+  }
+};
+
+const init = (frame: Mesh | undefined, shelf: Mesh | undefined) => {
   if (hotspots.length) return;
 
   orchidBaseScale = orchid.group.scale.x;
@@ -77,6 +118,8 @@ const init = (frame: Mesh | undefined) => {
 
   add({
     slug: "orchid",
+    to: "/object/orchid",
+    inspect: true,
     box: new Box3() as ClickableBox3,
     measure: (box) => {
       box.setFromObject(orchid.group);
@@ -90,24 +133,53 @@ const init = (frame: Mesh | undefined) => {
     },
   });
 
-  if (!frame) return;
+  if (frame) {
+    // Cloned off the shared room material rather than off `frame.material`: this
+    // module can be torn down and re-initialised, and the second run would
+    // otherwise clone the disposed clone the first run left behind.
+    frameMesh = frame;
+    frameMaterial = (getRoomMaterial() as MeshBasicMaterial).clone();
+    frame.material = frameMaterial;
 
-  // Cloned off the shared room material rather than off `frame.material`: this
-  // module can be torn down and re-initialised, and the second run would
-  // otherwise clone the disposed clone the first run left behind.
-  frameMesh = frame;
-  frameMaterial = (getRoomMaterial() as MeshBasicMaterial).clone();
-  frame.material = frameMaterial;
+    add({
+      slug: "starry-night",
+      to: "/object/starry-night",
+      inspect: true,
+      box: new Box3() as ClickableBox3,
+      measure: (box) => {
+        box.setFromObject(frame);
+        box.expandByScalar(0.08);
+      },
+      apply: (hover) => {
+        frameMaterial?.color.lerpColors(frameBase, frameLit, hover);
+      },
+    });
+  }
+
+  // QA-SHIM temporary, remove before ship, same gate as three/index.ts
+  if (location.search.includes("qa=1")) (window as unknown as Record<string, unknown>).__hotspots = hotspots;
+
+  if (!shelf) return;
+  measureBooks(shelf);
+  if (booksLocal.isEmpty()) return;
+
+  // The same over-white lift the frame gets: the shelf shares the room's one
+  // baked material, so a hover brightens the board with its books.
+  shelfMesh = shelf;
+  shelfMaterial = (getRoomMaterial() as MeshBasicMaterial).clone();
+  shelf.material = shelfMaterial;
 
   add({
-    slug: "starry-night",
+    slug: "library",
+    to: "/library",
+    inspect: false,
     box: new Box3() as ClickableBox3,
     measure: (box) => {
-      box.setFromObject(frame);
-      box.expandByScalar(0.08);
+      shelf.updateWorldMatrix(true, false);
+      box.copy(booksLocal).applyMatrix4(shelf.matrixWorld).expandByScalar(0.08);
     },
     apply: (hover) => {
-      frameMaterial?.color.lerpColors(frameBase, frameLit, hover);
+      shelfMaterial?.color.lerpColors(frameBase, frameLit, hover);
     },
   });
 };
@@ -148,6 +220,10 @@ const destroy = () => {
   frameMaterial?.dispose();
   frameMaterial = null;
   frameMesh = null;
+  if (shelfMesh) shelfMesh.material = getRoomMaterial();
+  shelfMaterial?.dispose();
+  shelfMaterial = null;
+  shelfMesh = null;
 };
 
 export const hotspots3D = { init, tick, destroy };

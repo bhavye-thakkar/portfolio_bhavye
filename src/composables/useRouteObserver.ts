@@ -3,6 +3,7 @@ import { isTransitioning } from "./useProjectTransition";
 import { projectIds } from "../content/projects/index";
 import { experiences } from "../content/experience";
 import { objectSlugs } from "../content/objects";
+import { bookSlugs } from "../content/library";
 
 // -----------------------------------------------------------------------------
 // GLOBAL REACTIVE PATH
@@ -111,15 +112,49 @@ export const recentObjectId = computed(() => {
 });
 
 /**
- * Both detail routes ride the same overlay: home goes fixed, the overlay takes
- * the document scroll, and the header swaps its logo for a back button. Only
- * the content differs, so the transition watches this rather than either id.
+ * ── THE LIBRARY ───────────────────────────────────────────────────────────
+ *
+ * `/library` is the reading archive and `/library/<slug>` one book on it. The
+ * archive replaces home the way a project page does (home fixed, renderer
+ * off, document taken over). A book page is a layer over the archive, which
+ * stays mounted underneath, so `libraryActive` is true for both and
+ * `bookId` picks out the second.
+ */
+export const isLibraryRoute = (path: string) => /^\/library\/?$/.test(path);
+
+export const isBookRoute = (path: string) => path.match(/^\/library\/([^/]+)$/);
+
+export const bookId = computed(() => {
+  const match = isBookRoute(path.value);
+  if (!match) return null;
+  return bookSlugs.includes(match[1] as string) ? match[1] : null;
+});
+
+export const libraryActive = computed(() => isLibraryRoute(path.value) || bookId.value !== null);
+
+export const libraryVisible = computed(() => libraryActive.value && !isTransitioning.value);
+
+export const recentBook = ref<string | null>(null);
+
+export const recentBookId = computed(() => {
+  if (bookId.value) {
+    recentBook.value = bookId.value;
+  }
+  return recentBook.value;
+});
+
+/**
+ * The home-replacing routes ride the same overlay: home goes fixed, the
+ * overlay takes the document scroll, and the header swaps its logo for a back
+ * button. Only the content differs, so the transition watches this rather
+ * than any one id. The library is the constant "library": it has no slug of
+ * its own, and a book page under it must not restart the transition.
  *
  * Deliberately NOT including `objectId`, see `objectVisible` above. An object
  * panel must not start the home-replacement transition, or home scales away
  * underneath a panel you can see straight through.
  */
-export const overlayId = computed(() => projectId.value ?? experienceId.value);
+export const overlayId = computed(() => projectId.value ?? experienceId.value ?? (libraryActive.value ? "library" : null));
 
 /**
  * Any detail route at all. The header reads this rather than `overlayId`: the
@@ -150,7 +185,7 @@ export const isKnownRoute = computed(() => {
   // what keeps that answer in one place. A detail URL with a trailing slash
   // does not match them and lands here as a 404, which is right, `Link`
   // strips trailing slashes, so nothing on the site can produce one.
-  return projectId.value !== null || experienceId.value !== null || objectId.value !== null;
+  return projectId.value !== null || experienceId.value !== null || objectId.value !== null || libraryActive.value;
 });
 
 export const notFound = computed(() => !isKnownRoute.value);

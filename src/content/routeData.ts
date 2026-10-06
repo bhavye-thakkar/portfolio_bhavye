@@ -4,7 +4,8 @@ import { roomObjects } from "./objects";
 import { site } from "./profile";
 import { projectModules } from "./projects/index";
 import { tagLabels } from "../components/tagVariants";
-import { experienceMeta, objectMeta, projectMeta } from "./routeMeta";
+import { books, shelves, shelfOf } from "./library";
+import { experienceMeta, objectMeta, projectMeta, libraryMeta, bookMeta } from "./routeMeta";
 
 import type { ProjectContent } from "./types";
 
@@ -24,6 +25,8 @@ export { site };
 export const routes = [
   ...experiences.map((entry) => ({ kind: "experience" as const, meta: experienceMeta(entry.slug)!, entry })),
   ...roomObjects.map((entry) => ({ kind: "object" as const, meta: objectMeta(entry.slug)!, entry })),
+  { kind: "library" as const, meta: libraryMeta(), shelves, books },
+  ...books.map((book) => ({ kind: "book" as const, meta: bookMeta(book.slug)!, book, shelf: shelfOf(book.slug) })),
   ...projectPreviews.map((preview) => {
     const content = projectModules.en[preview.slug]?.default as ProjectContent | undefined;
     return {

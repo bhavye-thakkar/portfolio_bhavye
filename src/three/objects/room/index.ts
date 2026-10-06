@@ -74,9 +74,9 @@ const init = () => {
   orchid.init();
   group.add(orchid.group);
 
-  // After the orchid, because it measures the plant, and after initObjects,
-  // because it needs the frame mesh.
-  hotspots3D.init(objects?.frame);
+  // After the orchid, because it measures the plant, and after initObjects and
+  // hideShelfPlant, because it needs the frame mesh and the shelf's draw range.
+  hotspots3D.init(objects?.frame, objects?.shelf);
 
   // No contact shadow: the room's lighting is baked into its atlas and already
   // has shadows painted under everything on the desk, so a second, brighter

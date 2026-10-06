@@ -41,6 +41,10 @@ import { roomObjects } from "../../../content/objects";
         data-hoversound="hover"
         >{{ object.hotspotLabel }}</Link
       >
+      <!-- The books on the shelf open the library (three/objects/room/hotspots.ts). -->
+      <Link to="/library" class="hero-objects-link" data-cursor="circle-black" data-sound="click" data-hoversound="hover">{{
+        t("open-the-library")
+      }}</Link>
     </nav>
   </div>
 </template>

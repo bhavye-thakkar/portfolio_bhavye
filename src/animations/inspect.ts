@@ -6,6 +6,7 @@ import { waypoints } from "./waypoints";
 import { framedFocus } from "./story";
 import { sizes } from "../utils/sizes";
 import { objectBySlug } from "../content/objects";
+import { avatar } from "../three/objects/avatar";
 
 /**
  * ─── INSPECT MODE ─────────────────────────────────────────────────────────
@@ -225,7 +226,17 @@ const enter = (slug: string) => {
   returnFocus.copy(waypoints.focus);
   snapNext = waypoints.position.lengthSq() < 0.001;
 
+  /**
+   * ── THE WORLD IS PAUSED, EXPLICITLY ────────────────────────────────────
+   *
+   * Entering a detail is a state change, not a camera move with side effects:
+   * the waypoint solver is held (nothing scrolls the camera), and the avatar
+   * is taken out of the render rather than left wherever the framing happens
+   * to put him. Nothing is tweened or moved out of the way; `visible` is the
+   * switch and `exit` is the only thing that flips it back.
+   */
   stageHold.value = true;
+  avatar.transform.visible = false;
   startTick();
 };
 
@@ -237,6 +248,9 @@ const exit = () => {
   if (!isActive) return;
   isActive = false;
   activeSlug = null;
+  // Back on from the first frame of the return: he is out of frame at the
+  // object and sits in the chair by the time the camera is home.
+  avatar.transform.visible = true;
 
   // A cold deep link closed before it ever framed anything has no hero shot
   // recorded, the solver's own answer is better than the origin.

@@ -88,8 +88,9 @@ class Sizes extends EventEmitter<{
     this.height = window.innerHeight;
     this.aspectRatio = this.width / this.height;
     // Nothing reads this today; the renderer's cap lives in three/utils/sizes.ts
-    // and is 1.5 for fill-rate reasons explained there. Kept equal so the two
-    // never disagree if something does start reading it.
+    // and is 1.5 on a GPU for fill-rate reasons explained there (and 1 on a
+    // software rasteriser, see three/core/webgl.ts). Anything that starts
+    // reading a pixel ratio should take the renderer's, not this one.
     this.pixelRatio = Math.min(window.devicePixelRatio, 1.5);
     this.setViewportUnits();
 

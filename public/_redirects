@@ -24,5 +24,7 @@
 /experience/:slug  /experience/:slug.html  200
 /object/:slug      /object/:slug.html      200
 /project/:slug     /project/:slug.html     200
+/library           /library.html           200
+/library/:slug     /library/:slug.html     200
 
 /*  /index.html  200

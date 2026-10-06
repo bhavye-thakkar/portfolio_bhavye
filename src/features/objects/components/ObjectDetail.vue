@@ -10,6 +10,7 @@ import { useRouter } from "../../../composables/useRouter";
 import { useFirstRoute } from "../../../composables/useFirstRoute";
 import { lenis } from "../../../composables/useScroll";
 import { inspect } from "../../../animations/inspect";
+import { createScrollOwner } from "../../../composables/useScrollOwner";
 
 /**
  * ─── THE OBJECT PANEL ─────────────────────────────────────────────────────
@@ -58,6 +59,35 @@ const handleKeydown = (event: KeyboardEvent) => {
   close();
 };
 
+/**
+ * ── THE PANEL'S SCROLL IS THE ONLY SCROLL ─────────────────────────────────
+ *
+ * While a panel is up, the page behind it must not move at all, or the camera
+ * timelines scrub under a label that is supposed to be about one object.
+ * Lenis is stopped and the root is `overflow-y: hidden` (index.scss) for a
+ * touch that starts on the page; `useScrollOwner` closes the one gap left, a
+ * touch inside the panel that iOS hands on to the document at the panel's
+ * ends. Registered on open, removed on close, so reopening never stacks a
+ * second pair.
+ */
+const scroll = createScrollOwner();
+
+const ownInput = () => {
+  window.addEventListener("keydown", handleKeydown);
+  scroll.own(panelRef.value?.parentElement ?? null);
+};
+
+const releaseInput = () => {
+  window.removeEventListener("keydown", handleKeydown);
+  scroll.release();
+};
+
+/**
+ * One state change in, one out. Opening: the page's scroll is stopped, the
+ * scene enters inspect mode (camera held on the object, avatar off), and this
+ * panel takes the input. Closing undoes exactly that, in reverse. There is no
+ * third state where the panel is up and the page still answers.
+ */
 watch(
   objectId,
   async (id) => {
@@ -68,25 +98,28 @@ watch(
       // replaced with the home page.
       lenis.value?.stop();
       inspect.enter(id);
-      window.addEventListener("keydown", handleKeydown);
 
-      // The panel is what the visitor is now reading; leaving focus on the
+      // The panel exists after this flush; it is what the visitor is now
+      // reading, so it takes the input and the focus. Leaving focus on the
       // orchid's mirror link behind it means the next Tab walks the home page.
       await nextTick();
+      // Closed again before the flush landed (a Back during the open): the
+      // close branch has already run, and taking the input now would leave
+      // an Escape handler behind on the home page.
+      if (objectId.value !== id) return;
+      ownInput();
       panelRef.value?.focus({ preventScroll: true });
       return;
     }
 
-    window.removeEventListener("keydown", handleKeydown);
+    releaseInput();
     inspect.exit();
     lenis.value?.start();
   },
   { immediate: true },
 );
 
-onBeforeUnmount(() => {
-  window.removeEventListener("keydown", handleKeydown);
-});
+onBeforeUnmount(releaseInput);
 </script>
 
 <template>
@@ -333,6 +366,29 @@ onBeforeUnmount(() => {
   }
 }
 
+/* Touch screens get the sky still. `background-position` is not a compositor
+   property: the drift re-rasterises this full-screen layer, seven gradients at
+   a phone's 3x, on every frame of a page whose job is to be scrolled, for a
+   movement that is only ever noticed to have happened. The desktop keeps it.
+
+   The full two-class selector, not `.object-panel-air` alone: a media query
+   adds no specificity, and the one-class form lost to the rule above that
+   starts the drift. Verified in an emulated phone, where the query matched
+   and the animation still ran. */
+@media (hover: none) and (pointer: coarse) {
+  .object-panel-starry-night .object-panel-air {
+    animation: none;
+  }
+}
+
+/* And still on a machine drawing WebGL on its CPU (`three/core/webgl.ts`
+   stamps the attribute before Vue mounts): there the compositor is on the
+   same cores as the scene, and a full-screen re-raster a frame is the
+   difference between a readable page and a slideshow. */
+html[data-software-gl] .object-panel-starry-night .object-panel-air {
+  animation: none;
+}
+
 @keyframes object-stars {
   to {
     background-position:
@@ -518,7 +574,8 @@ onBeforeUnmount(() => {
     transition: none;
   }
 
-  .object-panel-air {
+  /* Same specificity note as the touch rule above. */
+  .object-panel-starry-night .object-panel-air {
     animation: none;
   }
 }

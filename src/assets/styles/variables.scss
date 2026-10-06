@@ -36,6 +36,9 @@
   --z-index-project-background: 50;
   --z-index-experience-stage: 60;
   --z-index-layout-project: 70;
+  /* A book page sits over the library page and under the site header, which
+     stays up and carries the way back to the shelves. */
+  --z-index-book: 80;
   --z-index-header: 90;
   /* The CV sheet is modal, so it covers the site chrome the way a dialog
      should, above the header rather than under it. Without this the navbar

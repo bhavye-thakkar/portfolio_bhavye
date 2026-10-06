@@ -44,7 +44,8 @@ html {
    panel covers the full viewport. The cost is that the page behind reflows by
    the bar's width as the panel opens, under a half-second fade, over a page
    the panel is already covering. */
-html:has(.object-wrapper-visible) {
+html:has(.object-wrapper-visible),
+html:has(.book-wrapper-visible) {
   overflow-y: hidden !important;
 }
 

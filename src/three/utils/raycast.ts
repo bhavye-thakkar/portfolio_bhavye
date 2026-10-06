@@ -13,6 +13,7 @@ const pointer = new Vector2();
 const ndcPointer = new Vector3();
 const ray = new Ray();
 const target = new Vector3();
+const centre = new Vector3();
 const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
 const updatePointer = (clientX: number, clientY: number) => {
@@ -69,7 +70,12 @@ const performRaycast = () => {
   for (const box of boxesToCheck) {
     if (!ray.intersectBox(box, target)) continue;
 
-    const distance = ray.origin.distanceTo(target);
+    // Of the boxes the ray passes through, the one the pointer is aimed
+    // nearest the MIDDLE of, not the one whose near face is closest. Hit boxes
+    // are axis-aligned world boxes around yawed, padded objects, so neighbours
+    // overlap: the orchid's padded box covers the books beside it, and the
+    // nearest-face rule opened the orchid from the middle of the books.
+    const distance = ray.distanceToPoint(box.getCenter(centre));
     if (distance < closestDistance) {
       closestDistance = distance;
       closestBox = box;
@@ -88,6 +94,9 @@ const handleClick = (e: MouseEvent) => {
   performRaycast();
   if (!hoveringBox || !hoveringBox.onClick) return;
   hoveringBox.onClick();
+  // No pointer to move away on a touch screen, and no hover tick to notice it:
+  // without this the tapped object stayed in its hover state for good.
+  if (isTouchDevice) hoveringBox = null;
 };
 
 const handleMouseMove = (event: MouseEvent) => {

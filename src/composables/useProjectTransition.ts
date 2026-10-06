@@ -1,5 +1,5 @@
 import { ref, watch } from "vue";
-import { experienceId, overlayId, projectId } from "./useRouteObserver";
+import { experienceId, libraryActive, overlayId, projectId } from "./useRouteObserver";
 
 export const ROUTE_TRANSITION_DURATION = 500;
 /**
@@ -27,6 +27,9 @@ export const experienceClosing = ref(false);
  */
 export const projectClosing = ref(false);
 
+/** And for the library: it fades out over the route timer rather than cutting. */
+export const libraryClosing = ref(false);
+
 let timeout: ReturnType<typeof setTimeout> | null = null;
 
 export const useProjectTransition = () => {
@@ -40,6 +43,10 @@ export const useProjectTransition = () => {
 
   watch(projectId, (newId, oldId) => {
     if (oldId !== null && newId === null) projectClosing.value = true;
+  });
+
+  watch(libraryActive, (active, wasActive) => {
+    if (wasActive && !active) libraryClosing.value = true;
   });
 
   watch(overlayId, (newId, oldId, onInvalidate) => {
@@ -66,6 +73,7 @@ export const useProjectTransition = () => {
         isTransitioning.value = false;
         experienceClosing.value = false;
         projectClosing.value = false;
+        libraryClosing.value = false;
         timeout = null;
       },
       isProject ? PROJECT_TRANSITION_DURATION : ROUTE_TRANSITION_DURATION,

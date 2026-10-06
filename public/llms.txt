@@ -88,6 +88,29 @@ the author.
 - [The Orchid](https://bhavyethakkar.netlify.app/object/orchid): a blue orchid (Phalaenopsis) grown petal by petal in Three.js; on rarity, patience, and what quietly stays
 - [The Starry Night](https://bhavyethakkar.netlify.app/object/starry-night): Vincent van Gogh, 1889, public-domain reproduction; on night, motion, and imagination made visible
 
+## Library
+
+A personal reading archive at https://bhavyethakkar.netlify.app/library: 25 books on
+one shelf in three groups, each with a page of its own (title, author, first publication,
+series, a factual line about the book, and the owner's note where one has been
+written). Metadata was checked against Open Library; no reading claims are
+made.
+
+- Stories and epics: The Immortals of Meluha, The Secret of the Nagas and The
+  Oath of the Vayuputras (Amish Tripathi, the Shiva Trilogy); Sita: Warrior of
+  Mithila, Raavan: Enemy of Aryavarta and War of Lanka (Amish Tripathi, the Ram
+  Chandra Series); The Hidden Hindu Trilogy (Akshat Gupta); The Alchemist (Paulo
+  Coelho); White Nights (Fyodor Dostoevsky)
+- Mind and habit: Meditations (Marcus Aurelius); The Daily Stoic (Ryan Holiday
+  and Stephen Hanselman); Atomic Habits (James Clear); The Power of Habit
+  (Charles Duhigg); The Subtle Art of Not Giving a F*ck (Mark Manson); Ikigai
+  (Héctor García and Francesc Miralles); The Monk Who Sold His Ferrari (Robin
+  Sharma); Can't Hurt Me (David Goggins)
+- Work and money: Rich Dad Poor Dad (Robert T. Kiyosaki); The Psychology of
+  Money (Morgan Housel); Think and Grow Rich (Napoleon Hill); How to Get Rich
+  (Felix Dennis); Shoe Dog (Phil Knight); Do Epic Shit (Ankur Warikoo); How to
+  Win Friends and Influence People (Dale Carnegie); The Secret (Rhonda Byrne)
+
 ## CV
 
 The full CV as published by the author. In the site it is the printed sheet

@@ -4,6 +4,8 @@ import NotchSection from "./NotchSection.vue";
 import ButtonRound from "./ButtonRound.vue";
 import { lenis } from "../composables/useScroll";
 import ArrowRightLong from "./icons/ArrowRightLong.vue";
+import Link from "./Link.vue";
+import { t } from "../i18n/utils/translate";
 
 interface Props {
   withSocial?: boolean;
@@ -40,7 +42,23 @@ const { withSocial = true } = defineProps<Props>();
         breakpoint.
       -->
       <div class="footer-bar">
-        <p class="footer-credits">© {{ new Date().getFullYear() }} Bhavye Thakkar</p>
+        <!-- Both spellings of the name, in rendered text and not only in the
+             head: search engines and answer engines rank what the page shows,
+             and the owner is looked for as "Bhavya" as often as "Bhavye"
+             (2026-10-07). Kept to one quiet line beside the credit. -->
+        <div class="footer-left">
+          <p class="footer-credits">
+            © {{ new Date().getFullYear() }} Bhavye Thakkar
+            <span class="footer-credits-alt">· also spelled Bhavya Thakkar</span>
+          </p>
+          <!-- The library's second door, for anyone who did not find the books
+               on the shelf in the room: a line in the footer, not a pill in the
+               navigation. -->
+          <Link to="/library" class="footer-library" data-cursor="circle-white" data-sound="click" data-hoversound="hover">
+            {{ t("open-the-library") }}
+            <ArrowRightLong class="footer-library-icon" />
+          </Link>
+        </div>
 
         <div
           class="footer-back-to-top"
@@ -115,11 +133,51 @@ const { withSocial = true } = defineProps<Props>();
     }
   }
 
+  &-left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    min-width: 0;
+  }
+
   &-credits {
     font-size: var(--font-size-sm);
     /* Wrapping is fine, overlapping is not: the row grows and the button stays
        beside it. */
     min-width: 0;
+
+    &-alt {
+      opacity: 0.7;
+    }
+  }
+
+  &-library {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    width: fit-content;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.8;
+    transition: opacity 0.15s ease-in-out;
+    --icon-color: currentColor;
+
+    &-icon {
+      width: var(--icon-size-sm);
+      transition: transform 0.2s var(--ease-smooth);
+    }
+
+    @include mixins.hover {
+      &:hover {
+        opacity: 1;
+
+        .footer-library-icon {
+          transform: translateX(4px);
+        }
+      }
+    }
   }
 
   &-notch {

@@ -5,7 +5,7 @@ import { computed, ref } from "vue";
 import { t } from "../i18n/utils/translate";
 import { useHeaderTheme } from "../composables/useHeaderTheme";
 import { lenis } from "../composables/useScroll";
-import { projectId, detailId, experienceId, objectId } from "../composables/useRouteObserver";
+import { projectId, detailId, experienceId, objectId, bookId } from "../composables/useRouteObserver";
 import { social } from "../content/social";
 import ButtonRound from "./ButtonRound.vue";
 import ArrowRight from "./icons/ArrowRight.vue";
@@ -37,7 +37,8 @@ const handleBackClick = () => {
   // If it's the first route the user visited, navigate to home
   // Otherwise, go back in browser history
   if (isFirstRoute.value) {
-    router.push("/");
+    // A book page opened cold belongs to the library, not to home.
+    router.push(bookId.value !== null ? "/library" : "/");
   } else {
     router.back();
   }
@@ -62,6 +63,7 @@ const classNames = computed(() => {
 const backLabel = computed(() => {
   if (experienceId.value !== null) return t("back-to-experience");
   if (objectId.value !== null) return t("back-to-the-room");
+  if (bookId.value !== null) return t("back-to-the-library");
   return t("back-to-home");
 });
 

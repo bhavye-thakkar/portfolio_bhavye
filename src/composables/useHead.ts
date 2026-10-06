@@ -1,8 +1,8 @@
 import { watch } from "vue";
-import { path, experienceId, projectId, objectId, notFound } from "./useRouteObserver";
+import { path, experienceId, projectId, objectId, bookId, libraryActive, notFound } from "./useRouteObserver";
 import { previews } from "../content/projects/previews";
 import { site } from "../content/profile";
-import { SUFFIX, experienceMeta, objectMeta, projectMeta } from "../content/routeMeta";
+import { SUFFIX, experienceMeta, objectMeta, projectMeta, libraryMeta, bookMeta } from "../content/routeMeta";
 
 import type { Crumb, Meta } from "../content/routeMeta";
 
@@ -85,9 +85,30 @@ const applyBreadcrumb = (crumbs: Crumb[] | undefined) => {
   if (!existing) document.head.appendChild(script);
 };
 
-const apply = ({ title, description, url, breadcrumb }: Meta) => {
+/**
+ * A route's own structured data, when it has any beyond the breadcrumb: the
+ * library's list of books, a book page's Book. One tag, replaced in place and
+ * removed on a route without one, same discipline as the breadcrumb.
+ */
+const JSONLD_ID = "route-jsonld";
+
+const applyJsonLd = (data: Record<string, unknown> | undefined) => {
+  const existing = document.getElementById(JSONLD_ID);
+  if (!data) {
+    existing?.remove();
+    return;
+  }
+  const script = existing ?? document.createElement("script");
+  script.id = JSONLD_ID;
+  script.setAttribute("type", "application/ld+json");
+  script.textContent = JSON.stringify(data);
+  if (!existing) document.head.appendChild(script);
+};
+
+const apply = ({ title, description, url, breadcrumb, jsonLd }: Meta) => {
   document.title = title;
   applyBreadcrumb(breadcrumb);
+  applyJsonLd(jsonLd);
 
   setMeta('meta[name="description"]', "content", description, () => {
     const el = document.createElement("meta");
@@ -153,6 +174,16 @@ const update = async () => {
 
   if (objectId.value) {
     apply(objectMeta(objectId.value) ?? fallback);
+    return;
+  }
+
+  if (bookId.value) {
+    apply(bookMeta(bookId.value) ?? fallback);
+    return;
+  }
+
+  if (libraryActive.value) {
+    apply(libraryMeta());
     return;
   }
 

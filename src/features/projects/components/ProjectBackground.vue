@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ref, watch } from "vue";
+import { holdHome as holdHomeTriggers, releaseHome as releaseHomeTriggers } from "../../../composables/useHomeHold";
 import { projectId, recentProjectId } from "../../../composables/useRouteObserver";
 import { lenis } from "../../../composables/useScroll";
 import { preloaderVisible } from "../../../composables/usePreloader";
@@ -94,25 +94,10 @@ const insetFor = (rect: DOMRect, radius: number, k = 1) => {
  * Only triggers outside the project page are held, its own media and text
  * triggers are created after this and stay live.
  */
-let heldTriggers: ScrollTrigger[] = [];
-
-const holdHome = () => {
-  const held = ScrollTrigger.getAll().filter(
-    // `enabled` exists at runtime but is missing from gsap's type definitions.
-    (st) => (st as ScrollTrigger & { enabled: boolean }).enabled && !(st.trigger instanceof Element && st.trigger.closest(".project-wrapper")),
-  );
-  held.forEach((st) => st.disable(false));
-  heldTriggers.push(...held);
-};
-
-const releaseHome = () => {
-  // ponytail: a trigger rebuilt by a resize while the page was open is new and
-  // was never held; it has scrubbed along with the page and simply refreshes.
-  const alive = new Set(ScrollTrigger.getAll());
-  heldTriggers.filter((st) => alive.has(st)).forEach((st) => st.enable(false));
-  heldTriggers = [];
-  ScrollTrigger.update();
-};
+// The hold itself lives in composables/useHomeHold.ts, shared with the
+// library page; this page keeps its own triggers (inside `.project-wrapper`) live.
+const holdHome = () => holdHomeTriggers(".project-wrapper");
+const releaseHome = releaseHomeTriggers;
 
 const FULL = "inset(0px 0px 0px 0px round 0px 0px 0px 0px)";
 const BELOW = "inset(100% 0px 0px 0px round 48px 48px 0px 0px)";

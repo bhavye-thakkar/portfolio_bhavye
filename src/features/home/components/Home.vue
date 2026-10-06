@@ -15,7 +15,7 @@ import ScrollIcon from "../../../components/ScrollIcon.vue";
 import { raycast } from "../../../three/utils/raycast";
 import gsap from "gsap";
 import { useAgent } from "../../../composables/useAgent";
-import { experienceId, objectVisible, overlayId, projectVisible } from "../../../composables/useRouteObserver";
+import { experienceId, libraryVisible, objectVisible, overlayId, projectVisible } from "../../../composables/useRouteObserver";
 import { isTransitioning } from "../../../composables/useProjectTransition";
 import { renderer } from "../../../three/core/renderer";
 import { experiences } from "../../../content/experience";
@@ -129,10 +129,12 @@ watchEffect((onInvalidate) => {
   });
 });
 
+// No frames for a canvas under a project page or the library: both replace
+// home entirely, and the library's three shelves want the main thread.
 watch(
-  projectVisible,
-  (newVal) => {
-    renderer.setIsActive(!newVal);
+  [projectVisible, libraryVisible],
+  ([project, library]) => {
+    renderer.setIsActive(!project && !library);
   },
   { immediate: true },
 );

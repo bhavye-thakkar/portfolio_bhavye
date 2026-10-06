@@ -2,11 +2,33 @@ import gsap from "gsap";
 import { cv, cvStage } from "../features/cv/state";
 import Lenis from "lenis";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { ref, shallowRef, onMounted, onUnmounted, watch } from "vue";
 import { isTransitioning } from "./useProjectTransition";
 import { story } from "../animations/story";
 
-export const lenis = ref<Lenis | null>(null);
+/**
+ * ── `shallowRef`, NEVER `ref` ─────────────────────────────────────────────
+ *
+ * A plain `ref` wraps the Lenis instance in a deep reactive proxy, which made
+ * its emitter's `events` object reactive too. Every `lenis.on("scroll")` made
+ * inside a `watchEffect` (useHeaderTheme in Header and HeaderHome, the scroll
+ * tracker in Project.vue) then READ `events.scroll`, a tracked dependency, and
+ * every cleanup's `off()` WROTE it. The moment anything unsubscribed outside
+ * an effect run, the site header unmounting on an object route, each of those
+ * effects re-ran, wrote the key again and re-triggered the others, without end.
+ *
+ * Vue's dev build cuts that at 100 iterations ("Maximum recursive updates
+ * exceeded in component <Project>"). The production build has NO cap: tapping
+ * the orchid or the painting wedged the main thread for good, reproduced in
+ * headless Chrome as a page that answered no script for 70 s while the
+ * compositor kept scrolling the stale frame underneath, the avatar still on it.
+ *
+ * Lenis is a class instance with its own internal state, not data the UI
+ * renders; only the ref's *assignment* has to be observable. A shallow ref
+ * also takes the proxy out of `lenis.raf()`, which was running every property
+ * access of every frame through it.
+ */
+export const lenis = shallowRef<Lenis | null>(null);
 export const velocity = ref(0);
 
 const handleScroll = () => {

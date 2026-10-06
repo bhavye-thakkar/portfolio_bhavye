@@ -5,6 +5,8 @@
     { "source": "/experience/:slug", "destination": "/experience/:slug.html" },
     { "source": "/object/:slug", "destination": "/object/:slug.html" },
     { "source": "/project/:slug", "destination": "/project/:slug.html" },
+    { "source": "/library", "destination": "/library.html" },
+    { "source": "/library/:slug", "destination": "/library/:slug.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

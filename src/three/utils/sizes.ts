@@ -1,4 +1,13 @@
 import EventEmitter from "../../utils/EventEmitter";
+import { webglSoftware } from "../core/webgl";
+
+/**
+ * The device-pixel cap. 1.5 on a GPU (see `resize`); 1 on a software
+ * rasteriser, where every extra pixel is CPU time and 1.5 was 2.25x the
+ * fragments for edges nobody can hold a frame rate to see. CPU-mode note in
+ * `core/webgl.ts`.
+ */
+const PIXEL_RATIO_CAP = webglSoftware ? 1 : 1.5;
 
 class ThreeSizes extends EventEmitter<{
   resize: { width: number; height: number; pixelRatio: number };
@@ -31,7 +40,7 @@ class ThreeSizes extends EventEmitter<{
      * meant to be read at that size. The site's real type is all DOM and is
      * untouched.
      */
-    this.pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+    this.pixelRatio = Math.min(window.devicePixelRatio, PIXEL_RATIO_CAP);
     this.emit("resize", { width: this.width, height: this.height, pixelRatio: this.pixelRatio });
   }
 

@@ -323,6 +323,11 @@ const updateGaze = () => {
 };
 
 const tick = () => {
+  // Switched off by `animations/inspect.ts` for the length of an object page.
+  // Nothing below can be seen, so the mixer, the gaze and the uniforms skip
+  // the frame; the pose simply resumes where it left off when he is back.
+  if (!transform.visible) return;
+
   // Order matters: the gaze comes off, the mixer writes the clip pose, the gaze
   // goes back on. See `gazeApplied`.
   clearGaze();

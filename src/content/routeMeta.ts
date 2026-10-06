@@ -1,5 +1,6 @@
 import { experienceBySlug } from "./experience";
 import { objectBySlug } from "./objects";
+import { books, shelves, bookBySlug, shelfOf } from "./library";
 import { profile, site } from "./profile";
 
 import type { ProjectPreview } from "./types";
@@ -17,7 +18,14 @@ import type { ProjectPreview } from "./types";
 export const SUFFIX = "Bhavye Thakkar";
 
 export type Crumb = { name: string; url: string };
-export type Meta = { title: string; description: string; url: string; breadcrumb?: Crumb[] };
+export type Meta = {
+  title: string;
+  description: string;
+  url: string;
+  breadcrumb?: Crumb[];
+  /** Structured data of the page's own, beyond the breadcrumb (schema.org JSON-LD). */
+  jsonLd?: Record<string, unknown>;
+};
 
 /** Titles come from the same content files the pages render from. */
 export const experienceMeta = (slug: string): Meta | null => {
@@ -69,6 +77,68 @@ export const objectMeta = (slug: string): Meta | null => {
       { name: SUFFIX, url: `${site}/` },
       { name: entry.title, url: `${site}/object/${slug}` },
     ],
+  };
+};
+
+/**
+ * ── THE LIBRARY ───────────────────────────────────────────────────────────
+ *
+ * The archive and one page per book. Descriptions are built from the data in
+ * content/library.ts, so they say what the shelf says: titles, authors and
+ * counts, no reading claims. The structured data is a schema.org ItemList of
+ * Book nodes for the archive and a single Book for a book page.
+ */
+const bookNode = (slug: string) => {
+  const book = bookBySlug(slug)!;
+  const node: Record<string, unknown> = {
+    "@type": "Book",
+    name: book.title,
+    author: { "@type": "Person", name: book.author },
+    url: `${site}/library/${book.slug}`,
+  };
+  // Only a real year goes out as a date; "c. 180" and a span stay prose.
+  if (/^\d{4}$/.test(book.year)) node.datePublished = book.year;
+  if (book.series) node.isPartOf = { "@type": "BookSeries", name: book.series.name, position: book.series.volume };
+  return node;
+};
+
+export const libraryMeta = (): Meta => ({
+  title: `Library, a personal reading archive | ${SUFFIX}`,
+  description: `${SUFFIX}'s personal library: ${books.length} books on one shelf in ${shelves.length} groups, from the Shiva Trilogy and the Ram Chandra Series to Meditations, Atomic Habits and The Psychology of Money, each with a page of its own.`,
+  url: `${site}/library`,
+  breadcrumb: [
+    { name: SUFFIX, url: `${site}/` },
+    { name: "Library", url: `${site}/library` },
+  ],
+  jsonLd: {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${SUFFIX}'s library`,
+    numberOfItems: books.length,
+    itemListElement: books.map((book, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: bookNode(book.slug),
+    })),
+  },
+});
+
+export const bookMeta = (slug: string): Meta | null => {
+  const book = bookBySlug(slug);
+  if (!book) return null;
+  const shelf = shelfOf(slug);
+  const where = shelf ? ` In the "${shelf.title}" group of ${SUFFIX}'s personal library.` : ` In ${SUFFIX}'s personal library.`;
+
+  return {
+    title: `${book.title}, ${book.author} | Library | ${SUFFIX}`,
+    description: `${book.description}${where}`,
+    url: `${site}/library/${slug}`,
+    breadcrumb: [
+      { name: SUFFIX, url: `${site}/` },
+      { name: "Library", url: `${site}/library` },
+      { name: book.title, url: `${site}/library/${slug}` },
+    ],
+    jsonLd: { "@context": "https://schema.org", ...bookNode(slug) },
   };
 };
 
