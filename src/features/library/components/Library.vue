@@ -27,25 +27,37 @@ import { createArchive, metrics } from "../useArchive";
  * leaves wheel and touch inside it alone) and `data-scene-blocker` (the 3D
  * scene's window-level click never reaches the room behind).
  *
- * ── A BOOK IS A SPINE WITH ITS COVER BEHIND IT ────────────────────────────
+ * ── A BOOK IS A BOX ──────────────────────────────────────────────────────
  *
- * Each book is two faces in CSS 3D: the spine, which faces the shelf, and the
- * front cover, hinged at the spine's right edge and standing back into the
- * shelf. The whole book is turned a few degrees so the cover shows as a
- * sliver, like a row of books seen from a little to the left. The spine is
- * typographic, title and author set vertically on the colour its own cover
- * is mostly made of, because publishers' spine artwork cannot be sourced for
- * every book and a drawn spine is honest about that. The cover is the real
- * one. The book page turns the book over.
+ * Each book is three faces in CSS 3D, the three a shelf shows: the spine,
+ * facing out; the front cover, hinged at the spine's right edge and standing
+ * back into the shelf; and the top, the block of pages between the two cover
+ * boards, hinged at the spine's top edge. The spine is typographic, title and
+ * author set vertically on the colour its own cover is mostly made of, because
+ * publishers' spine artwork cannot be sourced for every book and a drawn spine
+ * is honest about that. The cover is the real one, at the artwork's own
+ * proportions. The book page turns the book over.
+ *
+ * ── ONE CAMERA ────────────────────────────────────────────────────────────
+ *
+ * Every book stands the same way: turned `--yaw` so the cover shows, seen
+ * from `--pitch` above so the page edges show, with the same perspective
+ * (`.library-book` is the perspective container, its origin a little below
+ * the books' tops). Nothing about a book's stance comes from the book itself,
+ * so the row reads as one shelf photographed once, not as thirty objects each
+ * leaning its own way; the row's own movement is a `translate3d` on the slot,
+ * outside the book's 3D context, so moving the shelf cannot turn a book. The
+ * hover pulls the book out along its own depth, the way a hand does, and lets
+ * it back to exactly where it stood.
  *
  * ── REAL PROPORTIONS ──────────────────────────────────────────────────────
  *
  * The spine's thickness comes from the book's page count (content/library.ts),
  * at roughly a paperback's ratio of thickness to height, so a 575-page epic
- * stands next to a 126-page novella the way they do on a real shelf. Height,
- * the angle it stands at and the air after it come from a hash of the slug,
- * so the same book always stands the same way. Every book is on the shelf
- * exactly once; the three groups are marked by bookends standing between them.
+ * stands next to a 126-page novella the way they do on a real shelf; the
+ * cover's width comes from the artwork's own aspect ratio. Every book is on
+ * the shelf exactly once; each of the three groups stands between a pair of
+ * bracket bookends that carry its name.
  */
 
 const { isTouch } = useAgent();
@@ -54,16 +66,10 @@ const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)"
 const rootRef = ref<HTMLElement | null>(null);
 const trackRef = ref<HTMLElement | null>(null);
 const counterRef = ref<HTMLElement | null>(null);
+const groupRef = ref<HTMLElement | null>(null);
 const scrubRef = ref<HTMLElement | null>(null);
 const slotEls: HTMLElement[] = [];
 
-/** A small, stable number from a slug. */
-const hash = (text: string) => {
-  let h = 2166136261;
-  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
-  return h >>> 0;
-};
-const unit = (h: number, shift: number) => ((h >>> shift) % 1000) / 1000;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 /** Relative luminance of a hex colour, for choosing the ink on a spine. */
@@ -75,53 +81,46 @@ const luminance = (hex: string) => {
   return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5);
 };
 
+/** Degrees every book is turned toward the shelf, showing its cover. Mirrored in `--yaw`. */
+const YAW = 24;
+/** Air after each book, as a multiple of the book height: spines stand close, not touching. */
+const AIR = 0.03;
+/** A bracket bookend and the air after it, as a multiple of the book height. */
+const BRACKET_FOOTPRINT = 0.14;
+
 type Geometry = {
-  /** Spine width, cover width, air after the book, all as multiples of the row's book height. */
+  /** Spine width and cover width as multiples of the row's book height. */
   spine: number;
   cover: number;
-  air: number;
-  /** Height variation around 1. */
-  scale: number;
-  /** Degrees the book is turned toward the shelf, showing its cover. */
-  angle: number;
   /** The whole footprint on the shelf, as a multiple of the book height. */
   footprint: number;
   ink: "light" | "dark";
 };
 
 const geometryCache = new Map<string, Geometry>();
+const YAW_RAD = (YAW * Math.PI) / 180;
 
 const geometryOf = (book: Book): Geometry => {
   const cached = geometryCache.get(book.slug);
   if (cached) return cached;
-  const h = hash(book.slug);
-  // One book in four stands turned enough to show a real piece of its cover;
-  // the rest show a sliver. The spine stays the face you read either way.
-  const turned = unit(h, 4) < 0.25;
-  const angle = turned ? 16 + unit(h, 8) * 8 : 6 + unit(h, 8) * 7;
   // A paperback is about 0.065 of its height thick per 200 pages, boards
   // included; the clamp keeps a novella readable and an epic believable.
   const spine = clamp(0.028 + book.pages * 0.00027, 0.052, 0.19);
-  const scale = 0.93 + unit(h, 16) * 0.12;
-  const air = 0.008 + unit(h, 20) * 0.045;
   const cover = book.cover.width / book.cover.height;
-  const rad = (angle * Math.PI) / 180;
-  const footprint = (spine * Math.cos(rad) + cover * Math.sin(rad)) * scale + air;
-  const geometry: Geometry = { spine, cover, air, scale, angle, footprint, ink: luminance(book.spine) > 0.42 ? "dark" : "light" };
+  const footprint = spine * Math.cos(YAW_RAD) + cover * Math.sin(YAW_RAD) + AIR;
+  // Near-black ink reads at 4.5:1 on anything lighter than 0.19 relative
+  // luminance; white does on anything darker. The crossover is where both
+  // just pass, so the switch sits there, not at the midpoint of the scale.
+  const geometry: Geometry = { spine, cover, footprint, ink: luminance(book.spine) > 0.19 ? "dark" : "light" };
   geometryCache.set(book.slug, geometry);
   return geometry;
 };
-
-/** The bookend that marks a group: narrow, a little shorter than the books. */
-const DIVIDER_FOOTPRINT = 0.075;
 
 const bookStyle = (book: Book) => {
   const g = geometryOf(book);
   return {
     "--spine": g.spine,
     "--cover": g.cover,
-    "--scale": g.scale,
-    "--angle": `${g.angle.toFixed(1)}deg`,
     "--spine-color": book.spine,
     "--spine-ink": g.ink === "dark" ? "rgba(20, 16, 10, 0.92)" : "rgba(255, 250, 242, 0.95)",
     "--spine-ink-dim": g.ink === "dark" ? "rgba(20, 16, 10, 0.62)" : "rgba(255, 250, 242, 0.7)",
@@ -130,7 +129,7 @@ const bookStyle = (book: Book) => {
 
 type Item =
   | { key: string; kind: "book"; book: Book; ordinal: number; copy: number }
-  | { key: string; kind: "divider"; shelf: Shelf; copy: number };
+  | { key: string; kind: "open" | "close"; shelf: Shelf; copy: number };
 
 /**
  * The set is repeated only if one pass of it is narrower than the screen plus
@@ -144,11 +143,12 @@ const items = computed<Item[]>(() => {
   for (let copy = 0; copy < copies.value; copy++) {
     let ordinal = 0;
     for (const shelf of shelves) {
-      list.push({ key: `group-${shelf.slug}-${copy}`, kind: "divider", shelf, copy });
+      list.push({ key: `open-${shelf.slug}-${copy}`, kind: "open", shelf, copy });
       for (const slug of shelf.books) {
         const book = bookBySlug(slug);
         if (book) list.push({ key: `${slug}-${copy}`, kind: "book", book, ordinal: ++ordinal, copy });
       }
+      list.push({ key: `close-${shelf.slug}-${copy}`, kind: "close", shelf, copy });
     }
   }
   return list;
@@ -156,8 +156,13 @@ const items = computed<Item[]>(() => {
 
 const count = computed(() => books.length);
 
+/** The group each book (by its 1-based number along the shelf) belongs to. */
+const groupOfOrdinal: Shelf[] = [];
+for (const shelf of shelves) for (const slug of shelf.books) if (bookBySlug(slug)) groupOfOrdinal.push(shelf);
+
 const onCurrent = (ordinal: number) => {
   if (counterRef.value) counterRef.value.textContent = String(ordinal);
+  if (groupRef.value) groupRef.value.textContent = groupOfOrdinal[ordinal - 1]?.title ?? "";
   if (scrubRef.value) scrubRef.value.style.transform = `scaleX(${count.value > 1 ? (ordinal - 1) / (count.value - 1) : 1})`;
 };
 
@@ -172,7 +177,7 @@ const collectRow = () =>
     {
       el: trackRef.value!,
       nodes: items.value.map((_, i) => slotEls[i]).filter((node): node is HTMLElement => !!node),
-      footprints: items.value.map((item) => (item.kind === "book" ? geometryOf(item.book).footprint : DIVIDER_FOOTPRINT)),
+      footprints: items.value.map((item) => (item.kind === "book" ? geometryOf(item.book).footprint : BRACKET_FOOTPRINT)),
       ordinals: items.value.map((item) => (item.kind === "book" ? item.ordinal : null)),
       direction: -1,
       depth: 1,
@@ -191,7 +196,7 @@ const layout = async () => {
   let length = 0;
   let maxW = 0;
   for (const shelf of shelves) {
-    length += Math.round(bookH * DIVIDER_FOOTPRINT) + gap;
+    length += 2 * (Math.round(bookH * BRACKET_FOOTPRINT) + gap);
     for (const slug of shelf.books) {
       const book = bookBySlug(slug);
       if (!book) continue;
@@ -207,7 +212,8 @@ const layout = async () => {
     collectRow();
   }
   lastMetrics = { bookH, gap, width };
-  archive.layout(bookH, gap, width);
+  // The shelf opens on the first group's bracket, a page margin in.
+  archive.layout(bookH, gap, width, parseFloat(getComputedStyle(root).getPropertyValue("--space-outer")) || 16);
 };
 
 let resizeObserver: ResizeObserver | null = null;
@@ -310,7 +316,7 @@ onBeforeUnmount(() => {
           v-for="(item, i) in items"
           :key="item.key"
           class="library-slot"
-          :class="{ 'library-slot-divider': item.kind === 'divider' }"
+          :class="{ 'library-slot-bracket': item.kind !== 'book' }"
           :ref="(el) => setSlot(i, el)"
         >
           <Link
@@ -330,6 +336,8 @@ onBeforeUnmount(() => {
                 <span class="library-book-spine-title">{{ item.book.title }}</span>
                 <span class="library-book-spine-author">{{ item.book.author }}</span>
               </span>
+              <!-- The block of pages between the boards, seen from above. -->
+              <span class="library-book-top" aria-hidden="true"></span>
               <span class="library-book-face">
                 <img
                   class="library-book-cover"
@@ -347,9 +355,20 @@ onBeforeUnmount(() => {
               </span>
             </span>
           </Link>
-          <!-- A bookend between groups, carrying the group's name. -->
-          <span v-else class="library-bookend" role="separator" :aria-label="item.shelf.title">
-            <span class="library-bookend-label">{{ item.shelf.title }}</span>
+          <!-- A bracket bookend at each end of a group, the group's name above
+               it. The opening one is the group's landmark; the closing one
+               repeats the name so whichever end is on screen says which group
+               this is. -->
+          <span
+            v-else
+            class="library-bracket"
+            :class="`library-bracket-${item.kind}`"
+            :role="item.kind === 'open' ? 'separator' : undefined"
+            :aria-label="item.kind === 'open' ? item.shelf.title : undefined"
+            :aria-hidden="item.kind === 'close' ? 'true' : undefined"
+          >
+            <span class="library-bracket-label">{{ item.shelf.title }}</span>
+            <span class="library-bracket-shape"></span>
           </span>
         </li>
       </ul>
@@ -381,9 +400,12 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <!-- Where along the shelf the reader is: the book nearest the middle. -->
+    <!-- Where along the shelf the reader is: the book nearest the middle, and its group. -->
     <div class="library-tools">
-      <p class="library-counter" aria-live="off"><span ref="counterRef">1</span><span class="library-counter-sep">/</span>{{ count }}</p>
+      <p class="library-counter" aria-live="off">
+        <span ref="counterRef">1</span><span class="library-counter-sep">/</span>{{ count }}
+        <span class="library-counter-group"><span class="library-counter-dot" aria-hidden="true">·</span><span ref="groupRef">{{ shelves[0]?.title }}</span></span>
+      </p>
       <span class="library-scrub" aria-hidden="true"><span ref="scrubRef" class="library-scrub-fill"></span></span>
       <p class="library-hint library-hint-bottom">{{ isTouch ? t("library-hint-touch") : t("library-hint-pointer") }}</p>
     </div>
@@ -400,9 +422,19 @@ onBeforeUnmount(() => {
   --shelf-ink: var(--color-text-400);
   --shelf-ink-dim: var(--color-text-300);
   --shelf-line: var(--color-beige-700);
+  --paper: #f1e8d7;
   --book-h: 400px;
-  /* Room above the books for the hover lift. */
-  --shelf-air: 18px;
+  /* The one camera (see the script's "ONE CAMERA"): the turn that shows the
+     cover, the look down that shows the page edges, and how far away it is. */
+  --yaw: 24deg;
+  --pitch: 6deg;
+  --persp: calc(var(--book-h) * 8);
+  /* Above the books: the page edges seen from the camera's height, then the
+     group labels, clear of both. */
+  --shelf-air: 60px;
+  /* The shelf's top seen from above: how far up the screen the books' bases
+     reach behind their spines. Matches the pitch and the camera's height. */
+  --surface-h: calc(var(--book-h) * 0.13);
   --board-h: 12px;
 
   position: relative;
@@ -527,11 +559,11 @@ onBeforeUnmount(() => {
 }
 
 /* The track: full-bleed, the books are placed absolutely inside it and the
-   board is drawn under them. `pan-y` is load-bearing, see useArchive.ts. */
+   shelf is drawn under them. `pan-y` is load-bearing, see useArchive.ts. */
 .library-track {
   position: relative;
   width: 100%;
-  height: calc(var(--book-h) + var(--shelf-air) + var(--board-h) + 16px);
+  height: calc(var(--shelf-air) + var(--book-h) + var(--board-h) + 18px);
   list-style: none;
   touch-action: pan-y;
   cursor: grab;
@@ -541,17 +573,31 @@ onBeforeUnmount(() => {
     cursor: grabbing;
   }
 
-  /* The board the books stand on: a front edge, and the shadow it throws on
-     the floor below, the way the reference's shelf meets its floor. */
+  /* The shelf's top, behind the books' bases: lit at its front edge, falling
+     into the books' shade toward the back. */
+  &::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: 0;
+    right: 0;
+    top: calc(var(--shelf-air) + var(--book-h) - var(--surface-h));
+    height: var(--surface-h);
+    background: linear-gradient(to top, var(--color-beige-500), var(--color-beige-700));
+    pointer-events: none;
+  }
+
+  /* The board's front edge, and the shadow it throws on the floor below. */
   &::after {
     content: "";
     position: absolute;
+    z-index: 0;
     left: 0;
     right: 0;
     top: calc(var(--shelf-air) + var(--book-h));
     height: var(--board-h);
-    background: linear-gradient(to bottom, var(--color-beige-600), var(--shelf-line));
-    border-top: var(--stroke-sm) solid rgba(45, 42, 36, 0.14);
+    background: linear-gradient(to bottom, rgb(214, 198, 174), var(--shelf-line));
+    border-top: var(--stroke-sm) solid rgba(45, 42, 36, 0.16);
     box-shadow: 0 10px 14px -6px rgba(45, 42, 36, 0.28);
     pointer-events: none;
   }
@@ -559,12 +605,22 @@ onBeforeUnmount(() => {
 
 .library-slot {
   position: absolute;
+  z-index: 1;
   left: 0;
   top: 0;
   height: calc(var(--book-h) + var(--shelf-air));
   /* Set from the data in useArchive.layout(), never read from the DOM. */
   width: 0;
   will-change: transform;
+}
+
+/* The perspective container: one camera, a little below the books' tops, so
+   every book is seen from the same place and the spine (the z = 0 face) is a
+   true rectangle. */
+.library-book,
+.library-slot-bracket {
+  perspective: var(--persp);
+  perspective-origin: 50% 25%;
 }
 
 .library-book {
@@ -581,31 +637,34 @@ onBeforeUnmount(() => {
   }
 }
 
-/* The contact shadow on the board, under the book, outside its 3D context. */
+/* The contact shadow on the shelf's top, under and behind the book, outside its 3D context. */
 .library-book-shadow {
   position: absolute;
-  left: -6%;
-  right: 4%;
-  bottom: -6px;
-  height: 18px;
-  background: radial-gradient(60% 100% at 38% 100%, rgba(45, 42, 36, 0.4), rgba(45, 42, 36, 0) 72%);
+  left: -4%;
+  right: 8%;
+  bottom: 0;
+  height: calc(var(--book-h) * 0.09);
+  background: radial-gradient(70% 100% at 36% 100%, rgba(45, 42, 36, 0.42), rgba(45, 42, 36, 0) 70%);
   pointer-events: none;
 }
 
-/* The book: spine facing out, cover hinged behind its right edge, the whole
-   thing turned by its own angle around the edge that stays on the shelf. */
+/* The book: a box standing on the shelf with its left-bottom edge on the
+   baseline, turned by the shelf's yaw and tipped by its pitch. Its faces are
+   placed on the box; nothing on a face is transformed by anything else. */
 .library-book-object {
   position: absolute;
   left: 0;
   bottom: 0;
-  width: calc(var(--book-h) * var(--spine) * var(--scale));
-  height: calc(var(--book-h) * var(--scale));
+  width: calc(var(--book-h) * var(--spine));
+  height: var(--book-h);
   transform-style: preserve-3d;
   transform-origin: 0% 100%;
-  transform: perspective(1600px) rotateY(calc(var(--angle) * -1));
+  transform: rotateX(calc(var(--pitch) * -1)) rotateY(calc(var(--yaw) * -1));
   transition: transform 0.5s var(--ease-out-quint);
 }
 
+/* The spine (z = 0): a perfect-bound paperback's, flat, with the light
+   falling off into the two hinges and a hairline where the cover wraps. */
 .library-book-spine {
   position: absolute;
   inset: 0;
@@ -619,25 +678,26 @@ onBeforeUnmount(() => {
   border-radius: 3px 1px 1px 3px;
   color: var(--spine-ink);
   background:
-    linear-gradient(to right, rgba(0, 0, 0, 0.26), rgba(255, 255, 255, 0.12) 26%, rgba(255, 255, 255, 0.05) 64%, rgba(0, 0, 0, 0.3)),
+    linear-gradient(to right, rgba(0, 0, 0, 0.28), rgba(255, 255, 255, 0.14) 24%, rgba(255, 255, 255, 0.06) 60%, rgba(0, 0, 0, 0.26)),
     var(--spine-color);
   box-shadow:
-    inset 1px 0 0 rgba(255, 255, 255, 0.18),
-    inset -1px 0 0 rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    inset 1px 0 0 rgba(255, 255, 255, 0.2),
+    inset -1px 0 0 rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
   backface-visibility: hidden;
 }
 
 .library-book-spine-title {
   font-weight: 700;
-  font-size: clamp(11px, calc(var(--book-h) * var(--scale) * 0.031), 16px);
+  font-size: clamp(11px, calc(var(--book-h) * 0.031), 16px);
   line-height: 1.2;
   letter-spacing: 0.02em;
   text-wrap: balance;
 }
 
 .library-book-spine-author {
-  font-size: clamp(9px, calc(var(--book-h) * var(--scale) * 0.024), 12px);
+  font-size: clamp(9px, calc(var(--book-h) * 0.024), 12px);
   line-height: 1.2;
   letter-spacing: 0.05em;
   color: var(--spine-ink-dim);
@@ -646,26 +706,51 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
 }
 
-/* The front cover, standing back from the spine's right edge. */
+/* The top of the book, hinged at the spine's top edge and lying back into
+   the shelf: the block of pages between the two cover boards. The boards are
+   the spine's own colour at either side; the pages are paper, ruled by the
+   sheets' edges, and darker toward the back where the next book's shade falls. */
+.library-book-top {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  width: 100%;
+  height: calc(var(--book-h) * var(--cover));
+  transform-origin: 50% 100%;
+  transform: rotateX(90deg);
+  backface-visibility: hidden;
+  background:
+    linear-gradient(to top, rgba(74, 58, 36, 0) 0%, rgba(74, 58, 36, 0.3) 100%),
+    repeating-linear-gradient(to right, rgba(110, 88, 58, 0.16) 0 1px, transparent 1px 3px),
+    linear-gradient(to right, var(--spine-color) 0 1.5px, var(--paper) 1.5px calc(100% - 1.5px), var(--spine-color) calc(100% - 1.5px));
+}
+
+/* The front cover, hinged at the spine's right edge and standing back into
+   the shelf. The artwork keeps its own proportions: the face is sized from
+   them, so nothing is stretched or cropped. */
 .library-book-face {
   position: absolute;
   top: 0;
   left: 100%;
   height: 100%;
-  width: calc(var(--book-h) * var(--scale) * var(--cover));
+  width: calc(var(--book-h) * var(--cover));
   transform-origin: 0% 50%;
   transform: rotateY(90deg);
   backface-visibility: hidden;
   overflow: hidden;
-  border-radius: 0 4px 4px 0;
+  border-radius: 0 3px 3px 0;
   background: var(--color-beige-600);
 
-  /* Light falls off along the cover as it recedes from the spine. */
+  /* The hinge in shade, a soft sheen across the laminate, and the light
+     falling off along the cover as it recedes from the spine. */
   &::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.48));
+    background:
+      linear-gradient(to right, rgba(0, 0, 0, 0.34) 0, rgba(0, 0, 0, 0) 6%),
+      linear-gradient(105deg, rgba(255, 255, 255, 0.14) 0 18%, rgba(255, 255, 255, 0) 34%),
+      linear-gradient(to right, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.3));
     pointer-events: none;
   }
 }
@@ -678,39 +763,57 @@ onBeforeUnmount(() => {
   -webkit-user-drag: none;
 }
 
-/* A bookend: a short block of the shelf's own wood with the group's name on
-   it, standing between two groups the way a divider card does. */
-.library-bookend {
+/* A bracket bookend: a square bracket the height of the books, drawn in the
+   shelf's ink, standing on the board under the same camera as the books. The
+   opening one's returns point into its group, the closing one's back at it. */
+.library-bracket {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.library-bracket-shape {
   position: absolute;
   left: 0;
   bottom: 0;
-  width: calc(var(--book-h) * 0.05);
-  height: calc(var(--book-h) * 0.62);
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding-top: 8%;
-  writing-mode: vertical-rl;
-  border-radius: 2px 2px 1px 1px;
-  background: linear-gradient(to right, var(--color-beige-700), var(--color-beige-500) 50%, var(--color-beige-700));
-  box-shadow:
-    inset 1px 0 0 rgba(255, 255, 255, 0.5),
-    0 8px 10px -6px rgba(45, 42, 36, 0.3);
+  width: calc(var(--book-h) * 0.09);
+  height: var(--book-h);
+  transform-origin: 0% 100%;
+  transform: rotateX(calc(var(--pitch) * -1));
+  border: var(--stroke-md) solid var(--shelf-ink);
+  border-right: 0;
+  border-radius: 1px;
 }
 
-.library-bookend-label {
-  font-size: var(--font-size-xxs);
-  font-weight: 700;
+.library-bracket-close .library-bracket-shape {
+  border-right: var(--stroke-md) solid var(--shelf-ink);
+  border-left: 0;
+}
+
+/* The group's name, in the air above the shelf, flush with its bracket. */
+.library-bracket-label {
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--book-h) + 36px);
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--shelf-ink-dim);
-  white-space: nowrap;
+  line-height: 1;
+  color: var(--shelf-ink);
+}
+
+.library-bracket-close .library-bracket-label {
+  left: auto;
+  right: calc(100% - var(--book-h) * 0.09);
 }
 
 @include mixins.hover {
-  /* The book comes a little way out and squares up, as a hand would pull it. */
+  /* The book comes out of the shelf along its own depth, as a hand would
+     pull it, and goes back to exactly where it stood. */
   .library-book:hover .library-book-object {
-    transform: perspective(1600px) rotateY(calc(var(--angle) * -0.4)) translateY(-12px) translateZ(14px);
+    transform: rotateX(calc(var(--pitch) * -1)) rotateY(calc(var(--yaw) * -1)) translateZ(24px);
   }
 }
 
@@ -739,7 +842,7 @@ onBeforeUnmount(() => {
   }
 }
 
-/* Counter and the scrub line, centred under the shelf. */
+/* Counter, the group, and the scrub line, centred under the shelf. */
 .library-tools {
   width: 100%;
   max-width: var(--breakpoint-xxxl);
@@ -756,11 +859,22 @@ onBeforeUnmount(() => {
   letter-spacing: 0.14em;
   color: var(--shelf-ink);
   font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
 .library-counter-sep {
   margin: 0 0.5em;
   opacity: 0.45;
+}
+
+.library-counter-group {
+  color: var(--shelf-ink-dim);
+  letter-spacing: 0.08em;
+}
+
+.library-counter-dot {
+  margin: 0 0.7em;
+  opacity: 0.6;
 }
 
 .library-scrub {

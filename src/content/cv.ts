@@ -1,3 +1,5 @@
+import { site } from "./profile";
+
 /**
  * ─── THE CV ───────────────────────────────────────────────────────────────
  *
@@ -80,7 +82,7 @@ export const cvHeader = {
   role: "AI/ML Engineer",
   email: "thakkarbhavye1425@gmail.com",
   address: "Ahmedabad, Gandhinagar",
-  portfolio: "https://bhavyethakkar.netlify.app/",
+  portfolio: `${site}/`,
 } as const;
 
 /** The file the "Open the full CV" action opens. Lives in `public/cv/`. */

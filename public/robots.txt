@@ -14,9 +14,10 @@
 
 User-agent: *
 Allow: /
-# Cloudflare's Content Signals: yes to search, to AI answers that quote the
-# site, and to AI training. Crawlers that do not know the line ignore it.
-Content-Signal: search=yes, ai-input=yes, ai-train=yes
+# (No `Content-Signal:` line here: it is Cloudflare's extension, this site is
+# not behind Cloudflare, and Google's robots.txt report flagged the unknown
+# directive as "rule ignored by Googlebot". The Allow above already says yes
+# to search, AI answers and AI training for every crawler.)
 
 # ── Google (Search, Images, Video, News, Gemini and Vertex AI grounding) ────
 User-agent: Googlebot

@@ -90,22 +90,24 @@ the author.
 
 ## Library
 
-A personal reading archive at https://bhavyethakkar.netlify.app/library: 25 books on
+A personal reading archive at https://bhavyethakkar.netlify.app/library: 30 books on
 one shelf in three groups, each with a page of its own (title, author, first publication,
 series, a factual line about the book, and the owner's note where one has been
 written). Metadata was checked against Open Library; no reading claims are
 made.
 
 - Stories and epics: The Immortals of Meluha, The Secret of the Nagas and The
-  Oath of the Vayuputras (Amish Tripathi, the Shiva Trilogy); Sita: Warrior of
-  Mithila, Raavan: Enemy of Aryavarta and War of Lanka (Amish Tripathi, the Ram
-  Chandra Series); The Hidden Hindu Trilogy (Akshat Gupta); The Alchemist (Paulo
-  Coelho); White Nights (Fyodor Dostoevsky)
+  Oath of the Vayuputras (Amish Tripathi, the Shiva Trilogy); Ram: Scion of
+  Ikshvaku, Sita: Warrior of Mithila, Raavan: Enemy of Aryavarta and War of Lanka
+  (Amish Tripathi, the Ram Chandra Series); The Hidden Hindu, The Hidden Hindu 2
+  and The Hidden Hindu 3 (Akshat Gupta); The Alchemist (Paulo Coelho); White
+  Nights (Fyodor Dostoevsky)
 - Mind and habit: Meditations (Marcus Aurelius); The Daily Stoic (Ryan Holiday
   and Stephen Hanselman); Atomic Habits (James Clear); The Power of Habit
-  (Charles Duhigg); The Subtle Art of Not Giving a F*ck (Mark Manson); Ikigai
-  (Héctor García and Francesc Miralles); The Monk Who Sold His Ferrari (Robin
-  Sharma); Can't Hurt Me (David Goggins)
+  (Charles Duhigg); Eat That Frog! (Brian Tracy); The Subtle Art of Not Giving a
+  F*ck (Mark Manson); Ikigai (Héctor García and Francesc Miralles); The Monk Who
+  Sold His Ferrari (Robin Sharma); Can't Hurt Me (David Goggins); I Don't Love
+  You Anymore (Rithvik Singh)
 - Work and money: Rich Dad Poor Dad (Robert T. Kiyosaki); The Psychology of
   Money (Morgan Housel); Think and Grow Rich (Napoleon Hill); How to Get Rich
   (Felix Dennis); Shoe Dog (Phil Knight); Do Epic Shit (Ankur Warikoo); How to
@@ -125,10 +127,8 @@ it lifts the page, and a prompt opens the readable copy.
 - [LinkedIn](https://www.linkedin.com/in/bhavyethakkar/)
 - [X](https://x.com/bhavye_thakkar)
 
-This portfolio is also served, unchanged, at https://bhavye.vercel.app/,
-https://thakkarbhavya.netlify.app/, https://bhavyathakkar.netlify.app/ and
-https://thakkarbhavye.netlify.app/. The canonical address is
-https://bhavyethakkar.netlify.app/.
+The canonical address of this portfolio is https://bhavyethakkar.netlify.app/;
+any other address serving these pages is a copy of it.
 
 ## Contact
 

@@ -3,9 +3,10 @@ import gsap from "gsap";
 /**
  * ─── THE SHELVES ──────────────────────────────────────────────────────────
  *
- * Three rows of books that move sideways without end. This is the whole of
- * the motion: no scroll container, no carousel, no second render loop. Each
- * row keeps one number, `offset`, and every book on it is placed at
+ * Rows of books that move sideways without end (one row today; the engine
+ * does not care how many). This is the whole of the motion: no scroll
+ * container, no carousel, no second render loop. Each row keeps one number,
+ * `offset`, and every book on it is placed at
  *
  *     x = (start + offset) mod loop - lead
  *
@@ -63,6 +64,8 @@ type Row = RowInput & {
   starts: number[];
   loop: number;
   lead: number;
+  /** Whether the row has been given its opening position yet (once; a resize keeps where it is). */
+  placed: boolean;
   offset: number;
   target: number;
   pointerId: number | null;
@@ -87,10 +90,11 @@ export const metrics = (vw: number, vh: number) => {
   const portrait = vh > vw;
   // One shelf, about half the screen tall, the proportion the reference keeps:
   // the books are the page. The masthead and the counter take the rest.
-  // Landscape: whatever is left once the header, the masthead and the counter
-  // have taken their ~410px, so the page fits the screen and the wheel is the
+  // Landscape: whatever is left once the header, the masthead, the air above
+  // the books (page edges and the group labels), the board and the counter
+  // have taken their ~455px, so the page fits the screen and the wheel is the
   // shelf's rather than the page's.
-  const bookH = portrait ? Math.round(clamp(vh * 0.5, 280, 460)) : Math.round(clamp(vh - 410, 280, 520));
+  const bookH = portrait ? Math.round(clamp(vh * 0.5, 280, 460)) : Math.round(clamp(vh - 455, 280, 520));
   const gap = 4;
   return { bookH, gap };
 };
@@ -106,6 +110,13 @@ const IDLE = 2500;
 const THROW = 320;
 /** Share of the remaining distance covered per 60fps frame. */
 const EASE = 0.1;
+/**
+ * How far past the track's edges a node is still kept in step, in px. A node
+ * is wider than its slot: a bracket's label runs 150px past it and a hovered
+ * book comes forward. Freezing a node the moment its slot leaves the screen
+ * left a group label standing at the edge, going nowhere.
+ */
+const OVERHANG = 240;
 
 export const createArchive = (options: { reducedMotion: () => boolean; onCurrent?: (ordinal: number) => void }) => {
   let root: HTMLElement | null = null;
@@ -122,7 +133,12 @@ export const createArchive = (options: { reducedMotion: () => boolean; onCurrent
 
   // ── layout ─────────────────────────────────────────────────────────────
 
-  const layout = (bookH: number, gap: number, width: number) => {
+  /**
+   * Sizes and places every node from the data. `startX` is where the row's
+   * first node stands on first layout (the opening bracket, a page margin in
+   * from the left); later layouts keep the row where the visitor left it.
+   */
+  const layout = (bookH: number, gap: number, width: number, startX = 0) => {
     trackW = width;
     for (const row of rows) {
       let x = 0;
@@ -139,6 +155,10 @@ export const createArchive = (options: { reducedMotion: () => boolean; onCurrent
       });
       row.loop = x;
       row.lead = maxW + gap;
+      if (!row.placed) {
+        row.placed = true;
+        row.offset = row.target = row.lead + startX;
+      }
       row.nodes.forEach((node, i) => {
         node.style.width = `${row.widths[i]}px`;
       });
@@ -160,7 +180,7 @@ export const createArchive = (options: { reducedMotion: () => boolean; onCurrent
         const node = row.nodes[i]!;
         const w = row.widths[i]!;
         const x = Math.round(xOf(row, i));
-        const onScreen = x > -w - 40 && x < trackW + 40;
+        const onScreen = x > -w - OVERHANG && x < trackW + OVERHANG;
         const was = node.dataset.on === "1";
         if (!onScreen && !was && !force) continue;
         node.dataset.on = onScreen ? "1" : "0";
@@ -374,6 +394,7 @@ export const createArchive = (options: { reducedMotion: () => boolean; onCurrent
         starts: [],
         loop: 0,
         lead: 0,
+        placed: previous[i]?.placed ?? false,
         offset: previous[i]?.offset ?? 0,
         target: previous[i]?.target ?? 0,
         pointerId: null,

@@ -41,7 +41,12 @@
  * addresses are published as `sameAs` in index.html's Person graph and listed
  * in llms.txt, which is where an alternative address genuinely belongs.
  */
-export const site = "https://bhavyethakkar.netlify.app";
+// Decided per deployment at build time (scripts/siteOrigin.ts, via `define`
+// in vite.config.ts); the literal is the local-build default and must match
+// DEFAULT_ORIGIN there. The `typeof` guard is for the route-pages runner,
+// which imports this file without Vite's defines.
+declare const __SITE_ORIGIN__: string | undefined;
+export const site = typeof __SITE_ORIGIN__ === "string" ? __SITE_ORIGIN__ : "https://bhavyethakkar.netlify.app";
 
 /** Who and where. */
 export const profile = {
@@ -70,37 +75,16 @@ export const profiles = {
   x: "https://x.com/bhavye_thakkar",
 } as const;
 
-/**
- * ── EVERY SITE HE PUBLISHES ───────────────────────────────────────────────
- *
- * One array. Adding or retiring an address is one edit here and nowhere else,
- * which is the whole reason it is not written into a component.
- *
- * ⚠ THESE DO NOT RENDER AS A LIST ANYWHERE, AND MUST NOT AGAIN. There used to
- * be a "Portfolio / Other websites" block under the Contact icons: five hosts
- * stacked with no way to tell them apart, which is a link dump rather than a
- * call to action. Removed on the owner's instruction (2026-09-03), component
- * and i18n keys deleted with it. The addresses stayed because they are still
- * true and still useful to a machine: `site` above is the canonical, these are
- * its mirrors, and they are published in index.html's `sameAs` and in
- * `public/llms.txt`. That is the whole of their job.
- *
- * The FIRST entry is the primary portfolio and the one `site` points at: it is
- * the address the CV itself prints.
- *
- * ⚠ URLS ARE VERBATIM. These are the addresses the owner supplied, character
- * for character; all five answered 200 when they went in. The label is just
- * the host with the scheme dropped, because that is the only thing that
- * honestly distinguishes one from another without opening it, and inventing
- * "the React one" or "the older one" would be a guess about their contents.
+/*
+ * The other addresses this repo has been deployed to (owner's list, 2026-09;
+ * bhavye.vercel.app, thakkarbhavya.netlify.app, bhavyathakkar.netlify.app,
+ * thakkarbhavye.netlify.app) are deliberately NOT data any more: a "Portfolio /
+ * Other websites" list was removed on 2026-09-03 as a link dump, and listing
+ * copies in `sameAs` or llms.txt only tells crawlers there are copies. Each
+ * deployment names its own canonical at build (scripts/siteOrigin.ts) and the
+ * retired ones redirect; found on 2026-10-12 that bhavyethakkar.netlify.app
+ * was serving an older site while this build pointed its canonical at it.
  */
-export const portfolioLinks = [
-  { label: "bhavyethakkar.netlify.app", url: "https://bhavyethakkar.netlify.app/", primary: true },
-  { label: "bhavye.vercel.app", url: "https://bhavye.vercel.app" },
-  { label: "thakkarbhavya.netlify.app", url: "https://thakkarbhavya.netlify.app" },
-  { label: "bhavyathakkar.netlify.app", url: "https://bhavyathakkar.netlify.app" },
-  { label: "thakkarbhavye.netlify.app", url: "https://thakkarbhavye.netlify.app" },
-] as const satisfies { label: string; url: string; primary?: boolean }[];
 
 // The CV lives in `content/cv.ts`, transcribed from the PDF in `public/cv/`.
 // Nothing here duplicates it: that document leads with a different role line,

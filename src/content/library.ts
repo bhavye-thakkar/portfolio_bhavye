@@ -17,9 +17,10 @@
  *      than pretending. No ratings, no "status", no reading dates unless the
  *      owner adds a field for them.
  *   2. Metadata was checked against Open Library on 2026-10-06 (title,
- *      author, series, first publication). Years are first publication, not
- *      the edition on the shelf. `year` is a string because one of them is
- *      "c. 180" and one spans three books.
+ *      author, series, first publication), and the six books added on
+ *      2026-10-12 against Open Library and Penguin India's catalogue. Years
+ *      are first publication, not the edition on the shelf. `year` is a
+ *      string because one of them is "c. 180".
  *   3. Covers are the publishers' own, fetched from Open Library's covers
  *      service by ISBN or cover id, resized and re-encoded here. No generated
  *      art, no substitutes.
@@ -276,17 +277,48 @@ export const books: Book[] = [
     spine: "#af8b3d",
   },
   {
+    // Open Library dates the first edition 2021; Penguin's own edition (Ebury
+    // Press, ISBN 9780143455691, the cover shown) is February 2022, 256 pages.
     slug: "the-hidden-hindu",
-    title: "The Hidden Hindu Trilogy",
+    title: "The Hidden Hindu",
     author: "Akshat Gupta",
-    year: "2021–2023",
-    pages: 250,
+    year: "2021",
+    pages: 256,
     series: { name: "The Hidden Hindu", volume: 1, of: 3 },
     description:
-      "A three-part thriller around Om Shastri, a man said to be immortal, and the search for the immortals of Hindu scripture; the three books appeared between 2021 and 2023.",
+      "A thriller in which Prithvi, twenty-one, searches for Om Shastri, an aghori who claims to have lived through all four yugas; the first book of Akshat Gupta's trilogy.",
     personalNote: null,
     cover: { width: 480, height: 744 },
     spine: "#a77a63",
+  },
+  {
+    // Penguin Ebury Press, August 2022, ISBN 9780143456544, 250 pages.
+    slug: "the-hidden-hindu-2",
+    title: "The Hidden Hindu 2",
+    author: "Akshat Gupta",
+    year: "2022",
+    pages: 250,
+    series: { name: "The Hidden Hindu", volume: 2, of: 3 },
+    description:
+      "The second book of the trilogy: the book of Mritsanjeevani is in Nagendra's hands and the search turns to a hidden verse, with Om no longer alone.",
+    personalNote: null,
+    cover: { width: 480, height: 746 },
+    spine: "#5c4238",
+  },
+  {
+    // Penguin Ebury Press, March 2023, ISBN 9780143456551, 256 pages. Open
+    // Library has no record of this one; the publisher's catalogue was the source.
+    slug: "the-hidden-hindu-3",
+    title: "The Hidden Hindu 3",
+    author: "Akshat Gupta",
+    year: "2023",
+    pages: 256,
+    series: { name: "The Hidden Hindu", volume: 3, of: 3 },
+    description:
+      "The trilogy's finale: Nagendra returns from the dead more powerful than before, and the immortals race him for the last of the hidden words.",
+    personalNote: null,
+    cover: { width: 480, height: 744 },
+    spine: "#221403",
   },
   {
     slug: "the-daily-stoic",
@@ -374,6 +406,49 @@ export const books: Book[] = [
     cover: { width: 480, height: 622 },
     spine: "#f3d734",
   },
+  {
+    // Westland, 2015 (ISBN 9789385152146, the cover shown). Open Library's
+    // median page count across its editions.
+    slug: "ram-scion-of-ikshvaku",
+    title: "Ram: Scion of Ikshvaku",
+    author: "Amish Tripathi",
+    year: "2015",
+    pages: 353,
+    series: { name: "Ram Chandra Series", volume: 1 },
+    description:
+      "The first book of Amish Tripathi's Ram Chandra Series, a retelling of the Ramayana that follows Ram from his birth in Ayodhya to his exile.",
+    personalNote: null,
+    cover: { width: 480, height: 720 },
+    spine: "#663b2a",
+  },
+  {
+    // Berrett-Koehler, 2001; the cover shown is the third edition (2017,
+    // ISBN 9781626569416). Page count is Open Library's median across editions.
+    slug: "eat-that-frog",
+    title: "Eat That Frog!",
+    author: "Brian Tracy",
+    year: "2001",
+    pages: 128,
+    description:
+      "Brian Tracy's short book on procrastination, built around twenty-one ways to start with the hardest task; a third edition appeared in 2017.",
+    personalNote: null,
+    cover: { width: 480, height: 698 },
+    spine: "#92c844",
+  },
+  {
+    // Penguin Ebury Press, April 2024, ISBN 9780143469131, 184 pages; the cover
+    // shown is the updated and revised edition.
+    slug: "i-dont-love-you-anymore",
+    title: "I Don't Love You Anymore",
+    author: "Rithvik Singh",
+    year: "2024",
+    pages: 184,
+    description:
+      "Poems and short prose on heartbreak and moving on, subtitled Moving On and Living Your Best Life; a 2024 bestseller in India.",
+    personalNote: null,
+    cover: { width: 480, height: 640 },
+    spine: "#ebb74f",
+  },
 ];
 
 export const shelves: Shelf[] = [
@@ -384,10 +459,13 @@ export const shelves: Shelf[] = [
       "the-immortals-of-meluha",
       "the-secret-of-the-nagas",
       "the-oath-of-the-vayuputras",
+      "ram-scion-of-ikshvaku",
       "sita-warrior-of-mithila",
       "raavan-enemy-of-aryavarta",
       "war-of-lanka",
       "the-hidden-hindu",
+      "the-hidden-hindu-2",
+      "the-hidden-hindu-3",
       "the-alchemist",
       "white-nights",
     ],
@@ -400,10 +478,12 @@ export const shelves: Shelf[] = [
       "the-daily-stoic",
       "atomic-habits",
       "the-power-of-habit",
+      "eat-that-frog",
       "the-subtle-art-of-not-giving-a-fck",
       "ikigai",
       "the-monk-who-sold-his-ferrari",
       "cant-hurt-me",
+      "i-dont-love-you-anymore",
     ],
   },
   {

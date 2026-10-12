@@ -77,17 +77,22 @@ src/three/
 
 ---
 
-## Changing the domain
+## The canonical address
 
-The production URL appears in five places and they have to move together:
+Every page names one canonical origin: `<link rel="canonical">`, `og:url`, the JSON-LD ids, the sitemap's `<loc>`s, robots.txt's `Sitemap:` line and llms.txt. The source files are written with the default in `scripts/siteOrigin.ts`; the build swaps it for the address the deployment is actually served from, in this order:
 
-1. `index.html` — `<link rel="canonical">`, `og:url`, and the `@id`/`url` values in the JSON-LD
-2. `src/content/profile.ts` — the `site` constant
-3. `public/sitemap.xml` — every `<loc>`
-4. `public/robots.txt` — the `Sitemap:` line
-5. `public/llms.txt` — the links
+1. `SITE_ORIGIN` from the host's build environment — the ONE address meant to rank. Set it on every deployment of this repo.
+2. Netlify's `URL` (the site's production address).
+3. Vercel's `VERCEL_PROJECT_PRODUCTION_URL`.
+4. The default in `scripts/siteOrigin.ts`, for local builds.
 
-It is `https://example.com` until then, and nothing will rank while it is.
+So an untouched deployment names itself, never a host it does not serve. When `SITE_ORIGIN` names a different host than the deployment's own production address, that deployment is retired: on Netlify the build prepends a host-wide 301 to `dist/_redirects`, and on every host `src/main.ts` sends a visitor who still lands on the retired production host to the same page on the canonical one. Vercel reads server-side redirects from `vercel.json` before the build, so on a Vercel deployment that is being retired also add by hand:
+
+```json
+"redirects": [{ "source": "/(.*)", "has": [{ "type": "host", "value": "bhavye.vercel.app" }], "destination": "https://<canonical host>/$1", "permanent": true }]
+```
+
+This repo is deployed to more than one host; only one of them should be the canonical, and the others should redirect to it. A canonical pointing at a host that serves something else tells every crawler to index that other thing instead.
 
 ---
 

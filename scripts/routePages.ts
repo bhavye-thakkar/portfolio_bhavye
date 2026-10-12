@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { runnerImport } from "vite";
+import { DEFAULT_ORIGIN, resolveOrigin, retiredOrigin } from "./siteOrigin";
 
 import type { Plugin } from "vite";
 
@@ -189,7 +190,25 @@ export const routePages = (): Plugin => {
         configFile: false,
         logLevel: "error",
       });
-      const { site, routes } = module;
+      const { routes } = module;
+
+      // The origin this deployment is served from (scripts/siteOrigin.ts).
+      // The content files and index.html are written with DEFAULT_ORIGIN;
+      // every built text file gets the real one.
+      const origin = resolveOrigin();
+      const site = origin;
+      const stamp = (text: string) => text.split(DEFAULT_ORIGIN).join(origin);
+      for (const name of ["index.html", "sitemap.xml", "robots.txt", "llms.txt"]) {
+        const file = path.join(outDir, name);
+        if (fs.existsSync(file)) fs.writeFileSync(file, stamp(fs.readFileSync(file, "utf8")));
+      }
+      const from = retiredOrigin();
+      if (from) {
+        const redirects = path.join(outDir, "_redirects");
+        const rules = fs.existsSync(redirects) ? fs.readFileSync(redirects, "utf8") : "";
+        fs.writeFileSync(redirects, `# This address is retired in favour of the canonical one (SITE_ORIGIN).\n${from}/*  ${origin}/:splat  301!\n\n${rules}`);
+        this.info?.(`redirecting ${from} to ${origin}`);
+      }
 
       const index = fs.readFileSync(path.join(outDir, "index.html"), "utf8");
       const homeTitle = (index.match(/<title>([^<]*)<\/title>/)?.[1] ?? "").replace(/"/g, "&quot;");
@@ -261,11 +280,11 @@ export const routePages = (): Plugin => {
 
         const file = path.join(outDir, `${pathOf(route)}.html`);
         fs.mkdirSync(path.dirname(file), { recursive: true });
-        fs.writeFileSync(file, html);
+        fs.writeFileSync(file, stamp(html));
       }
 
       fs.writeFileSync(path.join(outDir, "404.html"), index);
-      this.info?.(`wrote ${routes.length} route pages and 404.html`);
+      this.info?.(`wrote ${routes.length} route pages and 404.html for ${origin}`);
     },
   };
 };

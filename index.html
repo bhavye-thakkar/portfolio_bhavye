@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!--
-      The domain below is the canonical origin. It appears here, in
-      public/sitemap.xml, in public/robots.txt, in public/llms.txt and in
-      src/content/profile.ts's `site`; change all five in one edit.
-
-      This build is deployed to several addresses (they are in `sameAs` below
-      and in profile.ts's `portfolioLinks`). They all serve THIS canonical, so
-      a crawler is told which copy is the original rather than being handed
-      five identical sites to choose between.
+      The domain below is the DEFAULT canonical origin, the same literal as in
+      public/sitemap.xml, public/robots.txt, public/llms.txt and
+      src/content/profile.ts's `site`. The build replaces it everywhere with
+      the address the deployment is served from (scripts/siteOrigin.ts:
+      SITE_ORIGIN, else the host's own production URL), so no copy of this
+      site ever declares a canonical on a host that serves something else.
+      `sameAs` lists the owner's profiles, not the other deployments.
     -->
     <!--
       ── BOTH SPELLINGS OF THE NAME ────────────────────────────────────────
@@ -111,11 +110,7 @@
             "sameAs": [
               "https://github.com/bhavye-thakkar",
               "https://www.linkedin.com/in/bhavyethakkar/",
-              "https://x.com/bhavye_thakkar",
-              "https://bhavye.vercel.app",
-              "https://thakkarbhavya.netlify.app",
-              "https://bhavyathakkar.netlify.app",
-              "https://thakkarbhavye.netlify.app"
+              "https://x.com/bhavye_thakkar"
             ],
             "knowsLanguage": "en",
             "knowsAbout": [
@@ -618,7 +613,7 @@
 
       <h2>Library</h2>
       <p>
-        A personal reading archive of 25 books on one shelf, in three groups, each with a page of its own:
+        A personal reading archive of 30 books on one shelf, in three groups, each with a page of its own:
         <a href="/library">the library</a>.
       </p>
 
