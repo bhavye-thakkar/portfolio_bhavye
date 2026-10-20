@@ -283,7 +283,17 @@ export const routePages = (): Plugin => {
         fs.writeFileSync(file, stamp(html));
       }
 
-      fs.writeFileSync(path.join(outDir, "404.html"), index);
+      // The 404 page is the app (it boots NotFound.vue on the unknown path), but
+      // its static head must not be the home page's: a crawler that gets a 404
+      // status with the home title and a canonical to "/" reads a broken copy
+      // of the home page. Own title, no canonical, noindex; and the home title
+      // on <html data-home-*> for the client's way back (useHead.ts, readBase).
+      let notFound = index;
+      notFound = replace(notFound, /<html lang="en">/, `<html lang="en" data-home-title="${homeTitle}" data-home-description="${homeDescription}">`);
+      notFound = replace(notFound, /<title>[^<]*<\/title>/, "<title>Page not found, Bhavye Thakkar</title>");
+      notFound = replace(notFound, metaTag("name", "robots"), '<meta name="robots" content="noindex, follow" />');
+      notFound = replace(notFound, /\s*<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/, "");
+      fs.writeFileSync(path.join(outDir, "404.html"), stamp(notFound));
       this.info?.(`wrote ${routes.length} route pages and 404.html for ${origin}`);
     },
   };
