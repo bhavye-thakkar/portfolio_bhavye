@@ -17,7 +17,11 @@ import gsap from "gsap";
 import { useAgent } from "../../../composables/useAgent";
 import { experienceId, libraryVisible, objectVisible, overlayId, projectVisible } from "../../../composables/useRouteObserver";
 import { isTransitioning } from "../../../composables/useProjectTransition";
-import { renderer } from "../../../three/core/renderer";
+import { renderer, webglAvailable } from "../../../three/core/renderer";
+import { sceneFailed, sceneLive } from "../../../three/core/webgl";
+import { useHeaderTheme } from "../../../composables/useHeaderTheme";
+import posterLandscape from "../../../assets/hero/poster-landscape.webp";
+import posterPortrait from "../../../assets/hero/poster-portrait.webp";
 import { experiences } from "../../../content/experience";
 import { sectionHeightVh } from "../../../animations/transitions/experience";
 import { aboutHeightVh } from "../../../animations/transitions/about";
@@ -34,6 +38,24 @@ const isHoveringObject3D = ref<boolean>(false);
 const threeCanvasRef = ref<HTMLCanvasElement | null>(null);
 const threeInitialized = ref<boolean>(false);
 const { isTouch } = useAgent();
+
+/**
+ * ── THE ROOM AS A STILL ───────────────────────────────────────────────────
+ *
+ * A browser with no WebGL, a context lost on a phone, a model that never
+ * arrived, a boot that threw, files still downloading when the loader's
+ * patience ran out: in every one of those the canvas is blank and the hero
+ * used to be a beige void with a name in it. The still is the room's own
+ * first frame, captured from this renderer (one landscape, one portrait), in
+ * the canvas's place and under the HUD. It is only ever mounted when needed,
+ * so the normal visit never downloads it; and the moment the scene does draw
+ * (`sceneLive`, set by the renderer's first frame) it goes, so a late scene
+ * takes over from it. Past the hero it dims to the stage colour the header
+ * and the HUD are designed against, dark through About and Experience, then
+ * clear for Contact.
+ */
+const showPoster = computed(() => sceneFailed.value || !webglAvailable || (!sceneLive.value && !preloaderVisible.value));
+const { isDarkTheme: stageDark, hasScrolledIntoView: stagePast } = useHeaderTheme();
 
 const handleIntersection = (entries: IntersectionObserverEntry[]) => {
   scrolledPastIntro.value = entries[0]?.isIntersecting ?? false;
@@ -191,10 +213,21 @@ watch(isTransitioning, (active) => {
                moved canvas keeps its WebGL context and its ResizeObserver. -->
           <Teleport to="#experience-stage" :disabled="experienceId === null">
             <canvas
-              :class="['three-canvas', { 'three-canvas-contact': !isStickyVisible && experienceId === null }]"
+              :class="['three-canvas', { 'three-canvas-contact': !isStickyVisible && experienceId === null, 'three-canvas-parked': showPoster }]"
               ref="threeCanvasRef"
             ></canvas>
           </Teleport>
+          <div
+            v-if="showPoster"
+            class="three-poster"
+            :class="{ 'three-poster-dark': stageDark, 'three-poster-past': stagePast && !stageDark }"
+            aria-hidden="true"
+          >
+            <picture>
+              <source media="(orientation: portrait)" :srcset="posterPortrait" />
+              <img :src="posterLandscape" alt="" decoding="async" />
+            </picture>
+          </div>
           <div :class="{ 'intro-about-hidden': !isStickyVisible }">
             <About :spacer-ref="aboutSpacerRef" />
             <Experience :spacer-ref="experienceSpacerRef" />
@@ -258,6 +291,44 @@ watch(isTransitioning, (active) => {
     width: 100%;
     height: calc(var(--lvh) * 100);
     max-height: calc(var(--lvh) * 100);
+  }
+
+  /* While the still stands in for it: the renderer writes visibility inline
+     on its own schedule, so this has to outrank an inline value. */
+  &-parked {
+    visibility: hidden !important;
+  }
+}
+
+/* The still of the room (see showPoster). Covers the canvas, under the HUD,
+   which is positioned and comes later in the DOM. */
+.three-poster {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: var(--color-beige-400);
+  transition: background-color 0.4s ease;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: opacity 0.4s ease;
+  }
+
+  &-dark {
+    background-color: var(--color-dark-blue-500);
+  }
+
+  &-past {
+    background-color: transparent;
+  }
+
+  &-dark img,
+  &-past img {
+    opacity: 0;
   }
 }
 

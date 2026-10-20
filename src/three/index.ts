@@ -1,6 +1,7 @@
 import { scene } from "./core/scene";
 import { camera } from "./core/camera";
 import { renderer, webglAvailable } from "./core/renderer";
+import { markSceneFailed } from "./core/webgl";
 import { objects } from "./objects";
 import { renderTarget } from "./core/renderTarget";
 import { threeSizes } from "./utils/sizes";
@@ -17,14 +18,24 @@ const init = (_canvas: HTMLCanvasElement) => {
   canvas = _canvas;
 
   const boot = () => {
-    threeSizes.init(_canvas);
-    camera.init();
-    renderTarget.init();
-    renderer.init(canvas);
+    try {
+      threeSizes.init(_canvas);
+      camera.init();
+      renderTarget.init();
+      renderer.init(canvas);
 
-    objects.initHero();
-    raycast.init();
-    objects.initDeferred();
+      objects.initHero();
+      raycast.init();
+      objects.initDeferred();
+    } catch (error) {
+      // A model that did not arrive (utils/resources.ts counts the failure and
+      // lets "ready" fire) reaches here as a throw out of initHero. A half-built
+      // scene is worse than none: the renderer stops, Home.vue shows the room's
+      // still, and the loader goes on to the page instead of waiting for ever.
+      markSceneFailed(error);
+      renderer.destroy();
+      return;
+    }
 
     // QA-SHIM temporary, remove before ship
     if (location.search.includes("qa=1")) {

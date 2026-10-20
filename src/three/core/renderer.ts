@@ -6,7 +6,7 @@ import { camera } from "./camera";
 import { sceneWeights } from "../../animations/scenes";
 import { colors } from "../common/colors";
 import { threeSizes } from "../utils/sizes";
-import { webglAvailable, webglSoftware } from "./webgl";
+import { webglAvailable, webglSoftware, markSceneFailed, sceneFailed, sceneLive } from "./webgl";
 
 import type { Camera, Object3D, Scene } from "three";
 
@@ -34,6 +34,16 @@ let isActive = false;
 let onScreen = true;
 let onScreenObserver: IntersectionObserver | null = null;
 
+/** Set once, the first time this renderer draws; see `sceneLive` in ./webgl. */
+let drawn = false;
+// A lost context clears the canvas and three stops drawing until the browser
+// hands it back, which on a phone under memory pressure it may never do. The
+// still in Home.vue covers the gap either way.
+const onContextLost = () => markSceneFailed("the WebGL context was lost");
+const onContextRestored = () => {
+  sceneFailed.value = false;
+};
+
 const emptyVector = new Vector3();
 
 const init = (_canvas: HTMLCanvasElement | null) => {
@@ -52,6 +62,9 @@ const init = (_canvas: HTMLCanvasElement | null) => {
   // opposite of what compileAsync is for. Profiled at 84ms of getShaderInfoLog
   // on the way back from a project page. Kept in dev, where the logs are wanted.
   instance.debug.checkShaderErrors = import.meta.env.DEV;
+
+  canvas?.addEventListener("webglcontextlost", onContextLost);
+  canvas?.addEventListener("webglcontextrestored", onContextRestored);
 
   if (canvas && "IntersectionObserver" in window) {
     onScreenObserver = new IntersectionObserver(
@@ -98,6 +111,10 @@ const tick = () => {
   const color = sceneWeights.contact > 0.001 ? colors.beigeDark : colors.beigeLight;
   instance.setClearColor(color);
   instance.render(scene.instance, camera.instance);
+  if (!drawn) {
+    drawn = true;
+    sceneLive.value = true;
+  }
 };
 
 const compile = async () => {
@@ -151,6 +168,9 @@ const compileScene = async (camera: Camera, sceneToCompile: Scene) => {
 
 const destroy = () => {
   if (!instance) return;
+  canvas?.removeEventListener("webglcontextlost", onContextLost);
+  canvas?.removeEventListener("webglcontextrestored", onContextRestored);
+  drawn = false;
   instance.dispose();
   gsap.ticker.remove(tick);
   onScreenObserver?.disconnect();

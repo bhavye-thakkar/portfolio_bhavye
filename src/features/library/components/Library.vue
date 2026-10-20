@@ -63,6 +63,17 @@ import { createArchive, metrics } from "../useArchive";
 const { isTouch } = useAgent();
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/**
+ * The book just clicked: it comes off the shelf and turns toward the reader
+ * while its page fades in over the shelf, the first beat of the opening that
+ * BookDetail.vue carries on with. Cleared when the page closes, so the book
+ * is back in its place when the shelf shows again.
+ */
+const openingSlug = ref<string | null>(null);
+watch(bookId, (id) => {
+  if (id === null) openingSlug.value = null;
+});
+
 const rootRef = ref<HTMLElement | null>(null);
 const trackRef = ref<HTMLElement | null>(null);
 const counterRef = ref<HTMLElement | null>(null);
@@ -322,8 +333,9 @@ onBeforeUnmount(() => {
           <Link
             v-if="item.kind === 'book'"
             :to="`/library/${item.book.slug}`"
-            class="library-book"
+            :class="['library-book', { 'library-book-opening': openingSlug === item.book.slug }]"
             :style="bookStyle(item.book)"
+            @click="openingSlug = item.book.slug"
             :aria-label="`${item.book.title}, ${item.book.author}`"
             draggable="false"
             data-cursor="circle-black"
@@ -815,6 +827,14 @@ onBeforeUnmount(() => {
   .library-book:hover .library-book-object {
     transform: rotateX(calc(var(--pitch) * -1)) rotateY(calc(var(--yaw) * -1)) translateZ(24px);
   }
+}
+
+/* The clicked book: off the shelf and turning toward the reader, the first
+   beat of the opening (BookDetail.vue takes it from there). After the hover
+   rule and at its specificity, so it wins while the pointer is still on it. */
+.library-book.library-book-opening .library-book-object {
+  transform: rotateX(calc(var(--pitch) * -1)) rotateY(calc(var(--yaw) * -1 + 16deg)) translateZ(64px);
+  transition-duration: 0.45s;
 }
 
 /* Prev / next, at the shelf's sides, level with the books. */

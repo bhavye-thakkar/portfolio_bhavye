@@ -5,7 +5,7 @@
   anchors within `/` and are deliberately NOT listed as separate pages; the
   detail routes are, because they render their own page and their own <h1>.
 
-  The domain is the real canonical, https://bhavyethakkar.netlify.app/. It is
+  The domain is the real canonical, https://bhavye.vercel.app/. It is
   declared in five places that have to change together: here, index.html
   (canonical, og:url, JSON-LD), public/robots.txt, public/llms.txt and `site`
   in src/content/profile.ts.
@@ -35,46 +35,46 @@
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://bhavyethakkar.netlify.app/</loc>
+    <loc>https://bhavye.vercel.app/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
-    <loc>https://bhavyethakkar.netlify.app/experience/notionmind</loc>
+    <loc>https://bhavye.vercel.app/experience/notionmind</loc>
     <lastmod>2026-09-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/experience/unispace</loc>
+    <loc>https://bhavye.vercel.app/experience/unispace</loc>
     <lastmod>2026-09-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
 
   <url>
-    <loc>https://bhavyethakkar.netlify.app/object/orchid</loc>
+    <loc>https://bhavye.vercel.app/object/orchid</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/object/starry-night</loc>
+    <loc>https://bhavye.vercel.app/object/starry-night</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
 
   <url>
-    <loc>https://bhavyethakkar.netlify.app/project/garbacircle</loc>
+    <loc>https://bhavye.vercel.app/project/garbacircle</loc>
     <lastmod>2026-09-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/project/project-02</loc>
+    <loc>https://bhavye.vercel.app/project/project-02</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -82,187 +82,187 @@
 
   <!-- The library (src/content/library.ts): the archive and one page per book. -->
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library</loc>
+    <loc>https://bhavye.vercel.app/library</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/meditations</loc>
+    <loc>https://bhavye.vercel.app/library/meditations</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/how-to-get-rich</loc>
+    <loc>https://bhavye.vercel.app/library/how-to-get-rich</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/the-subtle-art-of-not-giving-a-fck</loc>
+    <loc>https://bhavye.vercel.app/library/the-subtle-art-of-not-giving-a-fck</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/how-to-win-friends-and-influence-people</loc>
+    <loc>https://bhavye.vercel.app/library/how-to-win-friends-and-influence-people</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/rich-dad-poor-dad</loc>
+    <loc>https://bhavye.vercel.app/library/rich-dad-poor-dad</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/ikigai</loc>
+    <loc>https://bhavye.vercel.app/library/ikigai</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/the-alchemist</loc>
+    <loc>https://bhavye.vercel.app/library/the-alchemist</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/war-of-lanka</loc>
+    <loc>https://bhavye.vercel.app/library/war-of-lanka</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/raavan-enemy-of-aryavarta</loc>
+    <loc>https://bhavye.vercel.app/library/raavan-enemy-of-aryavarta</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/sita-warrior-of-mithila</loc>
+    <loc>https://bhavye.vercel.app/library/sita-warrior-of-mithila</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/the-psychology-of-money</loc>
+    <loc>https://bhavye.vercel.app/library/the-psychology-of-money</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/atomic-habits</loc>
+    <loc>https://bhavye.vercel.app/library/atomic-habits</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/the-monk-who-sold-his-ferrari</loc>
+    <loc>https://bhavye.vercel.app/library/the-monk-who-sold-his-ferrari</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/do-epic-shit</loc>
+    <loc>https://bhavye.vercel.app/library/do-epic-shit</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/the-immortals-of-meluha</loc>
+    <loc>https://bhavye.vercel.app/library/the-immortals-of-meluha</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/the-secret</loc>
+    <loc>https://bhavye.vercel.app/library/the-secret</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/cant-hurt-me</loc>
+    <loc>https://bhavye.vercel.app/library/cant-hurt-me</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/the-hidden-hindu</loc>
+    <loc>https://bhavye.vercel.app/library/the-hidden-hindu</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/the-daily-stoic</loc>
+    <loc>https://bhavye.vercel.app/library/the-daily-stoic</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/think-and-grow-rich</loc>
+    <loc>https://bhavye.vercel.app/library/think-and-grow-rich</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/shoe-dog</loc>
+    <loc>https://bhavye.vercel.app/library/shoe-dog</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/white-nights</loc>
+    <loc>https://bhavye.vercel.app/library/white-nights</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/the-secret-of-the-nagas</loc>
+    <loc>https://bhavye.vercel.app/library/the-secret-of-the-nagas</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/the-oath-of-the-vayuputras</loc>
+    <loc>https://bhavye.vercel.app/library/the-oath-of-the-vayuputras</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/the-power-of-habit</loc>
+    <loc>https://bhavye.vercel.app/library/the-power-of-habit</loc>
     <lastmod>2026-10-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/the-hidden-hindu-2</loc>
+    <loc>https://bhavye.vercel.app/library/the-hidden-hindu-2</loc>
     <lastmod>2026-10-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/the-hidden-hindu-3</loc>
+    <loc>https://bhavye.vercel.app/library/the-hidden-hindu-3</loc>
     <lastmod>2026-10-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/ram-scion-of-ikshvaku</loc>
+    <loc>https://bhavye.vercel.app/library/ram-scion-of-ikshvaku</loc>
     <lastmod>2026-10-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/eat-that-frog</loc>
+    <loc>https://bhavye.vercel.app/library/eat-that-frog</loc>
     <lastmod>2026-10-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://bhavyethakkar.netlify.app/library/i-dont-love-you-anymore</loc>
+    <loc>https://bhavye.vercel.app/library/i-dont-love-you-anymore</loc>
     <lastmod>2026-10-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>

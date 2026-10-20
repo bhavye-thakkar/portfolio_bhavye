@@ -46,7 +46,7 @@
 // DEFAULT_ORIGIN there. The `typeof` guard is for the route-pages runner,
 // which imports this file without Vite's defines.
 declare const __SITE_ORIGIN__: string | undefined;
-export const site = typeof __SITE_ORIGIN__ === "string" ? __SITE_ORIGIN__ : "https://bhavyethakkar.netlify.app";
+export const site = typeof __SITE_ORIGIN__ === "string" ? __SITE_ORIGIN__ : "https://bhavye.vercel.app";
 
 /** Who and where. */
 export const profile = {

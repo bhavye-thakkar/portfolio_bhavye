@@ -1,4 +1,4 @@
-import { playSound } from "../utils/sounds";
+import { playSound, setVolume } from "../utils/sounds";
 import { sprites } from "../definitions/sprites";
 import { sceneWeights } from "../../../animations/scenes";
 import { clamp } from "../../../utils/math";
@@ -26,7 +26,7 @@ playSound("snore");
 
 export const tick = () => {
   const volume = projectVisible.value ? 0 : clamp(sceneWeights.contact * 0.5, 0, 1);
-  sprites.contact.howl.volume(volume);
+  setVolume(sprites.contact.howl, volume);
 };
 
 export const stopSnoreRepetition = () => {

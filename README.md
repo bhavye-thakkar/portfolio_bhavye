@@ -94,10 +94,12 @@ So an untouched deployment names itself, never a host it does not serve. When `S
 
 This repo is deployed to more than one host; only one of them should be the canonical, and the others should redirect to it. A canonical pointing at a host that serves something else tells every crawler to index that other thing instead.
 
+The canonical is `https://bhavye.vercel.app`, the default in `scripts/siteOrigin.ts`. The Netlify mirrors (thakkarbhavya, bhavyathakkar and thakkarbhavye .netlify.app) get `SITE_ORIGIN` from `netlify.toml` in this repo, so every Netlify build names the Vercel address as its canonical and redirects to it; nothing has to be set in the Netlify dashboard. On Vercel, `vercel.json` keeps one URL per page (`cleanUrls` serves each route's own built HTML file and redirects `/page.html` to `/page`; `trailingSlash: false` redirects `/page/` to `/page`) and leaves an unknown path to `dist/404.html` with a real 404 status instead of rewriting it to the home page.
+
 ---
 
 ## Deploying
 
 Any static host. `npm run build` emits `dist/`.
 
-The app routes with `history.pushState`, so the host must rewrite unknown paths to `index.html` or `/project/…` and `/experience/…` will 404 on a hard refresh. `public/_redirects` covers Netlify; the file's comment lists the Vercel, GitHub Pages and nginx equivalents.
+The app routes with `history.pushState`, and the build writes a static HTML file per route (`scripts/routePages.ts`), so the host has to serve `/project/<slug>` from `project/<slug>.html` and so on. `public/_redirects` covers Netlify; `vercel.json` does it with `cleanUrls`; the `_redirects` comment lists the GitHub Pages and nginx equivalents.

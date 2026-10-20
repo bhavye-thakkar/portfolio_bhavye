@@ -21,7 +21,7 @@
  * Two untouched deployments are two self-declared copies, which search
  * engines fold into one on their own; setting SITE_ORIGIN on both ends it.
  */
-export const DEFAULT_ORIGIN = "https://bhavyethakkar.netlify.app";
+export const DEFAULT_ORIGIN = "https://bhavye.vercel.app";
 
 const trim = (url: string) => url.replace(/\/+$/, "");
 

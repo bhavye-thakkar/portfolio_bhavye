@@ -1,21 +1,22 @@
-import { ref, onMounted } from "vue";
+import { ref, nextTick, onMounted } from "vue";
 import gsap from "gsap";
 import { resources } from "../utils/resources";
 import { renderer, webglAvailable, webglSoftware } from "../three/core/renderer";
+import { sceneFailed } from "../three/core/webgl";
 import { three } from "../three";
 import { loaderAvatar } from "../three/loader-avatar";
-import { projectVisible } from "./useRouteObserver";
+import { libraryActive, projectVisible } from "./useRouteObserver";
 
 /**
- * True while the loader covers the page. It flips as the exit wipe starts,
- * which is when Home's own entrance (the hero banner) should play: the wipe
- * uncovers it mid-animation instead of after it has finished unseen.
+ * True while the loader covers the page, and until its name has landed on the
+ * hero's title: that is the frame the title shows itself (Hero.vue) and the
+ * banner under it starts (Hero.vue, Banner), so the two never show twice.
  */
 export const preloaderVisible = ref(true);
 
 /**
  * True once every asset is in and the door has gone, while the loader still
- * covers the page. Home starts rendering on this, so the wipe uncovers a
+ * covers the page. Home starts rendering on this, so the exit uncovers a
  * finished room rather than an empty beige page.
  */
 export const preloaderLoaded = ref(false);
@@ -23,7 +24,7 @@ export const preloaderLoaded = ref(false);
 /**
  * ─── THE OPENING ──────────────────────────────────────────────────────────
  *
- *   shut → push → (the name alone) → boot → exit
+ *   shut → push → (the name alone) → boot → land
  *
  * One function, top to bottom, each state entered once. What the markup does
  * in each is documented with the styles in index.html; how the avatar moves is
@@ -31,10 +32,27 @@ export const preloaderLoaded = ref(false);
  * edge, with him on it the whole way, and his legs follow its distance, so
  * his feet cannot slide and he cannot be dragged. It never pauses: on a slow
  * connection he walks off and the name waits alone, as the reference does.
+ *
+ * Nothing here waits for show. The door takes as long as his walk takes, the
+ * boot waits for the files and for the room's first frame, and every wait has
+ * a ceiling (LOAD_CAP_MS, ARRIVE_CAP_MS, the first-frame cap), so a file that
+ * never arrives, a scene that throws or a browser with no WebGL all end at
+ * the page, with the room's still in the canvas's place (Home.vue).
  */
 
-/** Keep in step with the transition in index.html. */
-const EXIT_MS = 600;
+/** The name's flight to the hero title; keep in step with the backdrop fade in index.html. */
+const LAND_MS = 800;
+const LAND_EASE = "cubic-bezier(0.76, 0, 0.24, 1)";
+/** The fade that stands in for the flight under reduced motion, or with no title to land on. */
+const FADE_MS = 400;
+/**
+ * The longest the loader waits for the downloads, ~1.4 MB on a good day. Past
+ * it the page is shown with the room's still, and the scene boots on top of
+ * that if the files arrive after all (three/index.ts, `bootNow`). A loader
+ * that waits for ever is the failure this guards against; the page behind it
+ * works without the scene.
+ */
+const LOAD_CAP_MS = 20000;
 /**
  * How long the door waits, shut, for the avatar before it opens without him.
  * His files are the first wave of the download, so this only runs out on a bad
@@ -58,10 +76,10 @@ const MAX_CADENCE = 2.4;
  */
 const GONE_ENOUGH = 0.85;
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
- * Resolves once the renderer has drawn a real frame, so the frame the wipe
+ * Resolves once the renderer has drawn a real frame, so the frame the exit
  * starts in already carries the room. Checked on the ticker after the
  * renderer's own tick, which renders in the same callback.
  *
@@ -72,9 +90,10 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  */
 const firstFrame = () =>
   new Promise<void>((resolve) => {
-    // A cold link to a project page keeps the renderer switched off, and a
-    // browser without WebGL never gets one: no frame is coming.
-    if (projectVisible.value || !webglAvailable) return resolve();
+    // A cold link to a project page or the library keeps the renderer switched
+    // off, a browser without WebGL never gets one, and a scene that failed will
+    // not draw: no frame is coming.
+    if (projectVisible.value || libraryActive.value || !webglAvailable || sceneFailed.value) return resolve();
 
     const start = performance.now();
     const check = () => {
@@ -88,14 +107,14 @@ const firstFrame = () =>
       // ponytail: a lost context or a stalled compile must never hold the loader up.
       // A CPU renderer needs seconds for that first frame, and the name card it
       // waits on is a better thing to look at than an empty page.
-      if (!drawn && performance.now() - start < (webglSoftware ? 12000 : 2500)) return;
+      if (!drawn && !sceneFailed.value && performance.now() - start < (webglSoftware ? 12000 : 2500)) return;
       gsap.ticker.remove(check);
       resolve();
     };
     gsap.ticker.add(check);
   });
 
-/** Resolves when every asset is in. */
+/** Resolves when every asset is in (or has failed: utils/resources.ts counts both). */
 const assets = () =>
   new Promise<void>((resolve) => {
     if (resources.isReady) return resolve();
@@ -109,13 +128,50 @@ const assets = () =>
     resources.on("progress", onProgress);
   });
 
+/**
+ * ── THE NAME TAKES ITS PLACE ──────────────────────────────────────────────
+ *
+ * The reference opening ends with its mark in the middle of the screen
+ * travelling to where it lives in the page, while the field under it fades
+ * away. Here the mark is the name. It flies from the middle of the loader to
+ * the hero's own title: same face, same weight, same tracking, so one scale
+ * and one translate, read off the two boxes rather than guessed, land it to
+ * the pixel. The hero title stays hidden until then (Hero.vue) and is shown
+ * in the same frame this copy is removed, so there is never a second name on
+ * screen. With no title to land on (a deep link into a project, where home is
+ * hidden) or under reduced motion, the name simply fades.
+ */
+const land = (name: HTMLElement, reduced: boolean) => {
+  const title = document.querySelector<HTMLElement>(".hero-title");
+  const to = title?.getBoundingClientRect();
+  const from = name.getBoundingClientRect();
+  const flight = !reduced && to && to.height > 0 && from.height > 0;
+
+  const animation = flight
+    ? name.animate(
+        [
+          { transform: "translate(-50%, -50%)" },
+          {
+            transform: `translate(-50%, -50%) translate(${to.left + to.width / 2 - (from.left + from.width / 2)}px, ${
+              to.top + to.height / 2 - (from.top + from.height / 2)
+            }px) scale(${to.height / from.height})`,
+          },
+        ],
+        { duration: LAND_MS, easing: LAND_EASE, fill: "forwards" },
+      )
+    : name.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE_MS, easing: "ease-out", fill: "forwards" });
+
+  return animation.finished.catch(() => undefined);
+};
+
 export const usePreloader = () => {
   onMounted(async () => {
     const root = document.querySelector<HTMLElement>(".preloader");
     const curtain = root?.querySelector<HTMLElement>(".preloader-curtain");
+    const name = root?.querySelector<HTMLElement>(".preloader-name");
     const canvas = root?.querySelector<HTMLCanvasElement>(".preloader-avatar canvas");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const loaded = assets();
+    const loaded = Promise.race([assets(), wait(LOAD_CAP_MS)]);
 
     // The scene may boot, and Home render, only once nothing of his is left on
     // screen to stutter: the boot is a run of long tasks (see three/index.ts).
@@ -124,11 +180,14 @@ export const usePreloader = () => {
       preloaderLoaded.value = true;
       await firstFrame();
     };
-    const exit = async (ms: number) => {
-      preloaderVisible.value = false;
+    const exit = async () => {
       document.body.classList.remove("is-loading");
       root?.classList.add("preloader-exit");
-      await wait(ms);
+      if (name) await land(name, reduced);
+      preloaderVisible.value = false;
+      // The hero title is patched in before this copy of the name is taken
+      // out, so both land in one paint.
+      await nextTick();
       root?.remove();
     };
 
@@ -136,7 +195,7 @@ export const usePreloader = () => {
     if (!root || !curtain || reduced) {
       await loaded;
       await boot();
-      return exit(400);
+      return exit();
     }
 
     // ── shut: the door waits for him ──
@@ -167,8 +226,8 @@ export const usePreloader = () => {
     // ── the name alone ──
     await boot();
 
-    // ── exit ──
-    await exit(EXIT_MS);
+    // ── land ──
+    await exit();
     // only ever resolved, never rejected; the loader's context goes with it
     (await mounting)?.dispose();
   });

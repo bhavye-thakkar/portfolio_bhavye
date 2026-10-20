@@ -13,11 +13,14 @@ import { roomObjects } from "../../../content/objects";
     <div class="hero-content grid">
       <div class="hero-content-inner" id="hero-content-inner">
         <div class="hero-content-copys">
-          <h1 class="hero-title">Bhavye<br />Thakkar</h1>
+          <!-- Hidden while the loader is up: its name flies from the middle of
+               the screen to exactly this box and this title takes over in the
+               same frame (usePreloader.ts, `land`). -->
+          <h1 class="hero-title" :class="{ 'hero-title-pending': preloaderVisible }">Bhavye<br />Thakkar</h1>
           <Banner
             class="hero-banner"
             :copy="t('job-title')"
-            :titles="[t('job-title-ai'), t('job-title'), t('job-title-app')]"
+            :titles="[t('job-title-ai'), t('job-title'), t('job-title-app'), t('job-title-agentic')]"
             v-if="!preloaderVisible"
           />
         </div>
@@ -156,6 +159,10 @@ import { roomObjects } from "../../../content/objects";
     font-weight: 900;
     letter-spacing: 0.02em;
     font-size: var(--font-size-title-lg);
+
+    &-pending {
+      opacity: 0;
+    }
 
     @include mixins.landscape {
       font-size: var(--font-size-title-lg);

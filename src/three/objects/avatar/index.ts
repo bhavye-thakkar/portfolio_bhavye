@@ -1,5 +1,5 @@
 import { resources } from "../../../utils/resources";
-import { CanvasTexture, Mesh, Quaternion, Vector3, Euler, Group, ShaderMaterial, LinearSRGBColorSpace } from "three";
+import { Mesh, Quaternion, Vector3, Euler, Group, ShaderMaterial, LinearSRGBColorSpace } from "three";
 import { scene } from "../../core/scene";
 import { animations } from "./animations";
 import { sceneWeights, sceneWeightsInOut, stageHold } from "../../../animations/scenes";
@@ -13,8 +13,6 @@ import matcapFragmentShader from "../../shaders/avatar-matcap/fragment.glsl";
 import headVertexShader from "../../shaders/avatar-head/vertex.glsl";
 import headFragmentShader from "../../shaders/avatar-head/fragment.glsl";
 import lensFragmentShader from "../../shaders/avatar-lens/fragment.glsl";
-import dialFragmentShader from "../../shaders/avatar-dial/fragment.glsl";
-import { getDialCanvas } from "../timex-dial";
 import gsap from "gsap";
 import { aboutProgress } from "../../../animations/transitions/about";
 import { lerp, mix } from "../../../utils/math";
@@ -170,10 +168,9 @@ const setupMesh = () => {
   });
   spectacles.init(mesh, getMaterial("spectacles") as Material, lensMaterial, noseMaterial);
 
-  // The watches on his right wrist: black body and band, a lighter display and
-  // steel, both off the existing matcaps so they sit in the same palette as the
-  // shoes and shirt. The Timex dial is its own canvas, sampled raw the way the
-  // head texture is, see `shaders/avatar-dial`.
+  // The smartwatch on his right wrist: body and band off the black matcap, its
+  // readout off the white one, so it sits in the same palette as the shoes and
+  // the shirt. The one watch, everywhere he is seen; see watch.ts.
   const whiteTexture = resources.items["matcap-white"];
   whiteTexture.colorSpace = LinearSRGBColorSpace;
   const watchLightMaterial = new ShaderMaterial({
@@ -182,16 +179,7 @@ const setupMesh = () => {
     transparent: true,
     uniforms: { uMatcap: { value: whiteTexture }, ...uniforms },
   });
-  const dialTexture = new CanvasTexture(getDialCanvas());
-  dialTexture.colorSpace = LinearSRGBColorSpace;
-  dialTexture.generateMipmaps = false;
-  const dialMaterial = new ShaderMaterial({
-    vertexShader: headVertexShader,
-    fragmentShader: dialFragmentShader,
-    transparent: true,
-    uniforms: { uDial: { value: dialTexture }, ...uniforms },
-  });
-  watch.init(mesh, getMaterial("watch") as Material, watchLightMaterial, dialMaterial);
+  watch.init(mesh, getMaterial("watch") as Material, watchLightMaterial);
 
   mesh.rotation.z = 0;
 
@@ -333,10 +321,6 @@ const tick = () => {
   clearGaze();
   animations.update();
   updateGaze();
-  // The Timex at work, the smartwatch everywhere else. `seated` is 1 before
-  // the Experience scan shows him and 0 only after the closing scan has hidden
-  // him, so the swap is never on screen. See `watch.ts`.
-  watch.setTimex(seated.value > 0.5);
 
   const isContact = sceneWeights.contact > 0.001;
 

@@ -30,6 +30,8 @@ class Resources extends EventEmitter<{
   isReady = false;
   loaded = 0;
   items: Record<string, any> = {};
+  /** Names of sources whose download failed: absent from `items`, counted as done. */
+  failed = new Set<string>();
 
   loaders: {
     gltfLoader: GLTFLoader;
@@ -78,22 +80,43 @@ class Resources extends EventEmitter<{
   }
 
   loadSource(source: (typeof sources)[number], then?: () => void) {
+    // A request that fails (a 404 after a bad deploy, a dropped connection, a
+    // blocked host) used to be silent: the counter never reached the total,
+    // "ready" never fired, and the loader sat over the page for good. Now it
+    // is counted as done without an item; the scene boot reads the gap and
+    // reports a failed scene instead of a stuck one (three/index.ts).
+    const fail = (error: unknown) => {
+      this.failed.add(source.name);
+      console.warn(`[Resources] ${source.name} failed to load from ${source.path}`, error);
+      this.sourceLoaded(source, null);
+      then?.();
+    };
     if (source.type === "gltfModel") {
-      this.loaders.gltfLoader.load(source.path, (file) => {
-        this.sourceLoaded(source, file);
-        then?.();
-      });
+      this.loaders.gltfLoader.load(
+        source.path,
+        (file) => {
+          this.sourceLoaded(source, file);
+          then?.();
+        },
+        undefined,
+        fail,
+      );
     } else if (source.type === "texture") {
-      this.loaders.textureLoader.load(source.path, (file: Texture) => {
-        file.colorSpace = SRGBColorSpace;
-        this.sourceLoaded(source, file);
-        then?.();
-      });
+      this.loaders.textureLoader.load(
+        source.path,
+        (file: Texture) => {
+          file.colorSpace = SRGBColorSpace;
+          this.sourceLoaded(source, file);
+          then?.();
+        },
+        undefined,
+        fail,
+      );
     }
   }
 
-  sourceLoaded(source: { name: string; type: string; path: string }, file: ResourceType) {
-    this.items[source.name] = file;
+  sourceLoaded(source: { name: string; type: string; path: string }, file: ResourceType | null) {
+    if (file) this.items[source.name] = file;
 
     this.loaded++;
 

@@ -110,4 +110,4 @@ Allow: /
 # The canonical origin. It is also index.html's canonical and og:url, `site`
 # in src/content/profile.ts, and the <loc> values in sitemap.xml; change all
 # of them in one edit.
-Sitemap: https://bhavyethakkar.netlify.app/sitemap.xml
+Sitemap: https://bhavye.vercel.app/sitemap.xml

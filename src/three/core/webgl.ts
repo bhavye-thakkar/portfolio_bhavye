@@ -37,6 +37,26 @@
  * every frame (the Starry Night's star drift, ObjectDetail.vue). It is set
  * before Vue mounts, so no first paint ever runs with the drift on.
  */
+import { ref } from "vue";
+
+/**
+ * ── WHEN THE SCENE CANNOT GO ON ───────────────────────────────────────────
+ *
+ * `sceneFailed`: the boot threw (a model that never arrived, a renderer the
+ * browser refused half-way) or the context was lost and not given back.
+ * `sceneLive`: the renderer has drawn at least one frame, ever. Home.vue shows
+ * the room as a still while the first is true, or while the second has not
+ * happened by the time the loader leaves; NoWebgl.vue says why. Neither is
+ * ever cleared by a remount: a scene that drew once is a scene that can draw.
+ */
+export const sceneFailed = ref(false);
+export const sceneLive = ref(false);
+
+export const markSceneFailed = (reason: unknown) => {
+  console.error("[three] the scene cannot be drawn, showing the room's still instead", reason);
+  sceneFailed.value = true;
+};
+
 const probe = () => {
   try {
     const gl = document.createElement("canvas").getContext("webgl2");

@@ -1,0 +1,16 @@
+# The Netlify deployments of this repo (thakkarbhavya, bhavyathakkar and
+# thakkarbhavye .netlify.app) are mirrors of the canonical site on Vercel.
+#
+# Setting SITE_ORIGIN here, in the repo rather than per site in the Netlify
+# dashboard, makes every Netlify build stamp the Vercel address into its
+# canonical tags, sitemap, robots.txt and llms.txt (scripts/siteOrigin.ts) and
+# prepend a host-wide 301 to dist/_redirects, so a visitor or a crawler that
+# lands on a mirror is sent to the same page on bhavye.vercel.app. Four
+# self-declared copies of one site were what Search Console reported as
+# "Duplicate, Google chose different canonical than user".
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  SITE_ORIGIN = "https://bhavye.vercel.app"

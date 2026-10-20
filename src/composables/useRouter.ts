@@ -1,3 +1,5 @@
+import { markReplace } from "./useFirstRoute";
+
 export const useRouter = () => {
   const push = (path: string) => {
     if (typeof window !== "undefined") {
@@ -8,6 +10,8 @@ export const useRouter = () => {
 
   const replace = (path: string) => {
     if (typeof window !== "undefined") {
+      // Not a navigation as far as the first-route state is concerned, see useFirstRoute.ts.
+      if (path !== window.location.pathname) markReplace();
       // The intercepted replaceState in useRoute.ts will automatically trigger path updates
       window.history.replaceState(null, "", path);
     }

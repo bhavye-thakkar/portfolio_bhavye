@@ -1,5 +1,13 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { t } from "../i18n/utils/translate";
+import { webglAvailable } from "../three/core/renderer";
+import { sceneFailed } from "../three/core/webgl";
+
+// Two reasons, two wordings: a browser with no WebGL at all, or one that had
+// it and lost it (or a scene that failed to boot). Home.vue shows the room's
+// still in both cases; this says which it was.
+const failed = computed(() => webglAvailable && sceneFailed.value);
 
 /**
  * ─── WHAT THE PAGE SAYS WHEN IT CANNOT DRAW ───────────────────────────────
@@ -13,15 +21,15 @@ import { t } from "../i18n/utils/translate";
  * A bar, not a modal: the HTML half of the site (projects, experience copy,
  * contact) still works and should stay reachable.
  *
- * ponytail: words only. A static render of the room behind the hero would
- * make this page look designed rather than explained; add when it matters.
+ * Since 2026-10-20 Home.vue also shows a still of the room where the canvas
+ * would be, so the hero looks designed rather than explained.
  */
 </script>
 
 <template>
   <aside class="no-webgl" role="status">
-    <p class="no-webgl-title">{{ t("no-webgl-title") }}</p>
-    <p class="no-webgl-body">{{ t("no-webgl-body") }}</p>
+    <p class="no-webgl-title">{{ failed ? t("scene-failed-title") : t("no-webgl-title") }}</p>
+    <p class="no-webgl-body">{{ failed ? t("scene-failed-body") : t("no-webgl-body") }}</p>
   </aside>
 </template>
 
