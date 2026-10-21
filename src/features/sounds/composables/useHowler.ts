@@ -42,7 +42,10 @@ export const useHowler = () => {
 
   const tick = () => {
     if (!howlerUnlocked.value) {
-      if (Howler.ctx.state !== "running") return;
+      // No context yet (Web Audio refused, or not created): nothing to unlock.
+      // Read guarded: this runs inside the shared gsap ticker, and a throw here
+      // would abort every listener after it, the renderer included, every frame.
+      if (!Howler.ctx || Howler.ctx.state !== "running") return;
       handleUnlocked();
     } else if (!isTouch.value) {
       // Only process sounds on non-touch devices

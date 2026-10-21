@@ -219,16 +219,20 @@ const setup = (options: ExperienceOptions) => {
  * the seated desk idle, and the half-way pose of that blend has his hips at
  * roughly desk height with his legs half-extended under it.
  *
- * That pose is fine once the desk is opaque: from every Experience framing the
- * desk top is between the camera and his lower half, so it hides the legs and
- * all that reads is a figure settling into the chair. It is only wrong while
- * the desk is still fading in, a 40%-opaque desk shows the legs straight
- * through itself, which is what made the old opening look like a man sitting
- * on top of his own desk.
+ * That pose is wrong in front of a half-built desk: a 40%-opaque desk shows
+ * the legs straight through itself, which is what made the first opening look
+ * like a man sitting on top of his own desk. The next order, bay first and
+ * then the sit, had the opposite fault, and the owner caught it (2026-10-21):
+ * the desk, the keyboard and the monitors assembled THROUGH the standing
+ * hologram's shins, a solid slab across his legs, and on a short viewport he
+ * then stood inside the desk behind the monitor until the sit began.
  *
- * So the bay finishes building first, and only then does he sit. The closing
- * runs the same rule backwards: he stands back up while the desk is still
- * solid, and the office only comes apart after he is clear of it.
+ * So now he sits FIRST, while he is still a hologram and the floor is still
+ * empty (a hologram settling onto nothing reads as a hologram, not as a man
+ * on a desk), and only then does the bay build around the seated figure: the
+ * desk fades in over legs that are already under it. The closing runs the
+ * same rule backwards: the office comes apart around him while he sits, and
+ * he stands up once there is nothing left to stand inside of.
  */
 /**
  * 190vh, not the 100vh of "top top": the pod-to-office hand-over - shrink,
@@ -278,21 +282,22 @@ const setupIn = (spacer: HTMLElement) => {
       0,
     );
 
-    // The bay assembles around the standing hologram and reaches full opacity
-    // before he moves.
-    tl.fromTo(workstation.reveal, { value: 0 }, { value: 1, duration: 0.42, ease: "power2.out" }, 0.04);
+    // First he takes the chair, a hologram settling onto an empty floor while
+    // the pod is still going.
+    tl.fromTo(avatar.seated, { value: 0 }, { value: 1, duration: 0.32, ease: "power2.inOut" }, 0.16);
+
+    // Then the bay assembles around the seated figure and reaches full
+    // opacity, under the held camera, with his legs already under the desk.
+    tl.fromTo(workstation.reveal, { value: 0 }, { value: 1, duration: 0.38, ease: "power2.out" }, 0.5);
     tl.fromTo(
       workstation.group.scale,
       { x: 0.94, y: 0.94, z: 0.94 },
-      { x: 1, y: 1, z: 1, duration: 0.46, ease: "power2.out" },
-      0.04,
+      { x: 1, y: 1, z: 1, duration: 0.4, ease: "power2.out" },
+      0.5,
     );
 
-    // Then he takes the chair, with the desk already solid in front of him.
-    tl.fromTo(avatar.seated, { value: 0 }, { value: 1, duration: 0.32, ease: "power2.inOut" }, 0.44);
-
     // Last: the scan sweeps him back to solid, About's dissolve in reverse.
-    tl.fromTo(avatar.materialise, { value: 0 }, { value: 1, duration: 0.3, ease: "power2.inOut" }, 0.7);
+    tl.fromTo(avatar.materialise, { value: 0 }, { value: 1, duration: 0.26, ease: "power2.inOut" }, 0.74);
   });
 };
 
@@ -515,7 +520,7 @@ const setupBeats = ({ spacer, opening, chapters, xray }: ExperienceOptions) => {
      * The opening backwards, property for property, in the reverse order:
      *
      *   scan solid ← office assembles ← he sits ← lab pod shrinks
-     *   he stands  → office un-builds → hologram scans away
+     *   office un-builds → he stands → hologram scans away
      *
      * He arrives here already an X-ray, so the close no longer owns the
      * dissolve of the solid body, that is the phase above. The camera does
@@ -544,25 +549,26 @@ const setupBeats = ({ spacer, opening, chapters, xray }: ExperienceOptions) => {
       { value: 0, duration: closeSpan * 0.34, ease: "none", immediateRender: false },
       closeAt(0),
     );
-    // He stands while the desk is still solid, so it goes on hiding his legs
-    // through the half-way pose, the opening's rule, run backwards.
-    tl.fromTo(
-      avatar.seated,
-      { value: 1 },
-      { value: 0, duration: closeSpan * 0.36, ease: "power2.inOut", immediateRender: false },
-      closeAt(0),
-    );
+    // The office comes apart around him while he sits, the opening's rule
+    // run backwards: nothing is ever built through a standing figure.
     tl.fromTo(
       workstation.group.scale,
       { x: 1, y: 1, z: 1 },
       { x: 0.94, y: 0.94, z: 0.94, duration: closeSpan * 0.38, ease: "power2.in", immediateRender: false },
-      closeAt(0.34),
+      closeAt(0),
     );
     tl.fromTo(
       workstation.reveal,
       { value: 1 },
       { value: 0, duration: closeSpan * 0.36, ease: "power2.in", immediateRender: false },
-      closeAt(0.34),
+      closeAt(0),
+    );
+    // He stands once there is nothing left to stand inside of.
+    tl.fromTo(
+      avatar.seated,
+      { value: 1 },
+      { value: 0, duration: closeSpan * 0.36, ease: "power2.inOut", immediateRender: false },
+      closeAt(0.38),
     );
     // He is standing and alone on the grid floor again, the frame About handed
     // over. The hologram's scan-away is NOT here any more, it belongs to the

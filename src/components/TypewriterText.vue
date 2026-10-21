@@ -46,27 +46,39 @@ watch(
     }
 
     animating.value = true;
-    display.value = "";
+    // The first title is on screen from the first paint, not typed in: a
+    // banner that starts blank stays blank for as long as the page gets no
+    // animation frames (a background tab, a stalled compositor), and a blank
+    // box with a cursor in it reads as broken. The loop holds it, erases it,
+    // types the rest, and types it back before the loop repeats.
+    const first = items.value[0] ?? "";
+    display.value = first;
 
-    const tl = gsap.timeline({ repeat: -1, repeatDelay: GAP, delay: props.delay ?? 0 });
-    let at = 0;
+    const tl = gsap.timeline({ repeat: -1, delay: props.delay ?? 0 });
+    let at = HOLD;
+
+    // only touch the ref when the character count actually changes, not every frame
+    const drawer = (state: { characters: number }, title: string) => () => {
+      const count = Math.round(state.characters);
+      if (count !== display.value.length) display.value = title.slice(0, count);
+    };
 
     items.value.forEach((title, index) => {
-      const state = { characters: 0 };
-      // only touch the ref when the character count actually changes, not every frame
-      const draw = () => {
-        const count = Math.round(state.characters);
-        if (count !== display.value.length) display.value = title.slice(0, count);
-      };
+      const state = { characters: index === 0 ? title.length : 0 };
+      const draw = drawer(state, title);
 
-      if (index > 0) at += GAP;
-
-      tl.to(state, { characters: title.length, duration: title.length * TYPE, ease: "none", onUpdate: draw }, at);
-      at += title.length * TYPE + HOLD;
+      if (index > 0) {
+        tl.to(state, { characters: title.length, duration: title.length * TYPE, ease: "none", onUpdate: draw }, at);
+        at += title.length * TYPE + HOLD;
+      }
 
       tl.to(state, { characters: 0, duration: title.length * ERASE, ease: "none", onUpdate: draw }, at);
-      at += title.length * ERASE;
+      at += title.length * ERASE + GAP;
     });
+
+    // back to the first title, so the repeat opens on it, held
+    const back = { characters: 0 };
+    tl.to(back, { characters: first.length, duration: first.length * TYPE, ease: "none", onUpdate: drawer(back, first) }, at);
 
     timeline = tl;
   },

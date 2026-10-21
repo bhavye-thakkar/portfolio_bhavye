@@ -37,12 +37,12 @@ export default {
   videoBorder: false,
   // ─── LINKS ──────────────────────────────────────────────────────────────
   // `live` is the website, `app` is a store page, `apk` the Android build to
-  // download. There is no store page yet, so the APK is offered directly: the
+  // download. The Play Store page went live on 2026-10-21; the APK stays as the
   // same file garbacircle.in serves (copied from that site's repo, 2026-09-22),
   // hosted here under public/downloads so the button works without the other
-  // site. Drop the Play Store URL into `app` when there is one.
+  // site, for a phone without Google services.
   live: "https://garbacircle.in",
-  app: "",
+  app: "https://play.google.com/store/apps/details?id=in.garbacircle.app",
   apk: "/downloads/garba-circle.apk",
   description:
     "The search ends. The ultimate garba app.<br/><br/>From your city to the garba floor. Discover major garba grounds, build your team, compete, and earn your place as a Garba champion, all from one beautiful app.",

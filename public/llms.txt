@@ -72,7 +72,7 @@ and /experience/notionmind in eight.
 
 ## Projects
 
-- [Garba Circle](https://bhavye.vercel.app/project/garbacircle): Navratri & Garba app, the case study published on the site.
+- [Garba Circle](https://bhavye.vercel.app/project/garbacircle): Navratri & Garba app, the case study published on the site; the Android app is on Google Play at https://play.google.com/store/apps/details?id=in.garbacircle.app and as a direct APK download on the project page.
 
 ## Certificates
 

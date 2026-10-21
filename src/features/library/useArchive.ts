@@ -183,7 +183,9 @@ export const createArchive = (options: { reducedMotion: () => boolean; onCurrent
         const onScreen = x > -w - OVERHANG && x < trackW + OVERHANG;
         const was = node.dataset.on === "1";
         if (!onScreen && !was && !force) continue;
-        node.dataset.on = onScreen ? "1" : "0";
+        // Written only on change: an attribute write a frame per node is a
+        // style invalidation a frame per node.
+        if (onScreen !== was) node.dataset.on = onScreen ? "1" : "0";
         node.style.transform = `translate3d(${x}px,0,0)`;
       }
     }

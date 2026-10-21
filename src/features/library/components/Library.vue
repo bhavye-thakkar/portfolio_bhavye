@@ -837,11 +837,14 @@ onBeforeUnmount(() => {
   transition-duration: 0.45s;
 }
 
-/* Prev / next, at the shelf's sides, level with the books. */
+/* Prev / next, at the shelf's sides, level with the books. Above the slots
+   (z-index 1): a bracket or a book that scrolled under an arrow used to take
+   the arrow's clicks, so the arrows worked once and then not at all. */
 .library-arrows {
   position: absolute;
   inset: 0 var(--space-outer) auto;
   top: calc(var(--shelf-air) + var(--book-h) * 0.5);
+  z-index: 2;
   display: flex;
   justify-content: space-between;
   pointer-events: none;
@@ -850,7 +853,6 @@ onBeforeUnmount(() => {
   :deep(.library-arrow) {
     pointer-events: auto;
     background-color: rgba(245, 239, 230, 0.86);
-    backdrop-filter: blur(2px);
   }
 }
 

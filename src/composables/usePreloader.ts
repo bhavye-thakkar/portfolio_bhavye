@@ -1,5 +1,4 @@
 import { ref, nextTick, onMounted } from "vue";
-import gsap from "gsap";
 import { resources } from "../utils/resources";
 import { renderer, webglAvailable, webglSoftware } from "../three/core/renderer";
 import { sceneFailed } from "../three/core/webgl";
@@ -80,8 +79,12 @@ const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, 
 
 /**
  * Resolves once the renderer has drawn a real frame, so the frame the exit
- * starts in already carries the room. Checked on the ticker after the
- * renderer's own tick, which renders in the same callback.
+ * starts in already carries the room. Polled on a timer, NOT on the ticker:
+ * a tab that gets no animation frames (opened in the background, an embedded
+ * browser pane, a throttled webview) never ticks, and a check that lives on
+ * the ticker never fires, cap included, so the loader sat over the page for
+ * good. On a timer the cap always lands; the page then shows the room's
+ * still until the scene does draw (Home.vue, sceneLive).
  *
  * Counted frames rather than the canvas turning visible: the renderer hides its
  * canvas until the camera has a pose, but a story deep link poses the camera
@@ -96,7 +99,7 @@ const firstFrame = () =>
     if (projectVisible.value || libraryActive.value || !webglAvailable || sceneFailed.value) return resolve();
 
     const start = performance.now();
-    const check = () => {
+    const timer = setInterval(() => {
       let drawn = false;
       try {
         const instance = renderer.getInstance();
@@ -108,10 +111,9 @@ const firstFrame = () =>
       // A CPU renderer needs seconds for that first frame, and the name card it
       // waits on is a better thing to look at than an empty page.
       if (!drawn && !sceneFailed.value && performance.now() - start < (webglSoftware ? 12000 : 2500)) return;
-      gsap.ticker.remove(check);
+      clearInterval(timer);
       resolve();
-    };
-    gsap.ticker.add(check);
+    }, 100);
   });
 
 /** Resolves when every asset is in (or has failed: utils/resources.ts counts both). */
@@ -161,7 +163,9 @@ const land = (name: HTMLElement, reduced: boolean) => {
       )
     : name.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE_MS, easing: "ease-out", fill: "forwards" });
 
-  return animation.finished.catch(() => undefined);
+  // A timer beside the promise: in a tab that gets no animation frames the
+  // finished promise can lag far behind the clock.
+  return Promise.race([animation.finished.catch(() => undefined), wait(LAND_MS + 200)]);
 };
 
 export const usePreloader = () => {
