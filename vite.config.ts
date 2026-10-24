@@ -3,6 +3,7 @@ import vue from "@vitejs/plugin-vue";
 import glsl from "vite-plugin-glsl";
 import { routePages } from "./scripts/routePages";
 import { resolveOrigin, retiredOrigin } from "./scripts/siteOrigin";
+import { swManifest } from "./scripts/swManifest";
 
 import type { Connect, Plugin } from "vite";
 
@@ -31,6 +32,7 @@ export default defineConfig({
   plugins: [
     sitemapAlias(),
     routePages(),
+    swManifest(),
     vue(),
     glsl({
       include: ["**/*.glsl", "**/*.vert", "**/*.frag"],

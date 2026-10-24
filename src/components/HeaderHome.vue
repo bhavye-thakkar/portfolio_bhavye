@@ -76,7 +76,7 @@ onMounted(() => {
 
 <template>
   <div :class="['header-home', { 'header-home-mounted': isMounted, 'header-home-isProjectPage': detailId !== null }]">
-    <div :class="['header-home-links', { 'header-home-links-dark': isDarkTheme }]">
+    <nav :class="['header-home-links', { 'header-home-links-dark': isDarkTheme }]" :aria-label="t('sections')">
       <div
         :class="[
           'header-home-bar',
@@ -96,12 +96,13 @@ onMounted(() => {
         @click="handleLinkClick('#' + section)"
         :is-dark-theme="isDarkTheme"
         :aria-label="ariaLabels[section]"
+        :aria-current="activeLink === section && hasScrolledIntoView ? 'true' : undefined"
         data-sound="click"
         data-hoversound="hover"
       >
         {{ t(section) }}
       </HeaderLink>
-    </div>
+    </nav>
   </div>
 </template>
 

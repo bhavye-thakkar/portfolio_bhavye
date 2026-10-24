@@ -34,12 +34,11 @@
  * public/robots.txt's Sitemap line and public/llms.txt; those four are static
  * files and have to be changed by hand in the same edit.
  *
- * ONE value, even though this build is deployed to several of the addresses in
- * `portfolioLinks` below. That is the point of a canonical: every mirror
- * serves this same tag, which tells a crawler which copy is the original
- * instead of leaving five identical sites competing with each other. The other
- * addresses are published as `sameAs` in index.html's Person graph and listed
- * in llms.txt, which is where an alternative address genuinely belongs.
+ * ONE value, even though this repo is also deployed to Netlify (see the note
+ * under `profiles`). Every deployment stamps this same origin at build and the
+ * Netlify copies 301 to it, so a crawler meets one original instead of several
+ * identical sites competing with each other. The copies are not in `sameAs` or
+ * llms.txt: an address that only redirects is not another profile.
  */
 // Decided per deployment at build time (scripts/siteOrigin.ts, via `define`
 // in vite.config.ts); the literal is the local-build default and must match
@@ -80,10 +79,11 @@ export const profiles = {
  * bhavye.vercel.app, thakkarbhavya.netlify.app, bhavyathakkar.netlify.app,
  * thakkarbhavye.netlify.app) are deliberately NOT data any more: a "Portfolio /
  * Other websites" list was removed on 2026-09-03 as a link dump, and listing
- * copies in `sameAs` or llms.txt only tells crawlers there are copies. Each
- * deployment names its own canonical at build (scripts/siteOrigin.ts) and the
- * retired ones redirect; found on 2026-10-12 that bhavyethakkar.netlify.app
- * was serving an older site while this build pointed its canonical at it.
+ * copies in `sameAs` or llms.txt only tells crawlers there are copies. Since
+ * 2026-10-21 every deployment stamps `site` at build (scripts/siteOrigin.ts;
+ * netlify.toml sets SITE_ORIGIN for the Netlify ones, which also 301 to it).
+ * bhavyethakkar.netlify.app is NOT this repo: it still serves the owner's
+ * older site, found on 2026-10-12, and only the owner can retire it.
  */
 
 // The CV lives in `content/cv.ts`, transcribed from the PDF in `public/cv/`.

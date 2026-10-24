@@ -74,6 +74,13 @@ src/three/
 - `src/composables/useHead.ts` — per-route title, description and canonical.
 - `public/llms.txt` — machine-readable summary for AI assistants.
 - `public/sitemap.xml`, `public/robots.txt`, `public/_redirects`.
+- `public/a5f401fab57d5ec353669aa8835382ac.txt` — the IndexNow key. After a deploy, one request tells Bing (and so Microsoft Copilot), Yandex, Seznam and Naver which pages changed; Google does not use IndexNow, it reads the sitemap:
+
+  ```sh
+  curl -s -X POST https://api.indexnow.org/indexnow -H "Content-Type: application/json" -d '{"host":"bhavye.vercel.app","key":"a5f401fab57d5ec353669aa8835382ac","urlList":["https://bhavye.vercel.app/","https://bhavye.vercel.app/library"]}'
+  ```
+- `vercel.json` — one URL per page (see below) and a year of `immutable` caching for `/assets` and `/chunks`, whose file names are content hashes.
+- `scripts/swManifest.ts` — writes the build's file list into `dist/sw.js`, so each deploy installs a new service worker that clears out the files it replaced.
 
 ---
 

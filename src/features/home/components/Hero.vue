@@ -16,7 +16,8 @@ import { roomObjects } from "../../../content/objects";
           <!-- Hidden while the loader is up: its name flies from the middle of
                the screen to exactly this box and this title takes over in the
                same frame (usePreloader.ts, `land`). -->
-          <h1 class="hero-title" :class="{ 'hero-title-pending': preloaderVisible }">Bhavye<br />Thakkar</h1>
+          <!-- tabindex -1: where the header's back-to-top button sends focus. -->
+          <h1 class="hero-title" :class="{ 'hero-title-pending': preloaderVisible }" tabindex="-1">Bhavye<br />Thakkar</h1>
           <Banner
             class="hero-banner"
             :copy="t('job-title')"
@@ -159,6 +160,11 @@ import { roomObjects } from "../../../content/objects";
     font-weight: 900;
     letter-spacing: 0.02em;
     font-size: var(--font-size-title-lg);
+
+    /* A landing spot for focus, not a control: no ring around the name. */
+    &:focus {
+      outline: none;
+    }
 
     &-pending {
       opacity: 0;

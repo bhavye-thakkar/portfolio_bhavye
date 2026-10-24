@@ -17,6 +17,8 @@ const emit = defineEmits<{
 const FLICKER_CHARACTER_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 const displayText = ref("");
+/** Hidden until its reveal begins: the text is in the page from the start, just not yet on screen. */
+const pending = ref(false);
 let currentTimeline: gsap.core.Timeline | null = null;
 let matchMedia: gsap.MatchMedia | null = null;
 
@@ -37,14 +39,17 @@ watch(
       matchMedia = null;
     }
 
-    // Reset display text
-    displayText.value = "";
+    // The text is in the page from the start, once, and hidden until its reveal
+    // begins: what screen readers, search engines and AI crawlers read at every
+    // stage, where they used to meet every label twice (this and a clone).
+    displayText.value = props.text;
+    pending.value = true;
 
     // Skip animation if user prefers reduced motion
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (prefersReducedMotion) {
-      displayText.value = props.text;
+      pending.value = false;
       return;
     }
 
@@ -73,6 +78,7 @@ watch(
         if (isMobile) {
           // On mobile, set text immediately
           displayText.value = props.text;
+          pending.value = false;
         } else {
           // On desktop, create the flicker animation
           for (let step = 0; step < totalSteps; step++) {
@@ -85,6 +91,7 @@ watch(
               value: 1,
               duration: DURATION_PER_STEP,
               onUpdate: () => {
+                pending.value = false;
                 const revealed = props.text.slice(0, startIndex);
                 const remaining = totalLetters - startIndex;
                 const flickerLength = Math.min(props.steps, remaining);
@@ -130,8 +137,10 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="appearing-text">
-    <p class="appearing-text-value" v-html="displayText"></p>
-    <p class="appearing-text-clone" aria-hidden="true" v-html="props.text"></p>
+    <p class="appearing-text-value" :class="{ 'appearing-text-pending': pending }" v-html="displayText"></p>
+    <!-- Holds the box at the full text's size while the reveal grows into it.
+         Generated content rather than page text, so nothing reads the words twice. -->
+    <p class="appearing-text-clone" aria-hidden="true" :data-text="props.text"></p>
   </div>
 </template>
 
@@ -144,7 +153,15 @@ onBeforeUnmount(() => {
   position: absolute;
 }
 
+.appearing-text-pending {
+  visibility: hidden;
+}
+
 .appearing-text-clone {
   visibility: hidden;
+}
+
+.appearing-text-clone::before {
+  content: attr(data-text);
 }
 </style>

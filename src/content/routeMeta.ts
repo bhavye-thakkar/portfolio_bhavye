@@ -1,6 +1,6 @@
 import { experienceBySlug } from "./experience";
 import { objectBySlug } from "./objects";
-import { books, shelves, bookBySlug, shelfOf } from "./library";
+import { books, shelves, bookBySlug } from "./library";
 import { profile, site } from "./profile";
 
 import type { ProjectPreview } from "./types";
@@ -104,7 +104,7 @@ const bookNode = (slug: string) => {
 
 export const libraryMeta = (): Meta => ({
   title: `Library, a personal reading archive | ${SUFFIX}`,
-  description: `${SUFFIX}'s personal library: ${books.length} books on one shelf in ${shelves.length} groups, from the Shiva Trilogy and the Ram Chandra Series to Meditations, Atomic Habits and The Psychology of Money, each with a page of its own.`,
+  description: `${SUFFIX}'s personal library: ${books.length} books on one shelf in ${shelves.length} groups, from the Shiva Trilogy to Meditations and Atomic Habits, each with a page of its own.`,
   url: `${site}/library`,
   breadcrumb: [
     { name: SUFFIX, url: `${site}/` },
@@ -126,8 +126,9 @@ export const libraryMeta = (): Meta => ({
 export const bookMeta = (slug: string): Meta | null => {
   const book = bookBySlug(slug);
   if (!book) return null;
-  const shelf = shelfOf(slug);
-  const where = shelf ? ` In the "${shelf.title}" group of ${SUFFIX}'s personal library.` : ` In ${SUFFIX}'s personal library.`;
+  // Short on purpose: it closes every one of thirty descriptions, so the book's
+  // own sentence should be most of what a result shows (the group is on the page).
+  const where = ` In ${SUFFIX}'s personal library.`;
 
   return {
     title: `${book.title}, ${book.author} | Library | ${SUFFIX}`,
@@ -142,13 +143,29 @@ export const bookMeta = (slug: string): Meta | null => {
   };
 };
 
+/**
+ * A project with a written summary gets it as its description and a schema.org
+ * CreativeWork tied to the Person in index.html. CreativeWork, not
+ * SoftwareApplication: Google only accepts that one with ratings or reviews,
+ * and an app node without them is reported as an error in Search Console.
+ */
 export const projectMeta = (preview: ProjectPreview): Meta => ({
   title: `${preview.title}, Project | ${SUFFIX}`,
-  description: `${preview.title}: ${preview.description}. A project by ${SUFFIX}, ${profile.role}.`,
+  description: preview.summary ?? `${preview.title}: ${preview.description}. A project by ${SUFFIX}, ${profile.role}.`,
   url: `${site}/project/${preview.slug}`,
   breadcrumb: [
     { name: SUFFIX, url: `${site}/` },
     { name: "Projects", url: `${site}/#projects` },
     { name: preview.title, url: `${site}/project/${preview.slug}` },
   ],
+  jsonLd: preview.summary
+    ? {
+        "@context": "https://schema.org",
+        "@type": "CreativeWork",
+        name: preview.title,
+        description: preview.summary,
+        url: `${site}/project/${preview.slug}`,
+        creator: { "@id": `${site}/#person` },
+      }
+    : undefined,
 });

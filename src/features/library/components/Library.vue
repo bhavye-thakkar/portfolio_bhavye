@@ -283,12 +283,13 @@ watch(
   { flush: "post" },
 );
 
-// A cold link straight here never runs the branch above with home in flow:
-// home builds its triggers underneath while the preloader is up, so hold them
-// once the page is actually standing.
+// This page mounts the first time it opens (App.vue), so that first entry
+// never runs the branch above: hold home here instead. Mid-navigation home is
+// still in flow and its offset is the one to give back; on a cold link it is 0
+// (home builds its triggers underneath while the preloader is up).
 if (libraryActive.value) {
   holdHome();
-  homeScroll = null;
+  homeScroll = window.scrollY;
 }
 
 // Once this page owns the document, it starts at its top, whatever offset

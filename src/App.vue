@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent } from "vue";
+import { defineAsyncComponent, ref, watch } from "vue";
 import Header from "./components/Header.vue";
 import { useTranslations } from "./i18n/composables/useTranslations";
 import { usePreloader } from "./composables/usePreloader";
@@ -48,6 +48,18 @@ const NoWebgl = defineAsyncComponent(() => import("./components/NoWebgl.vue"));
 
 const { isTransitioning } = useProjectTransition();
 
+/**
+ * The library mounts the first time it opens and stays mounted from then on,
+ * so every later open and close runs exactly as before. Mounted under home on
+ * every visit, its shelf was part of the HOME page as search engines and AI
+ * crawlers render it (a second h1, thirty book titles and their covers), and
+ * a home visit downloaded its first covers at high priority.
+ */
+const libraryOpened = ref(libraryActive.value);
+watch(libraryActive, (active) => {
+  if (active) libraryOpened.value = true;
+});
+
 useTranslations();
 usePreloader();
 useHowler();
@@ -91,26 +103,37 @@ const { isTouch } = useAgent();
        and hidden, the renderer stops (Home.vue) and the home ScrollTriggers are
        held (Library.vue). It fades in on top of home from the first frame of
        the route and takes the document once the transition has settled. -->
+  <!-- `role="main"` on whichever page is showing (and only then): home's own
+       <main> is hidden under these pages, so without it the visible page had
+       no main landmark for a screen reader or an agent to jump to. -->
   <div
     class="library-wrapper"
+    :role="libraryActive && bookId === null ? 'main' : undefined"
     :class="{
       'library-wrapper-visible': libraryActive,
       'library-wrapper-settled': libraryVisible,
       'library-wrapper-closing': libraryClosing,
     }"
   >
-    <Library />
+    <Library v-if="libraryOpened" />
   </div>
 
   <!-- One book, over the shelves. Same shell as the object panel below and
        for the same reasons: its own scroller, and the two STATIC attributes
        that keep Lenis and the 3D scene's window-level click out of it. -->
-  <div class="book-wrapper" :class="{ 'book-wrapper-visible': bookId !== null }" data-scene-blocker data-lenis-prevent>
+  <div
+    class="book-wrapper"
+    :role="bookId !== null ? 'main' : undefined"
+    :class="{ 'book-wrapper-visible': bookId !== null }"
+    data-scene-blocker
+    data-lenis-prevent
+  >
     <BookDetail />
   </div>
 
   <div
     class="experience-wrapper"
+    :role="experienceId !== null ? 'main' : undefined"
     :class="{
       'experience-wrapper-visible': experienceVisible,
       'experience-wrapper-closing': experienceClosing,
@@ -184,6 +207,7 @@ const { isTouch } = useAgent();
   <ProjectBackground />
   <div
     class="project-wrapper"
+    :role="projectVisible ? 'main' : undefined"
     :class="{
       'project-wrapper-visible': projectVisible,
       'project-wrapper-transitioning': isTransitioning,

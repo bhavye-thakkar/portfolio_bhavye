@@ -44,7 +44,9 @@
  * `VERSION` is the cache name. Changing it orphans the old cache, which the
  * next activation deletes. It only needs bumping when the SHELL changes shape
  * (a new file in PRECACHE, a strategy change); ordinary deploys are handled by
- * Vite's content hashes, which make new URLs that simply miss the cache.
+ * Vite's content hashes, which make new URLs that simply miss the cache, and
+ * by `BUILD` below, which the build writes in, so that each deploy installs a
+ * new worker whose activation clears out what the deploy replaced (`prune`).
  */
 
 const VERSION = "portfolio-v1";
@@ -64,6 +66,17 @@ const PRECACHE = ["/", "/fonts/urbanist-400.woff2", "/fonts/pro-font-windows-400
  * textures, sound sprites and fonts, lands in one of them.
  */
 const IMMUTABLE = /^\/(assets|chunks|fonts|meta|cv)\//;
+
+/**
+ * What this deploy is made of, written in by the build (scripts/swManifest.ts):
+ * every content-hashed file under /assets and /chunks, and a digest of each
+ * file under /fonts, /meta and /cv. Empty here in the source, and the build
+ * fails if this exact line is missing.
+ */
+const BUILD = { hashed: [], public: {} };
+
+/** Where the last activation recorded the digests it kept, to compare against. */
+const SEEN = "/__sw-build.json";
 
 /** Shown only when there is no cached shell either, i.e. a first visit offline. */
 const OFFLINE_HTML = `<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -91,11 +104,40 @@ self.addEventListener("install", (event) => {
   // next navigation, which is soon enough and cannot break anything.
 });
 
+/**
+ * Drops what earlier deploys left behind. Hashed files only ever gain new
+ * names, so the old ones used to stay in the cache for good; and the fonts,
+ * icons and CV are served cache-first under URLs that do not change with their
+ * bytes, so a CV replaced in a deploy stayed the old one for every returning
+ * visitor. Whatever this deploy still has, unchanged, is kept: the room stays
+ * available offline across deploys.
+ */
+const prune = async () => {
+  // A worker the build never wrote into (served straight from public/) knows nothing to compare.
+  if (!BUILD.hashed.length) return;
+  const cache = await caches.open(VERSION);
+  const seen = await cache
+    .match(SEEN)
+    .then((response) => (response ? response.json() : {}))
+    .catch(() => ({}));
+  const hashed = new Set(BUILD.hashed);
+  const stale = (path) =>
+    /^\/(assets|chunks)\//.test(path)
+      ? !hashed.has(path)
+      : IMMUTABLE.test(path) && (!(path in BUILD.public) || seen[path] !== BUILD.public[path]);
+  const keys = await cache.keys();
+  await Promise.all(keys.filter((request) => stale(new URL(request.url).pathname)).map((request) => cache.delete(request)));
+  await cache.put(SEEN, new Response(JSON.stringify(BUILD.public), { headers: { "Content-Type": "application/json" } }));
+};
+
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
       .then((keys) => Promise.all(keys.filter((key) => key !== VERSION).map((key) => caches.delete(key))))
+      .then(prune)
+      // housekeeping only: a failed clean-up must not keep the worker from taking over
+      .catch(() => undefined)
       .then(() => self.clients.claim()),
   );
 });

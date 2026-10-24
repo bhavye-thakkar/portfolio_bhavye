@@ -18,6 +18,10 @@ export default [
     slug: "garbacircle",
     thumbnail: garbacircleArtwork,
     description: "Navratri & Garba app",
+    // Every claim is on the case study page: the Play Store link and the APK,
+    // the product copy, and the three tags.
+    summary:
+      "Garba Circle, an Android app for Navratri: discover garba grounds, build your team and compete. Built with Flutter, Node.js and PostgreSQL.",
   },
   placeholderPreview(2),
   // placeholderPreview(3),

@@ -22,7 +22,7 @@ const toggleSounds = () => {
     variant="theme"
     :class="{ 'music-toggle': true, 'music-toggle-dark': props.isDarkTheme, 'children-unclickable': true }"
     @click="toggleSounds"
-    :aria-label="soundsEnabled && howlerUnlocked ? t('disable-sounds') : t('enable-sounds')"
+    :aria-label="t('sounds')"
     :aria-pressed="soundsEnabled && howlerUnlocked"
     data-cursor="circle-white"
     data-sound="click"

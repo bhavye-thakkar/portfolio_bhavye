@@ -36,9 +36,10 @@ useScrollMotion(rootRef, (root) => {
 
 <template>
   <div :class="classes" v-if="props.title" ref="rootRef">
-    <h3 class="text-title">
+    <!-- h2: the sections of a case study sit directly under its h1 -->
+    <h2 class="text-title">
       <span class="text-title-line">{{ props.title }}</span>
-    </h3>
+    </h2>
     <p class="text-content" v-html="props.text"></p>
   </div>
   <p v-else class="text" v-html="props.text" ref="rootRef"></p>

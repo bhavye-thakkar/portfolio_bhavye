@@ -29,7 +29,7 @@
     <title>Bhavye Thakkar - AI Researcher</title>
     <meta
       name="description"
-      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India. Portfolio of AI/ML, computer vision and data analytics work in Python and TensorFlow, Flutter apps, and agentic coding with AI coding agents."
+      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter apps and agentic coding."
     />
     <meta name="author" content="Bhavye Thakkar" />
     <!-- Index everything, follow everything, and put no limit on how much of
@@ -49,13 +49,19 @@
     <meta property="og:title" content="Bhavye Thakkar (Bhavya Thakkar) - AI Researcher" />
     <meta
       property="og:description"
-      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India. Portfolio of AI/ML, computer vision and data analytics work in Python and TensorFlow, Flutter apps, and agentic coding with AI coding agents."
+      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter apps and agentic coding."
     />
     <meta property="og:type" content="profile" />
     <meta property="og:url" content="https://bhavye.vercel.app/" />
     <meta property="og:site_name" content="Bhavye Thakkar" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:image" content="https://bhavye.vercel.app/meta/og-image.webp" />
+    <!-- JPEG, not WebP: some link-preview crawlers still show no image for a
+         WebP og:image, and a share card with a blank picture is the one that
+         gets scrolled past. -->
+    <meta property="og:image" content="https://bhavye.vercel.app/meta/og-image.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Bhavye Thakkar - AI Researcher" />
     <meta property="profile:first_name" content="Bhavye" />
     <meta property="profile:last_name" content="Thakkar" />
@@ -64,9 +70,9 @@
     <meta name="twitter:title" content="Bhavye Thakkar (Bhavya Thakkar) - AI Researcher" />
     <meta
       name="twitter:description"
-      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India. Portfolio of AI/ML, computer vision and data analytics work in Python and TensorFlow, Flutter apps, and agentic coding with AI coding agents."
+      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter apps and agentic coding."
     />
-    <meta name="twitter:image" content="https://bhavye.vercel.app/meta/twitter-image.webp" />
+    <meta name="twitter:image" content="https://bhavye.vercel.app/meta/og-image.jpg" />
 
     <!--
       ── STRUCTURED DATA ───────────────────────────────────────────────────
@@ -75,8 +81,9 @@
       it is about and the site are linked by @id instead of asserted three
       times over. Every value is something the portfolio actually publishes:
 
-        · `sameAs` is GitHub, LinkedIn, X and the portfolio's other deployed
-          addresses (`profiles` and `portfolioLinks` in content/profile.ts).
+        · `sameAs` is GitHub, LinkedIn and X (`profiles` in
+          content/profile.ts). The other deployments of this repo are not
+          listed: they 301 to this origin, and a redirect is not a profile.
           The X handle was a placeholder until 2026-09-09 and was kept out of
           this list until the owner supplied the real one.
         · `hasCredential` is the five real certificates, each with the URL the
@@ -255,7 +262,10 @@
 
         shut    The door waits for him (.preloader-nudge breathes a sliver of
                 light at its edge if that takes a while). Dark, as the
-                reference is for its first half second.
+                reference is for its first half second. Never for more than
+                2.5s from its first paint: past that it opens by itself
+                (preloader-door-open, below), so a slow connection gets the
+                name to read instead of a dark page.
         push    .preloader-arrive. The door is ONE linear animation, created by
                 usePreloader.ts, from shut to off the far edge, at about 40% of
                 the screen a second: the reference's pace. He rides its edge
@@ -381,6 +391,24 @@
 
       .preloader-arrive .preloader-nudge {
         animation-play-state: paused;
+      }
+
+      /* The door's own deadline. The walk needs the bundle and his files, and
+         on a slow connection those take many seconds: measured on a congested
+         line, the shut door WAS the page for 13s, a dark screen with the name
+         hidden behind it. So 2.5s after its first paint the door opens by
+         itself, the same wipe the loader's other moves use, without him, and
+         the name is there to read while the rest arrives. A bundle that runs
+         in time cancels this and takes the door over for whatever is left of
+         the 2.5s (usePreloader.ts, SHUT_MS), so a normal visit never sees it. */
+      .preloader-curtain {
+        animation: preloader-door-open 0.9s var(--preloader-ease-wipe) 2.5s both;
+      }
+
+      @keyframes preloader-door-open {
+        to {
+          transform: translateX(100%);
+        }
       }
 
       .preloader-door {

@@ -10,7 +10,7 @@ import { ref, onMounted, onUnmounted, watchEffect, computed, watch } from "vue";
 import { three } from "../../../three";
 import { animations } from "../../../animations";
 import HeaderHome from "../../../components/HeaderHome.vue";
-import { preloaderLoaded, preloaderVisible } from "../../../composables/usePreloader";
+import { preloaderLoaded, preloaderSlow, preloaderVisible } from "../../../composables/usePreloader";
 import ScrollIcon from "../../../components/ScrollIcon.vue";
 import { raycast } from "../../../three/utils/raycast";
 import gsap from "gsap";
@@ -48,13 +48,23 @@ const { isTouch } = useAgent();
  * used to be a beige void with a name in it. The still is the room's own
  * first frame, captured from this renderer (one landscape, one portrait), in
  * the canvas's place and under the HUD. It is only ever mounted when needed,
- * so the normal visit never downloads it; and the moment the scene does draw
- * (`sceneLive`, set by the renderer's first frame) it goes, so a late scene
- * takes over from it. Past the hero it dims to the stage colour the header
+ * so the normal visit never downloads it; a visit the loader has found to be
+ * slow (`preloaderSlow`) mounts it under the loader, so it is already in when
+ * the page shows; and the moment the scene does draw (`sceneLive`, set by the
+ * renderer's first frame) it goes, so a late scene takes over from it. Past
+ * the hero it dims to the stage colour the header
  * and the HUD are designed against, dark through About and Experience, then
  * clear for Contact.
  */
-const showPoster = computed(() => sceneFailed.value || !webglAvailable || (!sceneLive.value && !preloaderVisible.value));
+// Not while a project page or the library replaces home: the renderer is off
+// there, so the scene never draws, and a cold link to either was downloading
+// the still behind a page that hides it.
+const showPoster = computed(
+  () =>
+    !projectVisible.value &&
+    !libraryVisible.value &&
+    (sceneFailed.value || !webglAvailable || (!sceneLive.value && (!preloaderVisible.value || preloaderSlow.value))),
+);
 const { isDarkTheme: stageDark, hasScrolledIntoView: stagePast } = useHeaderTheme();
 
 const handleIntersection = (entries: IntersectionObserverEntry[]) => {
@@ -225,7 +235,9 @@ watch(isTransitioning, (active) => {
           >
             <picture>
               <source media="(orientation: portrait)" :srcset="posterPortrait" />
-              <img :src="posterLandscape" alt="" decoding="async" />
+              <!-- High: on a slow visit it is what the page shows, and it was
+                   queueing behind the room's own files for seconds. -->
+              <img :src="posterLandscape" alt="" decoding="async" fetchpriority="high" />
             </picture>
           </div>
           <div :class="{ 'intro-about-hidden': !isStickyVisible }">

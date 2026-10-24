@@ -38,9 +38,9 @@ useScrollMotion(rootRef, (root) => {
 
 <template>
   <div :class="classes" ref="rootRef">
-    <h3 v-if="props.title" class="list-title">
+    <h2 v-if="props.title" class="list-title">
       <span class="list-title-line">{{ props.title }}</span>
-    </h3>
+    </h2>
     <ul class="list-items">
       <li v-for="item in props.items" :key="item" class="list-item" v-html="item"></li>
     </ul>

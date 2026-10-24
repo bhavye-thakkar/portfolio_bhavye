@@ -90,8 +90,11 @@ onBeforeUnmount(stop);
 
 <template>
   <div class="typewriter">
-    <p class="typewriter-value" aria-hidden="true">{{ display }}<i class="typewriter-caret" v-if="animating"></i></p>
-    <p class="typewriter-reserve" aria-hidden="true">{{ longest }}</p>
+    <!-- What is typed, and the box it is typed into, are drawn as generated
+         content: on screen, but not page text. Crawlers and AI extractors read
+         the titles once, from the line below, never a half-typed one. -->
+    <p class="typewriter-value" aria-hidden="true" :data-text="display"><i class="typewriter-caret" v-if="animating"></i></p>
+    <p class="typewriter-reserve" aria-hidden="true" :data-text="longest"></p>
     <span class="visually-hidden">{{ spoken }}</span>
   </div>
 </template>
@@ -109,6 +112,11 @@ onBeforeUnmount(stop);
 /* reserves the width of the longest title; never rendered */
 .typewriter-reserve {
   visibility: hidden;
+}
+
+.typewriter-value::before,
+.typewriter-reserve::before {
+  content: attr(data-text);
 }
 
 .typewriter-caret {

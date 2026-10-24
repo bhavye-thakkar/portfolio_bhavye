@@ -47,7 +47,13 @@ const handleBackClick = () => {
 const handleLogoClick = () => {
   if (!lenis.value) return;
   lenis.value.scrollTo(0);
+  // The button hides itself at the top; focus goes there with the page rather
+  // than staying on a control that just left the tab order.
+  document.querySelector<HTMLElement>(".hero-title")?.focus({ preventScroll: true });
 };
+
+/** The logo is the way back to the top once the hero has scrolled away, and hidden on detail pages. */
+const logoActive = computed(() => scrolledPastHeroVisible.value && detailId.value === null);
 
 const classNames = computed(() => {
   return {
@@ -91,20 +97,26 @@ const getInTouchClassNames = computed(() => {
         <ArrowRight class="header-back-icon" />
       </ButtonRound>
     </div>
-    <div
+    <!-- A real button, so the keyboard reaches it too; out of the tab order and
+         the accessibility tree while it is faded out. -->
+    <button
+      type="button"
       :class="{
         'header-logo': true,
         'header-logo-isProjectPage': detailId !== null,
         'header-logo-clickable': scrolledPastHeroVisible,
         'children-unclickable': true,
       }"
+      :aria-label="t('back-to-top')"
+      :aria-hidden="!logoActive"
+      :tabindex="logoActive ? undefined : -1"
       @click="handleLogoClick"
       data-sound="click"
       data-hoversound="hover"
       data-cursor="circle-white"
     >
       <Logo class="header-logo-image" />
-    </div>
+    </button>
     <div class="header-right">
       <Button
         renderAs="a"
@@ -207,6 +219,9 @@ const getInTouchClassNames = computed(() => {
 
   &-logo {
     cursor: pointer;
+    padding: 0;
+    border: 0;
+    background: none;
     display: flex;
     gap: var(--space-xs);
     transition: color 0.2s ease-in-out;

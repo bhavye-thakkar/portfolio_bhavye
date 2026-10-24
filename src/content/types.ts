@@ -30,4 +30,10 @@ export interface ProjectPreview {
   slug: string;
   thumbnail: string;
   description: string;
+  /**
+   * One or two factual sentences for search results and structured data, taken
+   * from what the case study itself shows. A reserved slot has none, and so
+   * gets neither a search description of its own nor a schema.org node.
+   */
+  summary?: string;
 }

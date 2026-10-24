@@ -21,6 +21,15 @@ export const preloaderVisible = ref(true);
 export const preloaderLoaded = ref(false);
 
 /**
+ * True once this visit has shown itself to be a slow one: the bundle, or the
+ * avatar, missed the door's deadline. From then on Home.vue keeps the room's
+ * still under the loader, so a page shown before the scene can draw already
+ * has its picture, instead of starting that download at the landing and
+ * showing an empty hero while it queues behind the room's own files.
+ */
+export const preloaderSlow = ref(false);
+
+/**
  * ─── THE OPENING ──────────────────────────────────────────────────────────
  *
  *   shut → push → (the name alone) → boot → land
@@ -45,19 +54,24 @@ const LAND_EASE = "cubic-bezier(0.76, 0, 0.24, 1)";
 /** The fade that stands in for the flight under reduced motion, or with no title to land on. */
 const FADE_MS = 400;
 /**
- * The longest the loader waits for the downloads, ~1.4 MB on a good day. Past
- * it the page is shown with the room's still, and the scene boots on top of
- * that if the files arrive after all (three/index.ts, `bootNow`). A loader
- * that waits for ever is the failure this guards against; the page behind it
- * works without the scene.
+ * The longest a visit waits for the room's files, ~1.4 MB on a good day,
+ * counted from the navigation and not from this bundle running: on a slow
+ * line the bundle alone took 10s, and a cap that only started then held the
+ * name over an unreachable page for half a minute. Past it the page is shown
+ * with the room's still, and the scene boots on top of that when the files do
+ * arrive (three/index.ts, `bootNow`). The page behind works without the scene.
  */
-const LOAD_CAP_MS = 20000;
+const LOAD_CAP_MS = 9000;
 /**
- * How long the door waits, shut, for the avatar before it opens without him.
- * His files are the first wave of the download, so this only runs out on a bad
- * connection or a mount that hangs; a mount that FAILS is known at once.
+ * How long the door may stay shut, his wait included, counted from the door's
+ * own first paint. index.html opens it by itself at this mark
+ * (`preloader-door-open`, keep the two in step), so a bundle still downloading
+ * never leaves a dark page; a bundle that runs in time cancels that, takes the
+ * door over, and waits for him only for what is left. His files are the first
+ * wave of the download, so he misses it only on a slow connection, and then
+ * joins the moving door when he does arrive.
  */
-const ARRIVE_CAP_MS = 2500;
+const SHUT_MS = 2500;
 /**
  * The door's speed, as a share of the viewport width a second: the reference's
  * curtain crosses in about two and a half seconds. His legs follow at one cycle
@@ -94,9 +108,11 @@ const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, 
 const firstFrame = () =>
   new Promise<void>((resolve) => {
     // A cold link to a project page or the library keeps the renderer switched
-    // off, a browser without WebGL never gets one, and a scene that failed will
-    // not draw: no frame is coming.
-    if (projectVisible.value || libraryActive.value || !webglAvailable || sceneFailed.value) return resolve();
+    // off, a browser without WebGL never gets one, a scene that failed will not
+    // draw, and one whose files are not all in (the cap ran out) has not even
+    // booted: no frame is coming.
+    if (projectVisible.value || libraryActive.value || !webglAvailable || sceneFailed.value || !resources.isReady)
+      return resolve();
 
     const start = performance.now();
     const timer = setInterval(() => {
@@ -175,7 +191,11 @@ export const usePreloader = () => {
     const name = root?.querySelector<HTMLElement>(".preloader-name");
     const canvas = root?.querySelector<HTMLCanvasElement>(".preloader-avatar canvas");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const loaded = Promise.race([assets(), wait(LOAD_CAP_MS)]);
+    // A cold link to a project page or the library never draws the room (the
+    // renderer is off there, Home.vue), so its page does not wait for the
+    // room's files: they keep downloading and the scene boots when they land.
+    const needsRoom = !projectVisible.value && !libraryActive.value;
+    const loaded = needsRoom ? Promise.race([assets(), wait(LOAD_CAP_MS - performance.now())]) : Promise.resolve();
 
     // The scene may boot, and Home render, only once nothing of his is left on
     // screen to stutter: the boot is a run of long tasks (see three/index.ts).
@@ -202,14 +222,30 @@ export const usePreloader = () => {
       return exit();
     }
 
-    // ── shut: the door waits for him ──
+    // ── shut: the door waits for him, up to its own deadline ──
+    // Past SHUT_MS the door has already started to open by itself (index.html):
+    // this bundle came too late for the walk, the name is alone on the page,
+    // and all that is left is the files and the landing.
+    const opening = curtain.getAnimations().find((a) => (a as CSSAnimation).animationName === "preloader-door-open");
+    const shown = Number(opening?.currentTime ?? 0);
+    if (opening && shown >= SHUT_MS) {
+      preloaderSlow.value = needsRoom;
+      await loaded;
+      await boot();
+      return exit();
+    }
+    opening?.cancel();
+
     // A failed mount resolves to null at once and nothing waits for it. Without
     // WebGL the mount is a sheet of his pre-rendered frames (loader-avatar.ts).
     const mounting = canvas ? loaderAvatar.mount(canvas).catch(() => null) : Promise.resolve(null);
-    const walker = await Promise.race([mounting, wait(ARRIVE_CAP_MS).then(() => null)]);
+    const walker = await Promise.race([mounting, wait(SHUT_MS - shown).then(() => null)]);
     if (walker) root.classList.add("preloader-live");
     // The door left without him: he joins it in plain sight, so he fades in.
-    else void mounting.then((late) => late && root.classList.add("preloader-late", "preloader-live"));
+    else {
+      preloaderSlow.value = needsRoom;
+      void mounting.then((late) => late && root.classList.add("preloader-late", "preloader-live"));
+    }
 
     // ── push: one linear move, at the pace of his legs, to off the far edge ──
     root.classList.add("preloader-arrive");
