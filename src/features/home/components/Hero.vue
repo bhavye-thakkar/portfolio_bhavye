@@ -17,7 +17,7 @@ import { roomObjects } from "../../../content/objects";
                the screen to exactly this box and this title takes over in the
                same frame (usePreloader.ts, `land`). -->
           <!-- tabindex -1: where the header's back-to-top button sends focus. -->
-          <h1 class="hero-title" :class="{ 'hero-title-pending': preloaderVisible }" tabindex="-1">Bhavye<br />Thakkar</h1>
+          <h1 class="hero-title" :class="{ 'hero-title-pending': preloaderVisible }" tabindex="-1">Bhavye <br />Thakkar</h1>
           <Banner
             class="hero-banner"
             :copy="t('job-title')"

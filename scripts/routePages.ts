@@ -267,9 +267,13 @@ export const routePages = (): Plugin => {
         if (route.meta.jsonLd) {
           html = replace(html, /<\/head>/, `    <script type="application/ld+json" id="route-jsonld">${json(route.meta.jsonLd)}</script>\n  </head>`);
         }
+        // The BODY fallback (<noscript><main>), not the head's first <noscript>,
+        // which is the <style> that hides the preloader without JS. Matching
+        // the first one put the route text inside <head> and left the home
+        // page's whole fallback, h1 included, on every deep page.
         html = replace(
           html,
-          /<noscript>[\s\S]*?<\/noscript>/,
+          /<noscript>\s*<main>[\s\S]*?<\/noscript>/,
           `<noscript>\n    <main>\n${lines(
             `<p><a href="/">Bhavye Thakkar</a></p>`,
             body(route),
