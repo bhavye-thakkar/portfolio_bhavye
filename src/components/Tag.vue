@@ -96,6 +96,27 @@ const classes = computed(() => ["tag", `tag-variant-${props.variant}`]);
       background-color: #95630e;
       color: white;
     }
+
+    &-python {
+      background-color: #3776ab;
+      color: white;
+    }
+
+    &-qt {
+      background-color: #41cd52;
+      color: #0b3311;
+    }
+
+    /* FastAPI's own teal (#009688) is 3.7:1 under white text, a shade darker passes AA */
+    &-fastapi {
+      background-color: #00796b;
+      color: white;
+    }
+
+    &-sqlite {
+      background-color: #0f4c75;
+      color: white;
+    }
   }
 }
 </style>

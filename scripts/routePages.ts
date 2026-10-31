@@ -36,6 +36,7 @@ type Meta = {
   url: string;
   breadcrumb?: { name: string; url: string }[];
   jsonLd?: Record<string, unknown>;
+  image?: { url: string; alt: string };
 };
 type Book = {
   slug: string;
@@ -64,7 +65,7 @@ type Route =
       kind: "project";
       meta: Meta;
       preview: { title: string; description: string };
-      content?: { title: string; description?: string; live?: string; app?: string; components?: Component[] };
+      content?: { title: string; description?: string; live?: string; app?: string; msi?: string; source?: string; note?: string; components?: Component[] };
       tags: string[];
     }
   | { kind: "library"; meta: Meta; shelves: { title: string; books: string[] }[]; books: Book[] }
@@ -158,6 +159,9 @@ const body = (route: Route) => {
         tags.length > 0 && `<p>Built with ${escape(tags.join(", "))}</p>`,
         content?.live && `<p><a href="${escape(content.live)}">${escape(content.live)}</a></p>`,
         content?.app && `<p><a href="${escape(content.app)}">${escape(content.app)}</a></p>`,
+        content?.msi && `<p><a href="${escape(content.msi)}" download>Windows installer (.msi)</a></p>`,
+        content?.source && `<p>Source code: <a href="${escape(content.source)}">${escape(content.source)}</a></p>`,
+        content?.note && `<p>${escape(content.note)}</p>`,
         ...(content?.components ?? []).map(component),
       );
     }
@@ -255,6 +259,13 @@ export const routePages = (): Plugin => {
         html = replace(html, metaTag("property", "og:url"), `<meta property="og:url" content="${url}" />`);
         html = replace(html, metaTag("name", "twitter:title"), `<meta name="twitter:title" content="${escape(title)}" />`);
         html = replace(html, metaTag("name", "twitter:description"), `<meta name="twitter:description" content="${escape(description)}" />`);
+        // Link scrapers never run the app, so a page's own card lives here only. Same size as the site's (1200x630).
+        if (route.meta.image) {
+          const { url: image, alt } = route.meta.image;
+          html = replace(html, metaTag("property", "og:image"), `<meta property="og:image" content="${image}" />`);
+          html = replace(html, metaTag("property", "og:image:alt"), `<meta property="og:image:alt" content="${escape(alt)}" />`);
+          html = replace(html, metaTag("name", "twitter:image"), `<meta name="twitter:image" content="${image}" />`);
+        }
         html = replace(html, /<script type="application\/ld\+json">[\s\S]*?<\/script>/, `<script type="application/ld+json">\n${json(pageGraph)}\n    </script>`);
         if (breadcrumb) {
           const crumbs = {

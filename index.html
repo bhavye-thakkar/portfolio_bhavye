@@ -258,24 +258,24 @@
       across the screen and off it, walking off after it, and the name is
       left alone. Then the name flies to its place in the hero as the page
       fades away from under it to reveal Home.
-      usePreloader.ts runs it as one state machine:
+      The inline script after the markup runs the first two states, so they
+      never wait for the app bundle; usePreloader.ts runs the rest:
 
         shut    The door waits for him (.preloader-nudge breathes a sliver of
                 light at its edge if that takes a while). Dark, as the
-                reference is for its first half second. Never for more than
-                2.5s from its first paint: past that it opens by itself
-                (preloader-door-open, below), so a slow connection gets the
-                name to read instead of a dark page.
-        push    .preloader-arrive. The door is ONE linear animation, created by
-                usePreloader.ts, from shut to off the far edge, at about 40% of
-                the screen a second: the reference's pace. He rides its edge
-                with his hands on it, and his legs follow the distance it has
-                moved (loader-avatar.ts), so nothing slides. It never pauses:
-                on a slow connection he walks off and the name waits alone.
-                It used to run on CSS timings of its own (a 0.5s shove and
-                four heaves), which dragged him eleven strides per step, and
-                then at a 2-steps-a-second stroll with a stop beside the name,
-                which read as sluggish and unfinished.
+                reference is for its first half second, then for as long as
+                his frames take to arrive, up to WAIT_MS: past that it opens
+                without him, so a very slow connection gets the name to read
+                instead of a dark page.
+        push    .preloader-arrive. The door is ONE linear animation from shut
+                to off the far edge, at about 40% of the screen a second: the
+                reference's pace. He rides its edge with his hands on it, and
+                his frames step at one walk cycle per stride of door, so
+                nothing slides. It never pauses: on a slow connection he walks
+                off and the name waits alone. It used to run on CSS timings of
+                its own (a 0.5s shove and four heaves), which dragged him
+                eleven strides per step, and then at a 2-steps-a-second stroll
+                with a stop beside the name, which read as sluggish.
         boot    Once he is off the screen and the assets are in, Home's 3D
                 scene boots: its long tasks land on the still name.
         exit    .preloader-exit, once the room's first frame exists: the name
@@ -393,33 +393,15 @@
         animation-play-state: paused;
       }
 
-      /* The door's own deadline. The walk needs the bundle and his files, and
-         on a slow connection those take many seconds: measured on a congested
-         line, the shut door WAS the page for 13s, a dark screen with the name
-         hidden behind it. So 2.5s after its first paint the door opens by
-         itself, the same wipe the loader's other moves use, without him, and
-         the name is there to read while the rest arrives. A bundle that runs
-         in time cancels this and takes the door over for whatever is left of
-         the 2.5s (usePreloader.ts, SHUT_MS), so a normal visit never sees it. */
-      .preloader-curtain {
-        animation: preloader-door-open 0.9s var(--preloader-ease-wipe) 2.5s both;
-      }
-
-      @keyframes preloader-door-open {
-        to {
-          transform: translateX(100%);
-        }
-      }
-
       .preloader-door {
         background-color: #2d2a24;
         background-color: var(--color-text-400, #2d2a24);
       }
 
       /* Rides the door's left edge, inside the nudge so the two never part.
-         The canvas overlaps the door by 6% of its width (0.054 of 0.9): his
-         hands are framed to end 1% past the door's edge (loader-avatar.ts,
-         PALMS_AT), pressing on it, so no rounding can open a gap between them. */
+         The box overlaps the door by 6% of its width (0.054 of 0.9): his
+         frames were captured with the hands ending 1% past the door's edge,
+         pressing on it, so no rounding can open a gap between them. */
       .preloader-walker {
         position: absolute;
         right: calc(100% - var(--preloader-avatar) * 0.054);
@@ -428,12 +410,9 @@
         height: var(--preloader-avatar);
       }
 
-      /* The 3D avatar, drawn by src/three/loader-avatar.ts into this canvas.
-         Hidden until his first frame exists (.preloader-live). No fade: the
-         door waits for him, so he is off-screen at that moment and walks in
-         solid. A translucent 3D body reads as a glitch, not an entrance. Only
-         when the wait ran out and the door left without him (.preloader-late)
-         does he have to appear in plain sight, and then he fades. */
+      /* Hidden until his frames are in (.preloader-live). No fade: the door
+         waits for him, so he is off-screen at that moment and walks in solid.
+         A translucent body reads as a glitch, not an entrance. */
       .preloader-avatar {
         position: relative;
         width: 100%;
@@ -443,10 +422,6 @@
 
       .preloader-live .preloader-avatar {
         opacity: 1;
-      }
-
-      .preloader-late .preloader-avatar {
-        transition: opacity 0.3s ease-out;
       }
 
       /* A soft pool of shadow under his feet, so he stands on the floor
@@ -461,23 +436,31 @@
         background: radial-gradient(ellipse at center, rgba(45, 42, 36, 0.22) 0%, rgba(45, 42, 36, 0) 68%);
       }
 
-      .preloader-avatar canvas {
-        display: block;
-        width: 100%;
-        height: 100%;
-      }
-
-      /* No WebGL: the canvas is swapped for a sheet of his pre-rendered frames,
-         one frame's worth of it shown at a time (loader-avatar.ts, mountSheet). */
+      /* Him: one walk cycle of the desk's own avatar.glb, 16 frames, 4 by 4,
+         row by row, rendered by three.js and captured from it. One frame's
+         worth shows at a time: the rows step down a row a quarter cycle, the
+         image steps across a column a sixteenth, both on the compositor (the
+         inline script below). A live WebGL renderer used to draw him here; on
+         a slow phone its second context, shader compiles and files came after
+         the door had gone, so the visitor saw the door leave by itself. */
       .preloader-sheet {
         position: absolute;
         inset: 0;
         overflow: hidden;
       }
 
+      .preloader-sheet-rows {
+        width: 400%;
+        height: 400%;
+        will-change: transform;
+      }
+
       .preloader-sheet img {
         display: block;
+        width: 100%;
+        height: 100%;
         max-width: none;
+        will-change: transform;
       }
 
       /* Portrait has no room beside the name, and plenty above and below it:
@@ -632,7 +615,7 @@
       <h2>Projects</h2>
       <ul>
         <li><a href="/project/garbacircle">Garba Circle</a>: Navratri and Garba app, the published case study</li>
-        <li><a href="/project/project-02">Project 02</a>: a reserved slot, case study coming soon</li>
+        <li><a href="/project/monday">Monday</a>: a local-first AI assistant for Windows, with a free Windows installer</li>
       </ul>
 
       <h2>The room</h2>
@@ -676,12 +659,75 @@
           <div class="preloader-nudge">
             <div class="preloader-door"></div>
             <div class="preloader-walker">
-              <div class="preloader-avatar"><canvas></canvas></div>
+              <div class="preloader-avatar">
+                <div class="preloader-sheet">
+                  <div class="preloader-sheet-rows">
+                    <img src="/src/assets/loader/walk.webp" alt="" width="1728" height="1920" fetchpriority="high" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+    <!--
+      ── SHUT AND PUSH, BEFORE THE APP EXISTS ──────────────────────────────
+      The door and his walk start here, not in the app bundle. Measured on a
+      cold load at 8x CPU over slow 4G (2026-10-29): the bundle ran at 4.7s,
+      his WebGL renderer, files and shader compiles came later still, so the
+      visitor saw a dark page for 5s, the door slide off by itself, and him
+      appear behind it off-screen. Here he needs one image, and both moves are
+      WAAPI transforms the compositor runs on its own, so the bundle's long
+      tasks can neither skip nor freeze him. usePreloader.ts takes over from
+      `window.__opening`, which resolves once the door is gone.
+    -->
+    <script>
+      (() => {
+        const root = document.querySelector(".preloader");
+        const curtain = root?.querySelector(".preloader-curtain");
+        const frames = root?.querySelector(".preloader-sheet img");
+        if (!curtain?.animate || !frames || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        /** the dark beat the reference opens on */
+        const DARK_MS = 500;
+        /** past this, a connection too slow for his frames gets the door opened without him */
+        const WAIT_MS = 6000;
+        /** the door crosses at 45% of the screen a second, clamped to keep his cadence (walk cycles a second) between a brisk walk and a hurry */
+        const DOOR_SHARE = 0.45;
+        const MIN_CADENCE = 1.4;
+        const MAX_CADENCE = 2.4;
+        /** px of door one walk cycle covers per px of his height, measured off the renderer the frames came from */
+        const STRIDE_PER_HEIGHT = 0.754;
+        const t0 = performance.now();
+        const wait = (ms) => new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
+        const decoded = frames.decode().then(() => true, () => false);
+        window.__opening = Promise.race([decoded, wait(WAIT_MS).then(() => false)]).then(async (withHim) => {
+          await wait(DARK_MS - (performance.now() - t0));
+          const box = root.querySelector(".preloader-walker").getBoundingClientRect();
+          const cycle = STRIDE_PER_HEIGHT * box.height;
+          const speed = Math.min(MAX_CADENCE * cycle, Math.max(MIN_CADENCE * cycle, DOOR_SHARE * innerWidth));
+          // the door across the screen, and him off the far edge behind it
+          const distance = innerWidth - box.left;
+          const duration = withHim ? (distance / speed) * 1000 : 900;
+          if (withHim) {
+            // one walk cycle per stride of door, so his feet cannot slide: the rows step every quarter cycle, the columns every sixteenth
+            const period = (cycle / speed) * 1000;
+            const step = (axis) => [{ transform: `translate${axis}(0)` }, { transform: `translate${axis}(-100%)` }];
+            frames.parentElement.animate(step("Y"), { duration: period, easing: "steps(4)", iterations: Infinity });
+            frames.animate(step("X"), { duration: period / 4, easing: "steps(4)", iterations: Infinity });
+            root.classList.add("preloader-live");
+          }
+          root.classList.add("preloader-arrive");
+          const door = curtain.animate(
+            [{ transform: "translateX(0)" }, { transform: withHim ? `translateX(${distance}px)` : "translateX(100%)" }],
+            { duration, easing: withHim ? "linear" : "cubic-bezier(0.76, 0, 0.24, 1)", fill: "both" },
+          );
+          // a timer beside the promise: a tab that gets no animation frames holds `finished` back
+          await Promise.race([door.finished.catch(() => {}), wait(duration + 200)]);
+          return withHim ? "walked" : "alone";
+        });
+      })();
+    </script>
     <!-- QA-SHIM temporary, remove before ship -->
     <script>
       if (location.search.includes("qa=1")) {

@@ -13,7 +13,11 @@ export type TagVariant =
   | "postgresql"
   | "flutter"
   | "ogl"
-  | "glsl";
+  | "glsl"
+  | "python"
+  | "qt"
+  | "fastapi"
+  | "sqlite";
 
 export const tagLabels = {
   three: "Three.js",
@@ -31,4 +35,8 @@ export const tagLabels = {
   flutter: "Flutter",
   ogl: "OGL.js",
   glsl: "GLSL",
+  python: "Python",
+  qt: "Qt",
+  fastapi: "FastAPI",
+  sqlite: "SQLite",
 } as const satisfies Record<TagVariant, string>;

@@ -1,16 +1,16 @@
-import { placeholderPreview } from "../placeholder";
 import garbacircleArtwork from "../../../assets/thumbnails/garbacircle.webp";
+import mondayArtwork from "../../../assets/thumbnails/monday.webp";
 
 import type { ProjectPreview } from "../../types";
 
 /**
- * The Projects grid, in order. Garba Circle is the one real row: its own key
- * art and its own write-up. Every other row is a reserved slot on the shared
- * placeholder plate.
+ * The Projects grid, in order: two written-up projects, each with its own key
+ * art and case study.
  *
- * Two rows only, on the owner's instruction (2026-09-10). Slots 3 to 5 are
- * commented out, not deleted, and the matching slugs are commented out of
- * `../index.ts` too, restoring one means uncommenting it in BOTH files.
+ * Two rows only, on the owner's instruction (2026-09-10). Monday took slot 2 on
+ * 2026-10-29. Slots 3 to 5 are reserved placeholders, commented out here and in
+ * `../index.ts`; restoring one means uncommenting it in BOTH files and importing
+ * `placeholderPreview` from "../placeholder" again.
  */
 export default [
   {
@@ -23,7 +23,16 @@ export default [
     summary:
       "Garba Circle, an Android app for Navratri: discover garba grounds, build your team and compete. Built with Flutter, Node.js and PostgreSQL.",
   },
-  placeholderPreview(2),
+  {
+    title: "Monday",
+    slug: "monday",
+    thumbnail: mondayArtwork,
+    description: "AI assistant for Windows",
+    share: "/meta/monday.jpg",
+    // The case study's first paragraph and its tags, nothing beyond them.
+    summary:
+      "Monday, a local-first AI assistant for Windows that works the PC it runs on from a notch at the top of the screen. Built with Python, Qt, FastAPI and SQLite.",
+  },
   // placeholderPreview(3),
   // placeholderPreview(4),
   // placeholderPreview(5),

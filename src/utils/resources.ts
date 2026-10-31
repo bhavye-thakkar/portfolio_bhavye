@@ -9,17 +9,6 @@ import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 const isProd = import.meta.env.PROD;
 
-/** Keep in step with NEEDS in three/loader-avatar.ts. */
-const AVATAR_FIRST = new Set([
-  "avatar-model",
-  "matcap-black",
-  "matcap-gray",
-  "matcap-skin",
-  "matcap-white",
-  "head-texture",
-  "face-texture",
-]);
-
 type ResourceType = Texture | GLTF;
 
 class Resources extends EventEmitter<{
@@ -50,36 +39,17 @@ class Resources extends EventEmitter<{
   }
 
   /**
-   * Two waves rather than nineteen requests at once: the loader's avatar (see
-   * three/loader-avatar.ts) needs his model and six textures, and with every
-   * request sharing the bandwidth those were finishing alongside everything
-   * else, so he only ever appeared as the door was already giving way. His
-   * files go first and the rest wait for ALL of them: starting the rest as
-   * soon as his small textures were in put twelve requests alongside his
-   * model's tail and, on 4G, he still arrived after the last asset.
+   * All at once. These used to come in two waves, the loader's 3D avatar's
+   * model and textures first, while he was drawn by WebGL; he is a sheet of
+   * pre-rendered frames in index.html now, and the room needs every file
+   * before it boots, so nothing gains from waiting on anything else.
    */
   startLoading() {
     if (this.isReady) return;
-
-    const first = sources.filter((source) => AVATAR_FIRST.has(source.name));
-    const rest = sources.filter((source) => !AVATAR_FIRST.has(source.name));
-    let pending = first.length;
-    let restStarted = false;
-    const startRest = () => {
-      if (restStarted) return;
-      restStarted = true;
-      rest.forEach((source) => this.loadSource(source));
-    };
-
-    first.forEach((source) =>
-      this.loadSource(source, () => {
-        if (--pending === 0) startRest();
-      }),
-    );
-    if (!first.length) startRest();
+    sources.forEach((source) => this.loadSource(source));
   }
 
-  loadSource(source: (typeof sources)[number], then?: () => void) {
+  loadSource(source: (typeof sources)[number]) {
     // A request that fails (a 404 after a bad deploy, a dropped connection, a
     // blocked host) used to be silent: the counter never reached the total,
     // "ready" never fired, and the loader sat over the page for good. Now it
@@ -89,14 +59,12 @@ class Resources extends EventEmitter<{
       this.failed.add(source.name);
       console.warn(`[Resources] ${source.name} failed to load from ${source.path}`, error);
       this.sourceLoaded(source, null);
-      then?.();
     };
     if (source.type === "gltfModel") {
       this.loaders.gltfLoader.load(
         source.path,
         (file) => {
           this.sourceLoaded(source, file);
-          then?.();
         },
         undefined,
         fail,
@@ -107,7 +75,6 @@ class Resources extends EventEmitter<{
         (file: Texture) => {
           file.colorSpace = SRGBColorSpace;
           this.sourceLoaded(source, file);
-          then?.();
         },
         undefined,
         fail,

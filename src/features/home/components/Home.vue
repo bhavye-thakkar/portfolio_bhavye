@@ -22,6 +22,8 @@ import { sceneFailed, sceneLive } from "../../../three/core/webgl";
 import { useHeaderTheme } from "../../../composables/useHeaderTheme";
 import posterLandscape from "../../../assets/hero/poster-landscape.webp";
 import posterPortrait from "../../../assets/hero/poster-portrait.webp";
+import loopLandscape from "../../../assets/hero/loop-landscape.mp4";
+import loopPortrait from "../../../assets/hero/loop-portrait.mp4";
 import { experiences } from "../../../content/experience";
 import { sectionHeightVh } from "../../../animations/transitions/experience";
 import { aboutHeightVh } from "../../../animations/transitions/about";
@@ -66,6 +68,33 @@ const showPoster = computed(
     (sceneFailed.value || !webglAvailable || (!sceneLive.value && (!preloaderVisible.value || preloaderSlow.value))),
 );
 const { isDarkTheme: stageDark, hasScrolledIntoView: stagePast } = useHeaderTheme();
+
+/**
+ * ── WHERE THE ROOM CAN NEVER DRAW, IT STILL MOVES ─────────────────────────
+ *
+ * With no WebGL at all (current Chrome has no software fallback, so a phone
+ * with its GPU blocked or acceleration off gets none) or a scene that failed,
+ * the still would be the room for the whole visit. There it is a 7 s loop of
+ * him at work at the desk instead: captured frame by frame from this renderer
+ * on a stepped clock, cut where its last frame meets its first, about 285 KB,
+ * and only ever downloaded here. Its poster is its own first frame, the same
+ * still the slow visit shows (the scene is about to replace it there, so that
+ * one stays a still). Reduced motion and Save-Data keep the still. Past the
+ * hero it fades with the still, and stops decoding.
+ */
+const posterMoves =
+  !matchMedia("(prefers-reduced-motion: reduce)").matches &&
+  !(navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+const showLoop = computed(() => posterMoves && (sceneFailed.value || !webglAvailable));
+const portraitQuery = matchMedia("(orientation: portrait)");
+const portrait = ref(portraitQuery.matches);
+const updateOrientation = (event: MediaQueryListEvent) => (portrait.value = event.matches);
+const loopRef = ref<HTMLVideoElement | null>(null);
+watch([loopRef, stageDark, stagePast], ([video, dark, past]) => {
+  if (!video) return;
+  if (dark || past) video.pause();
+  else void video.play().catch(() => {});
+});
 
 const handleIntersection = (entries: IntersectionObserverEntry[]) => {
   scrolledPastIntro.value = entries[0]?.isIntersecting ?? false;
@@ -126,11 +155,13 @@ onMounted(() => {
   }
 
   gsap.ticker.add(updateCursor);
+  portraitQuery.addEventListener("change", updateOrientation);
 });
 
 onUnmounted(() => {
   stickyObserver.value?.disconnect();
   stickyObserver.value = null;
+  portraitQuery.removeEventListener("change", updateOrientation);
 
   three.destroy();
 
@@ -203,7 +234,8 @@ watch(isTransitioning, (active) => {
       typeof overlayId !== 'string' && isTransitioning && `home-wrapper-in`,
     ]"
   >
-    <ScrollIcon />
+    <!-- Not while NoWebgl.vue's notice holds the same bottom-centre seat: the hand sat on its text. -->
+    <ScrollIcon v-if="webglAvailable && !sceneFailed" />
     <Layout>
       <!-- The page had no `main` landmark at all: a screen reader's "skip to
            the content" had nothing to skip to, and the only <main> on the site
@@ -233,7 +265,19 @@ watch(isTransitioning, (active) => {
             :class="{ 'three-poster-dark': stageDark, 'three-poster-past': stagePast && !stageDark }"
             aria-hidden="true"
           >
-            <picture>
+            <video
+              v-if="showLoop"
+              ref="loopRef"
+              :key="portrait ? 'portrait' : 'landscape'"
+              :src="portrait ? loopPortrait : loopLandscape"
+              :poster="portrait ? posterPortrait : posterLandscape"
+              autoplay
+              muted
+              loop
+              playsinline
+              disablepictureinpicture
+            ></video>
+            <picture v-else>
               <source media="(orientation: portrait)" :srcset="posterPortrait" />
               <!-- High: on a slow visit it is what the page shows, and it was
                    queueing behind the room's own files for seconds. -->
@@ -321,7 +365,8 @@ watch(isTransitioning, (active) => {
   background-color: var(--color-beige-400);
   transition: background-color 0.4s ease;
 
-  img {
+  img,
+  video {
     display: block;
     width: 100%;
     height: 100%;
@@ -339,7 +384,9 @@ watch(isTransitioning, (active) => {
   }
 
   &-dark img,
-  &-past img {
+  &-past img,
+  &-dark video,
+  &-past video {
     opacity: 0;
   }
 }

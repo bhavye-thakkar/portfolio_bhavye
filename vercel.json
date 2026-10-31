@@ -5,6 +5,9 @@
   "rewrites": [
     { "source": "/sitemap", "destination": "/sitemap.xml" }
   ],
+  "redirects": [
+    { "source": "/project/project-02", "destination": "/project/monday", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",

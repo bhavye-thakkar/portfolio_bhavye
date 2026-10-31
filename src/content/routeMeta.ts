@@ -25,6 +25,8 @@ export type Meta = {
   breadcrumb?: Crumb[];
   /** Structured data of the page's own, beyond the breadcrumb (schema.org JSON-LD). */
   jsonLd?: Record<string, unknown>;
+  /** A link-preview card of the page's own (1200x630 JPEG, like the site's), else the site's card stays. */
+  image?: { url: string; alt: string };
 };
 
 /** Titles come from the same content files the pages render from. */
@@ -148,9 +150,13 @@ export const bookMeta = (slug: string): Meta | null => {
  * CreativeWork tied to the Person in index.html. CreativeWork, not
  * SoftwareApplication: Google only accepts that one with ratings or reviews,
  * and an app node without them is reported as an error in Search Console.
+ *
+ * The title carries the card's one-line description, so a result says what the
+ * project is ("Monday" alone is a weekday): the owner's SEO checklist
+ * (2026-10-30) asks for about 50-60 characters with the topic in the title.
  */
 export const projectMeta = (preview: ProjectPreview): Meta => ({
-  title: `${preview.title}, Project | ${SUFFIX}`,
+  title: `${preview.title}, ${preview.description} | ${SUFFIX}`,
   description: preview.summary ?? `${preview.title}: ${preview.description}. A project by ${SUFFIX}, ${profile.role}.`,
   url: `${site}/project/${preview.slug}`,
   breadcrumb: [
@@ -158,6 +164,7 @@ export const projectMeta = (preview: ProjectPreview): Meta => ({
     { name: "Projects", url: `${site}/#projects` },
     { name: preview.title, url: `${site}/project/${preview.slug}` },
   ],
+  image: preview.share ? { url: `${site}${preview.share}`, alt: `${preview.title}: ${preview.description}` } : undefined,
   jsonLd: preview.summary
     ? {
         "@context": "https://schema.org",

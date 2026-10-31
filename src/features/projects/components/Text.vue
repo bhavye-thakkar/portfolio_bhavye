@@ -81,6 +81,8 @@ useScrollMotion(rootRef, (root) => {
   &-content {
     text-wrap: pretty;
     max-width: 68ch;
+    /* a checksum or a path has no break point of its own and would overflow a phone */
+    overflow-wrap: anywhere;
 
     :deep(p + p) {
       margin-top: var(--space-sm);

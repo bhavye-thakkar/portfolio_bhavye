@@ -74,10 +74,10 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://bhavye.vercel.app/project/project-02</loc>
-    <lastmod>2026-08-28</lastmod>
+    <loc>https://bhavye.vercel.app/project/monday</loc>
+    <lastmod>2026-10-30</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.8</priority>
   </url>
 
   <!-- The library (src/content/library.ts): the archive and one page per book. -->

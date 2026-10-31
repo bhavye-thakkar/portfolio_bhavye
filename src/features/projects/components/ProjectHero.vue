@@ -58,6 +58,19 @@ watch(projectId, () => {
           {{ t("download-android") }}
         </Button>
       </a>
+      <!-- With no website to open, the installer is the project's first action and
+           takes the accent, as Live View does on a project that has one. -->
+      <a v-if="content.msi" :href="content.msi" download class="project-hero-button" data-cursor="arrow-external">
+        <Button
+          renderAs="div"
+          :variant="content.live ? 'border' : 'accent'"
+          class="children-unclickable project-hero-download"
+          data-hoversound="hover"
+        >
+          <Download class="project-hero-download-icon" />
+          {{ t("download-windows") }}
+        </Button>
+      </a>
       <Link
         v-if="content.source"
         :href="content.source"
@@ -70,6 +83,7 @@ watch(projectId, () => {
         }}</Button>
       </Link>
     </div>
+    <p v-if="content.note" class="project-hero-note">{{ content.note }}</p>
   </div>
 </template>
 
@@ -83,10 +97,15 @@ watch(projectId, () => {
     padding-bottom: 64px;
   }
 
+  /* Below md the row wraps and each button grows to fill its line: a label that
+     does not fit beside the others gets a full-width line of its own. Without the
+     wrap, a centred row wider than a phone ran off both edges (Garba Circle's
+     Live View sat at x -120 on a 390 px screen). */
   &-button {
-    flex: 0.5;
+    flex: 1 1 auto;
 
     @include mixins.mq("md") {
+      flex: 0.5;
       width: fit-content;
     }
   }
@@ -106,6 +125,7 @@ watch(projectId, () => {
     grid-row: 3;
     grid-column: 1 / 13;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: var(--space-sm);
@@ -114,11 +134,35 @@ watch(projectId, () => {
     grid-column: 1 / 13;
 
     @include mixins.mq("md") {
+      flex-wrap: nowrap;
       gap: var(--space-md);
       width: fit-content;
       grid-column: 1 / 6;
       grid-row: 2;
       margin-top: 0;
+    }
+
+    @include mixins.mq("lg") {
+      grid-column: 2 / 6;
+    }
+  }
+
+  /* Under the buttons, in their column: what the download needs, read before
+     the click rather than after a failed install. */
+  &-note {
+    grid-row: 4;
+    grid-column: 1 / 13;
+    margin-top: var(--space-sm);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-copy);
+    color: var(--color-text-300);
+    text-align: center;
+    text-wrap: pretty;
+
+    @include mixins.mq("md") {
+      grid-row: 3;
+      grid-column: 1 / 6;
+      text-align: left;
     }
 
     @include mixins.mq("lg") {

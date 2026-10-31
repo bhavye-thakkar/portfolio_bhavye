@@ -28,7 +28,7 @@ import type { AnimationClip as Clip, KeyframeTrack, Object3D } from "three";
  * The hips ride at the height the planted leg can actually reach.
  *
  * The clip is one second long: `action.time` is the phase. Scrub it by distance
- * travelled over the returned `stride` (loader-avatar.ts), or play it at one
+ * travelled over the returned `stride`, or play it at one
  * cycle per so many seconds and move him `stride` a cycle (the goodbye), and
  * the feet cannot slide by construction.
  *

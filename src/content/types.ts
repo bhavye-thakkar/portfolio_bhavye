@@ -16,6 +16,10 @@ export interface ProjectContent {
   app?: string;
   /** an Android package to download, a path under public/downloads, shown as a download button */
   apk?: string;
+  /** a Windows installer to download, a path under public/downloads, shown as a download button */
+  msi?: string;
+  /** one short line under the buttons: what a download needs (OS, runtime, size) */
+  note?: string;
   source?: string;
   components?: ProjectComponent[];
 }
@@ -36,4 +40,6 @@ export interface ProjectPreview {
    * gets neither a search description of its own nor a schema.org node.
    */
   summary?: string;
+  /** A 1200x630 JPEG under public/meta for link previews of the case study (og:image); without one the site's card is used. */
+  share?: string;
 }

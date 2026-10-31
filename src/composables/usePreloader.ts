@@ -3,7 +3,6 @@ import { resources } from "../utils/resources";
 import { renderer, webglAvailable, webglSoftware } from "../three/core/renderer";
 import { sceneFailed } from "../three/core/webgl";
 import { three } from "../three";
-import { loaderAvatar } from "../three/loader-avatar";
 import { libraryActive, projectVisible } from "./useRouteObserver";
 
 /**
@@ -21,8 +20,8 @@ export const preloaderVisible = ref(true);
 export const preloaderLoaded = ref(false);
 
 /**
- * True once this visit has shown itself to be a slow one: the bundle, or the
- * avatar, missed the door's deadline. From then on Home.vue keeps the room's
+ * True once this visit has shown itself to be a slow one: his frames missed
+ * the door's deadline, so it left without him. From then on Home.vue keeps the room's
  * still under the loader, so a page shown before the scene can draw already
  * has its picture, instead of starting that download at the landing and
  * showing an empty hero while it queues behind the room's own files.
@@ -34,18 +33,18 @@ export const preloaderSlow = ref(false);
  *
  *   shut → push → (the name alone) → boot → land
  *
- * One function, top to bottom, each state entered once. What the markup does
- * in each is documented with the styles in index.html; how the avatar moves is
- * loader-avatar.ts. The door is ONE linear animation from shut to off the far
- * edge, with him on it the whole way, and his legs follow its distance, so
- * his feet cannot slide and he cannot be dragged. It never pauses: on a slow
- * connection he walks off and the name waits alone, as the reference does.
+ * Each state entered once. The first two run in index.html's inline script,
+ * before this bundle exists: the door and his walk need nothing but one image
+ * of his frames, so a slow phone, a slow line or a bundle still parsing can no
+ * longer send the door off without him. This picks up from `window.__opening`,
+ * which resolves once the door is gone. What the markup does in each state is
+ * documented with the styles in index.html.
  *
  * Nothing here waits for show. The door takes as long as his walk takes, the
  * boot waits for the files and for the room's first frame, and every wait has
- * a ceiling (LOAD_CAP_MS, ARRIVE_CAP_MS, the first-frame cap), so a file that
- * never arrives, a scene that throws or a browser with no WebGL all end at
- * the page, with the room's still in the canvas's place (Home.vue).
+ * a ceiling (LOAD_CAP_MS, the inline WAIT_MS, the first-frame cap), so a file
+ * that never arrives, a scene that throws or a browser with no WebGL all end
+ * at the page, with the room's still in the canvas's place (Home.vue).
  */
 
 /** The name's flight to the hero title; keep in step with the backdrop fade in index.html. */
@@ -62,32 +61,6 @@ const FADE_MS = 400;
  * arrive (three/index.ts, `bootNow`). The page behind works without the scene.
  */
 const LOAD_CAP_MS = 9000;
-/**
- * How long the door may stay shut, his wait included, counted from the door's
- * own first paint. index.html opens it by itself at this mark
- * (`preloader-door-open`, keep the two in step), so a bundle still downloading
- * never leaves a dark page; a bundle that runs in time cancels that, takes the
- * door over, and waits for him only for what is left. His files are the first
- * wave of the download, so he misses it only on a slow connection, and then
- * joins the moving door when he does arrive.
- */
-const SHUT_MS = 2500;
-/**
- * The door's speed, as a share of the viewport width a second: the reference's
- * curtain crosses in about two and a half seconds. His legs follow at one cycle
- * per stride, so on a screen wide for his size that would be a scramble and on
- * a phone a stroll: the speed is clamped to keep his cadence, in cycles (two
- * steps) a second, between a brisk walk and a hurry.
- */
-const DOOR_SHARE = 0.45;
-const MIN_CADENCE = 1.4;
-const MAX_CADENCE = 2.4;
-/**
- * The scene boots once this much of him is off the far edge. Its long tasks
- * would freeze whatever is left of him, and a sliver of a trailing heel at the
- * edge of the screen is not worth the half second a full exit would add.
- */
-const GONE_ENOUGH = 0.85;
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -187,10 +160,10 @@ const land = (name: HTMLElement, reduced: boolean) => {
 export const usePreloader = () => {
   onMounted(async () => {
     const root = document.querySelector<HTMLElement>(".preloader");
-    const curtain = root?.querySelector<HTMLElement>(".preloader-curtain");
     const name = root?.querySelector<HTMLElement>(".preloader-name");
-    const canvas = root?.querySelector<HTMLCanvasElement>(".preloader-avatar canvas");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // index.html's inline script, which runs the door and his walk: "alone" when it had to go without him
+    const opening = (window as Window & { __opening?: Promise<"walked" | "alone"> }).__opening;
     // A cold link to a project page or the library never draws the room (the
     // renderer is off there, Home.vue), so its page does not wait for the
     // room's files: they keep downloading and the scene boots when they land.
@@ -216,59 +189,20 @@ export const usePreloader = () => {
     };
 
     // No door, no walk: the name is simply there, and leaves with a fade.
-    if (!root || !curtain || reduced) {
+    if (!root || !opening || reduced) {
       await loaded;
       await boot();
       return exit();
     }
 
-    // ── shut: the door waits for him, up to its own deadline ──
-    // Past SHUT_MS the door has already started to open by itself (index.html):
-    // this bundle came too late for the walk, the name is alone on the page,
-    // and all that is left is the files and the landing.
-    const opening = curtain.getAnimations().find((a) => (a as CSSAnimation).animationName === "preloader-door-open");
-    const shown = Number(opening?.currentTime ?? 0);
-    if (opening && shown >= SHUT_MS) {
-      preloaderSlow.value = needsRoom;
-      await loaded;
-      await boot();
-      return exit();
-    }
-    opening?.cancel();
-
-    // A failed mount resolves to null at once and nothing waits for it. Without
-    // WebGL the mount is a sheet of his pre-rendered frames (loader-avatar.ts).
-    const mounting = canvas ? loaderAvatar.mount(canvas).catch(() => null) : Promise.resolve(null);
-    const walker = await Promise.race([mounting, wait(SHUT_MS - shown).then(() => null)]);
-    if (walker) root.classList.add("preloader-live");
-    // The door left without him: he joins it in plain sight, so he fades in.
-    else {
-      preloaderSlow.value = needsRoom;
-      void mounting.then((late) => late && root.classList.add("preloader-late", "preloader-live"));
-    }
-
-    // ── push: one linear move, at the pace of his legs, to off the far edge ──
-    root.classList.add("preloader-arrive");
-    const width = window.innerWidth;
-    const share = DOOR_SHARE * width;
-    const cycle = walker?.cyclePx() ?? 0;
-    const speed = walker ? Math.min(MAX_CADENCE * cycle, Math.max(MIN_CADENCE * cycle, share)) : share;
-    // the door across the screen, and him off the far edge behind it
-    const box = root.querySelector(".preloader-walker")!.getBoundingClientRect();
-    const distance = width - box.left;
-    curtain.animate([{ transform: "translateX(0)" }, { transform: `translateX(${distance}px)` }], {
-      duration: (distance / speed) * 1000,
-      easing: "linear",
-      fill: "both",
-    });
-    await Promise.all([wait(((distance - (1 - GONE_ENOUGH) * box.width) / speed) * 1000), loaded]);
+    // ── shut and push: running already, the scene boots once he is off the screen ──
+    if ((await opening) === "alone") preloaderSlow.value = needsRoom;
+    await loaded;
 
     // ── the name alone ──
     await boot();
 
     // ── land ──
     await exit();
-    // only ever resolved, never rejected; the loader's context goes with it
-    (await mounting)?.dispose();
   });
 };

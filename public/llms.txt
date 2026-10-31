@@ -73,6 +73,7 @@ and /experience/notionmind in eight.
 ## Projects
 
 - [Garba Circle](https://bhavye.vercel.app/project/garbacircle): Navratri & Garba app (discover garba grounds, build a team and compete), built with Flutter, Node.js and PostgreSQL; the case study published on the site. The Android app is on Google Play at https://play.google.com/store/apps/details?id=in.garbacircle.app and as a direct APK download on the project page.
+- [Monday](https://bhavye.vercel.app/project/monday): a local-first AI assistant for Windows that operates the PC it runs on (desktop apps through UI Automation, its own Chrome through Playwright, commands, Office documents) from a notch at the top of the screen, and supervises Claude Code and Codex sessions; every step gets a SAFE, ASK or BLOCK ruling from code and success is reported only with a receipt. Built with Python 3.14, PySide6 (Qt), FastAPI and SQLite, with Ollama models first. Version 0.3.5 is a free per-user Windows installer (78 MB, needs Python 3.14, not code-signed) on the project page; it is in active development, and voice and open-ended screen tasks are partial. Source code: https://github.com/bhavye-thakkar/monday (the desktop app is MIT-licensed; the repository also holds the Flutter phone companion).
 
 ## Certificates
 
