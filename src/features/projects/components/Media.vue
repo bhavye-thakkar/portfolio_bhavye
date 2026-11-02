@@ -22,12 +22,24 @@ export interface Props {
    * three at 75px each. Unset keeps the full 16:9 frame everywhere.
    */
   focus?: number;
+  /**
+   * A 9:16 cut of the same video for narrow screens (below md). There the tile
+   * turns tall and plays it whole, like a reel, instead of a 4:5 strip out of
+   * the middle of the wide one (Monday's desktop shots lost both sides).
+   */
+  mobileSrc?: string;
+  mobilePoster?: string;
   index: number;
 }
 
 const props = defineProps<Props>();
 
 const reducedMotion = prefersReducedMotion();
+
+// Picked once, when the page opens: turning a phone sideways keeps the cut it started with.
+const tall = props.type === "video" && !!props.mobileSrc && matchMedia("(max-width: 839px)").matches;
+const src = tall ? props.mobileSrc! : props.src;
+const poster = tall ? (props.mobilePoster ?? props.poster) : props.poster;
 
 let observer: IntersectionObserver | null = null;
 
@@ -95,12 +107,15 @@ useScrollMotion(wrapperRef, (wrapper) => {
       scrollTrigger: { trigger: wrapper, start: "top bottom", end: "top 42%", scrub: true },
     },
   );
+  // A tall cut keeps its caption band near the top edge: a lighter drift, so the band stays in frame.
+  const drift = tall ? 2 : 5;
+  const zoom = tall ? 1.04 : 1.12;
   gsap.fromTo(
     media,
-    { yPercent: 5, scale: 1.12 },
+    { yPercent: drift, scale: zoom },
     {
-      yPercent: -5,
-      scale: 1.12,
+      yPercent: -drift,
+      scale: zoom,
       ease: "none",
       force3D: true,
       scrollTrigger: { trigger: wrapper, start: "top bottom", end: "bottom top", scrub: true },
@@ -118,7 +133,7 @@ useScrollMotion(wrapperRef, (wrapper) => {
 
 <template>
   <div
-    :class="['project-media', props.focus !== undefined && 'project-media-focus']"
+    :class="['project-media', props.focus !== undefined && !tall && 'project-media-focus', tall && 'project-media-tall']"
     :style="props.focus !== undefined ? { '--media-focus': `${props.focus}%` } : undefined"
     ref="wrapperRef"
   >
@@ -133,8 +148,8 @@ useScrollMotion(wrapperRef, (wrapper) => {
       />
       <video
         v-else
-        :src="props.src"
-        :poster="props.poster"
+        :src="src"
+        :poster="poster"
         :aria-label="props.alt"
         :controls="reducedMotion"
         muted
@@ -239,6 +254,15 @@ useScrollMotion(wrapperRef, (wrapper) => {
       .project-media-video {
         object-position: var(--media-focus, 50%) 50%;
       }
+    }
+  }
+
+  /* The 9:16 cut below md: whole, and never taller than most of the screen
+     (a tablet held upright would otherwise get a tile twice its height). */
+  &-tall {
+    @media (max-width: 839px) {
+      aspect-ratio: 9 / 16;
+      width: min(100%, calc(var(--svh, 1vh) * 80 * 9 / 16));
     }
   }
 

@@ -332,6 +332,29 @@
         background-color: var(--color-beige-400, #f5efe6);
       }
 
+      /* Only when the app's code could not be fetched (the script at the end of the head). */
+      .preloader-retry {
+        display: none;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 12%;
+        width: 100%;
+        margin: 0;
+        padding: 12px 16px;
+        border: 0;
+        background: none;
+        cursor: pointer;
+        text-align: center;
+        font: 600 16px/1.4 system-ui, sans-serif;
+        color: #2d2a24;
+        color: var(--color-text-400, #2d2a24);
+      }
+
+      .app-failed .preloader-retry {
+        display: block;
+      }
+
       .preloader-stage,
       .preloader-curtain,
       .preloader-nudge,
@@ -436,13 +459,17 @@
         background: radial-gradient(ellipse at center, rgba(45, 42, 36, 0.22) 0%, rgba(45, 42, 36, 0) 68%);
       }
 
-      /* Him: one walk cycle of the desk's own avatar.glb, 16 frames, 4 by 4,
+      /* Him: one walk cycle of the desk's own avatar.glb, 32 frames, 8 by 4,
          row by row, rendered by three.js and captured from it. One frame's
          worth shows at a time: the rows step down a row a quarter cycle, the
-         image steps across a column a sixteenth, both on the compositor (the
+         image steps across a column a thirty-second, both on the compositor (the
          inline script below). A live WebGL renderer used to draw him here; on
          a slow phone its second context, shader compiles and files came after
-         the door had gone, so the visitor saw the door leave by itself. */
+         the door had gone, so the visitor saw the door leave by itself.
+         32, not 16: the box rides the door smoothly while the pose only
+         changes per frame, so a planted foot slid forward and snapped back
+         each frame, about 10 px at 22 poses a second on a phone. Half that now, at
+         185 KB against the old sheet's 228. */
       .preloader-sheet {
         position: absolute;
         inset: 0;
@@ -450,7 +477,7 @@
       }
 
       .preloader-sheet-rows {
-        width: 400%;
+        width: 800%;
         height: 400%;
         will-change: transform;
       }
@@ -499,6 +526,36 @@
     </style>
     <!-- Without JS nothing ever takes the loader down, and it would sit over
          the text fallback below for good. -->
+    <!--
+      If the app's own code cannot be fetched (a connection that drops mid-load),
+      nothing ever takes over from the loader and the name stays up for good.
+      Its script failing is caught here, in the head, before the entry tag Vite
+      adds below: the page reloads once by itself, and if that fails too, the
+      loader says so and a tap tries again (never a reload loop: one automatic
+      try per 30 s).
+    -->
+    <script>
+      addEventListener(
+        "error",
+        (event) => {
+          const script = event.target;
+          if (!(script instanceof HTMLScriptElement) || script.type !== "module") return;
+          let last = 0;
+          try {
+            last = Number(sessionStorage.getItem("app-retry")) || 0;
+            sessionStorage.setItem("app-retry", String(Date.now()));
+          } catch {}
+          if (Date.now() - last > 30000) return location.reload();
+          document.documentElement.classList.add("app-failed");
+          // the loader is decorative until now: let a screen reader and a keyboard reach the way out
+          const root = document.querySelector(".preloader");
+          root?.removeAttribute("aria-hidden");
+          root?.querySelector(".preloader-retry")?.focus();
+          addEventListener("click", () => location.reload());
+        },
+        true,
+      );
+    </script>
     <noscript><style>.preloader { display: none; }</style></noscript>
   </head>
   <body class="is-loading">
@@ -662,13 +719,14 @@
               <div class="preloader-avatar">
                 <div class="preloader-sheet">
                   <div class="preloader-sheet-rows">
-                    <img src="/src/assets/loader/walk.webp" alt="" width="1728" height="1920" fetchpriority="high" />
+                    <img src="/src/assets/loader/walk.webp" alt="" width="3456" height="1920" fetchpriority="high" />
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <button type="button" class="preloader-retry">Couldn't load. Tap to try again.</button>
       </div>
     </div>
     <!--
@@ -710,11 +768,11 @@
           const distance = innerWidth - box.left;
           const duration = withHim ? (distance / speed) * 1000 : 900;
           if (withHim) {
-            // one walk cycle per stride of door, so his feet cannot slide: the rows step every quarter cycle, the columns every sixteenth
+            // one walk cycle per stride of door, so his feet cannot slide: the rows step every quarter cycle, the columns every thirty-second
             const period = (cycle / speed) * 1000;
             const step = (axis) => [{ transform: `translate${axis}(0)` }, { transform: `translate${axis}(-100%)` }];
             frames.parentElement.animate(step("Y"), { duration: period, easing: "steps(4)", iterations: Infinity });
-            frames.animate(step("X"), { duration: period / 4, easing: "steps(4)", iterations: Infinity });
+            frames.animate(step("X"), { duration: period / 4, easing: "steps(8)", iterations: Infinity });
             root.classList.add("preloader-live");
           }
           root.classList.add("preloader-arrive");

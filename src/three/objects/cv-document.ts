@@ -264,11 +264,15 @@ export const createCvDocument = (options: CvDocumentOptions): CvDocument => {
   let opacity = 1;
 
   const build = () => {
+    // forceSinglePass, here and on the print: three.js draws a transparent
+    // DoubleSide material twice, back then front, and re-selects its shader program
+    // for each pass, every frame, for a thin sheet nobody can see the inside of.
     const paperMaterial = new MeshMatcapMaterial({
       matcap: getMatcap("matte"),
       color: PAPER.getHex(),
       transparent: true,
       side: DoubleSide,
+      forceSinglePass: true,
     });
     cardMaterial = paperMaterial;
     materials.push(paperMaterial);
@@ -324,6 +328,7 @@ export const createCvDocument = (options: CvDocumentOptions): CvDocument => {
       transparent: true,
       toneMapped: false,
       side: DoubleSide,
+      forceSinglePass: true,
       depthWrite: true,
     });
     const printMesh = new Mesh(print, printMaterial);

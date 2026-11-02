@@ -8,9 +8,19 @@ import soundClick from "../../../assets/sounds/click.mp3";
 //import soundHover2 from "../../../assets/sounds/hover-2.mp3";
 //import soundHover3 from "../../../assets/sounds/hover-3.mp3";
 
+/**
+ * Built on first use, not at import. The first Howl creates Howler's
+ * AudioContext (twice on 48 kHz hardware: Howler._unlockAudio closes the first
+ * to fix its sample rate), and at import that landed inside the opening's walk:
+ * about 320 ms of main thread on a 4x-slowed phone profile, on phones, where
+ * sounds are off anyway. useHowler now builds them on the first gesture of a
+ * pointer device; touch devices never create a context at all.
+ */
+let click: Howl | undefined;
+
 export const sounds = {
   bird: { spriteKey: "room", name: "bird" },
-  click: { howl: new Howl({ src: [soundClick], loop: false, volume: 1, preload: false }) },
+  click: { get howl() { return (click ??= new Howl({ src: [soundClick], loop: false, volume: 1, preload: false })); } },
   gasp: { spriteKey: "contact", name: "gasp" },
   //hover0: { howl: new Howl({ src: [soundHover0], loop: false, volume: 0.05, preload: false }) },
   //hover1: { howl: new Howl({ src: [soundHover1], loop: false, volume: 0.05, preload: false }) },

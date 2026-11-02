@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import gsap from "gsap";
 import { ref, watch } from "vue";
 import { holdHome as holdHomeTriggers, releaseHome as releaseHomeTriggers } from "../../../composables/useHomeHold";
 import { projectId, recentProjectId } from "../../../composables/useRouteObserver";
@@ -30,7 +29,13 @@ import type { ProjectPreview } from "../../../content/types";
  * The page content itself rides on top (App.vue / Project.vue): it appears as
  * the sheet finishes opening and recedes before the sheet starts to close.
  *
- * Only `clip-path` and `opacity` are animated, nothing that triggers layout.
+ * Only `transform` and `opacity` are animated, as WAAPI animations, so the
+ * compositor plays all of it whatever the main thread is doing. It used to be a
+ * clip-path GSAP wrote every frame, and Chrome runs clip-path on the main thread
+ * (block it for 800 ms and those frames stop, a transform's do not): on a phone
+ * the fold's fastest 150 ms, also the page's busiest, came out in about three
+ * frames. A flat colour scaled to a rounded box is the same picture as a clip,
+ * and the artwork rides beside it rather than inside it.
  */
 
 const sheet = ref<HTMLDivElement | null>(null);
@@ -49,7 +54,6 @@ const setArt = (slug: string) => {
   return !!src;
 };
 
-let timeline: gsap.core.Timeline | null = null;
 let homeScroll: number | null = null;
 let loaded: ProjectPreview[] = [];
 
@@ -62,8 +66,10 @@ const loadPreviews = async () => {
 loadPreviews();
 watch(locale, loadPreviews);
 
+type Card = { rect: DOMRect; radius: number };
+
 /** The card's artwork rect, if that card is actually on screen right now. */
-const cardRect = (slug: string) => {
+const cardRect = (slug: string): Card | null => {
   const card = document.querySelector<HTMLElement>(`.preview-card[href="/project/${slug}"] .preview-card-image-wrapper`);
   if (!card) return null;
   const rect = card.getBoundingClientRect();
@@ -72,11 +78,89 @@ const cardRect = (slug: string) => {
   return { rect, radius: parseFloat(getComputedStyle(card).borderTopLeftRadius) || 16 };
 };
 
-const insetFor = (rect: DOMRect, radius: number, k = 1) => {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  const r = `${radius * k}px`;
-  return `inset(${rect.top * k}px ${(w - rect.right) * k}px ${(h - rect.bottom) * k}px ${rect.left * k}px round ${r} ${r} ${r} ${r})`;
+/** Where the card lands: measured with home's 0.97 step-back off, since the compositor cannot follow it live. */
+const settledCardRect = (slug: string) => {
+  const home = document.querySelector<HTMLElement>(".home-wrapper");
+  if (home) home.style.animation = "none";
+  const card = cardRect(slug);
+  if (home) home.style.animation = "";
+  return card;
+};
+
+/** Lays the sheet, a viewport-sized box with its origin at the corner, over a box. */
+const over = (left: number, top: number, width: number, height: number) =>
+  `translate(${left}px, ${top}px) scale(${width / window.innerWidth}, ${height / window.innerHeight})`;
+
+/**
+ * The corners scale with the sheet, so they are drawn at whatever lands on the
+ * card's own radius, and the open box overscans the screen by that much so they
+ * are off it when the sheet is full.
+ */
+const cardShape = ({ rect, radius }: Card) => {
+  const rx = (radius * window.innerWidth) / rect.width;
+  const ry = (radius * window.innerHeight) / rect.height;
+  return {
+    corners: `${rx}px / ${ry}px`,
+    closed: over(rect.left, rect.top, rect.width, rect.height),
+    open: over(-rx, -ry, window.innerWidth + 2 * rx, window.innerHeight + 2 * ry),
+  };
+};
+
+/** With no card to grow from: the bottom edge, its top corners overscanned the same way. */
+const belowShape = () => ({
+  corners: "48px 48px 0 0",
+  closed: over(0, window.innerHeight, window.innerWidth, window.innerHeight),
+  open: over(0, -48, window.innerWidth, window.innerHeight + 48),
+});
+
+// GSAP's expo.out and power curves, which this was tuned on.
+const EXPO_OUT = "cubic-bezier(0.16, 1, 0.3, 1)";
+const POWER1_OUT = "cubic-bezier(0.5, 1, 0.89, 1)";
+const POWER1_IN_OUT = "cubic-bezier(0.45, 0, 0.55, 1)";
+const POWER2_OUT = "cubic-bezier(0.33, 1, 0.68, 1)";
+const POWER3_OUT = "cubic-bezier(0.25, 1, 0.5, 1)";
+const POWER3_IN = "cubic-bezier(0.5, 0, 0.75, 0)";
+
+let running: Animation[] = [];
+
+const stop = () => {
+  running.forEach((animation) => animation.cancel());
+  running = [];
+};
+
+const play = (element: HTMLElement | null, keyframes: Keyframe[], duration: number, easing: string, delay = 0) => {
+  const animation = element?.animate(keyframes, { duration, easing, delay, fill: "both" });
+  if (animation) running.push(animation);
+};
+
+/** Hides everything once the last move lands, unless a newer transition has taken over. */
+const finish = () => {
+  const mine = running;
+  Promise.all(mine.map((animation) => animation.finished)).then(
+    () => {
+      if (mine !== running) return;
+      [sheet.value, blend.value, art.value].forEach((element) => element?.style.removeProperty("visibility"));
+      stop();
+    },
+    () => {},
+  );
+};
+
+const showSheet = (corners: string) => {
+  for (const element of [sheet.value, blend.value]) if (element) element.style.visibility = "visible";
+  if (sheet.value) sheet.value.style.borderRadius = corners;
+};
+
+const placeArt = ({ rect, radius }: Card) => {
+  if (!art.value) return;
+  Object.assign(art.value.style, {
+    top: `${rect.top}px`,
+    left: `${rect.left}px`,
+    width: `${rect.width}px`,
+    height: `${rect.height}px`,
+    borderRadius: `${radius}px`,
+    visibility: "visible",
+  });
 };
 
 /**
@@ -99,16 +183,8 @@ const insetFor = (rect: DOMRect, radius: number, k = 1) => {
 const holdHome = () => holdHomeTriggers(".project-wrapper");
 const releaseHome = releaseHomeTriggers;
 
-const FULL = "inset(0px 0px 0px 0px round 0px 0px 0px 0px)";
-const BELOW = "inset(100% 0px 0px 0px round 48px 48px 0px 0px)";
-
-const placeArt = (rect: DOMRect | null) => {
-  if (!art.value || !rect) return;
-  gsap.set(art.value, { top: rect.top, left: rect.left, width: rect.width, height: rect.height });
-};
-
 const enter = (slug: string) => {
-  timeline?.kill();
+  stop();
   holdHome();
   // window.scrollY, not lenis.scroll: the smoothed value is not settled at the
   // moment of a click. The page takes the scroll over when it becomes visible.
@@ -116,48 +192,39 @@ const enter = (slug: string) => {
 
   const origin = setArt(slug) ? cardRect(slug) : null;
 
-  const tl = gsap.timeline({
-    onComplete: () => {
-      gsap.set([sheet.value, blend.value], { visibility: "hidden" });
-    },
-  });
-  timeline = tl;
-
-  gsap.set(sheet.value, { visibility: "visible" });
-  gsap.set(blend.value, { visibility: "visible", opacity: 0 });
-
   if (reducedMotion()) {
-    gsap.set(sheet.value, { clipPath: FULL });
-    gsap.set(art.value, { opacity: 0 });
-    tl.to(blend.value, { opacity: 0.5, duration: 0.2 }, 0).to({}, { duration: 0.35 });
+    showSheet("0");
+    play(blend.value, [{ opacity: 0 }, { opacity: 0.5, offset: 0.36 }, { opacity: 0.5 }], 550, "linear");
+    finish();
     return;
   }
 
-  tl.to(blend.value, { opacity: 0.5, duration: 0.45, ease: "power2.out" }, 0);
+  play(blend.value, [{ opacity: 0 }, { opacity: 0.5 }], 450, POWER2_OUT);
 
   if (origin) {
-    placeArt(origin.rect);
-    gsap.set(art.value, { opacity: 1, scale: 1 });
-    gsap.set(sheet.value, { clipPath: insetFor(origin.rect, origin.radius) });
+    const shape = cardShape(origin);
+    showSheet(shape.corners);
+    placeArt(origin);
     // expo.out: half the distance is covered in the first ~100ms, so the click
     // is answered on the very next frames and the sheet still lands softly.
     // 0.5s: 99% open at 380ms, when the page mounts on top of it.
-    tl.to(sheet.value, { clipPath: FULL, duration: 0.5, ease: "expo.out" }, 0);
+    play(sheet.value, [{ transform: shape.closed }, { transform: shape.open }], 500, EXPO_OUT);
     // The artwork pushes in a little as it dissolves: the camera going through
     // the card, not the card being blown up into a cover.
-    tl.to(art.value, { scale: 1.12, duration: 0.5, ease: "expo.out" }, 0);
+    play(art.value, [{ transform: "scale(1)" }, { transform: "scale(1.12)" }], 500, EXPO_OUT);
     // Still fading as the page mounts at 380ms, so the artwork dissolves into
     // the page instead of leaving an empty sheet between the two.
-    tl.to(art.value, { opacity: 0, duration: 0.34, ease: "power1.inOut" }, 0.14);
+    play(art.value, [{ opacity: 1 }, { opacity: 0 }], 340, POWER1_IN_OUT, 140);
   } else {
-    gsap.set(art.value, { opacity: 0 });
-    gsap.set(sheet.value, { clipPath: BELOW });
-    tl.to(sheet.value, { clipPath: FULL, duration: 0.55, ease: "power3.out" }, 0);
+    const shape = belowShape();
+    showSheet(shape.corners);
+    play(sheet.value, [{ transform: shape.closed }, { transform: shape.open }], 550, POWER3_OUT);
   }
+  finish();
 };
 
 const exit = (slug: string) => {
-  timeline?.kill();
+  stop();
 
   // Home is back in flow by now (this watcher runs after the DOM update), so
   // put it back where the visitor left it before measuring the card. A deep
@@ -169,51 +236,37 @@ const exit = (slug: string) => {
   window.scrollTo(0, restore);
   releaseHome();
 
-  const target = setArt(slug) ? cardRect(slug) : null;
+  const target = setArt(slug) ? settledCardRect(slug) : null;
 
-  const tl = gsap.timeline({
-    onComplete: () => {
-      gsap.set([sheet.value, blend.value], { visibility: "hidden" });
-      gsap.set(art.value, { opacity: 0 });
-    },
-  });
-  timeline = tl;
-
-  // Covers the home page from the very first frame: the project content fades
-  // on top of a sheet of its own background colour, never over the grid.
-  gsap.set(sheet.value, { visibility: "visible", clipPath: FULL });
-  gsap.set(blend.value, { visibility: "visible", opacity: 0.5 });
-  gsap.set(art.value, { opacity: 0, scale: 1 });
-
+  // The sheet covers the home page from the very first frame: the project content
+  // fades on top of a sheet of its own background colour, never over the grid.
   if (reducedMotion()) {
-    tl.to([sheet.value, blend.value], { opacity: 0, duration: 0.25 }, 0.1).set(sheet.value, { opacity: 1 });
+    showSheet("0");
+    play(sheet.value, [{ opacity: 1 }, { opacity: 0 }], 250, POWER1_OUT, 100);
+    play(blend.value, [{ opacity: 0.5 }, { opacity: 0 }], 250, POWER1_OUT, 100);
+    finish();
     return;
   }
 
   // The content recedes over ~0.2s (Project.vue); the sheet starts folding
   // while it is still going, so there is no beat where nothing moves.
-  const at = 0.04;
-  tl.to(blend.value, { opacity: 0, duration: 0.55, ease: "power2.out" }, at);
+  const at = 40;
+  play(blend.value, [{ opacity: 0.5 }, { opacity: 0 }], 550, POWER2_OUT, at);
 
   if (target) {
-    // Tracked live rather than aimed at one measurement: home is still easing
-    // back from its 0.97 step-back while this runs, and the visitor may already
-    // be scrolling, so the card keeps moving until the sheet lands on it.
-    let last = target;
-    const fold = { k: 1 };
-    const follow = () => {
-      last = cardRect(slug) ?? last;
-      placeArt(last.rect);
-      gsap.set(sheet.value, { clipPath: insetFor(last.rect, last.radius, 1 - fold.k) });
-    };
-    placeArt(target.rect);
+    const shape = cardShape(target);
+    showSheet(shape.corners);
+    placeArt(target);
     // expo.out, the enter's own curve: most of the fold happens in the first
     // ~150ms, which is what reads as the page answering the Back button.
-    tl.to(fold, { k: 0, duration: 0.62, ease: "expo.out", onUpdate: follow }, at);
-    tl.to(art.value, { opacity: 1, duration: 0.24, ease: "power1.out" }, at + 0.1);
+    play(sheet.value, [{ transform: shape.open }, { transform: shape.closed }], 620, EXPO_OUT, at);
+    play(art.value, [{ opacity: 0 }, { opacity: 1 }], 240, POWER1_OUT, at + 100);
   } else {
-    tl.to(sheet.value, { clipPath: BELOW, duration: 0.5, ease: "power3.in" }, at);
+    const shape = belowShape();
+    showSheet(shape.corners);
+    play(sheet.value, [{ transform: shape.open }, { transform: shape.closed }], 500, POWER3_IN, at);
   }
+  finish();
 };
 
 watch(
@@ -243,9 +296,8 @@ watch(preloaderVisible, (visible) => {
     ref="sheet"
     :class="['project-background', typeof recentProjectId === 'string' && `project-${recentProjectId}`]"
     aria-hidden="true"
-  >
-    <img ref="art" class="project-background-art" alt="" />
-  </div>
+  ></div>
+  <img ref="art" class="project-background-art" alt="" />
 </template>
 
 <style scoped lang="scss">
@@ -260,17 +312,21 @@ watch(preloaderVisible, (visible) => {
   z-index: calc(var(--z-index-project-background) - 3);
   pointer-events: none;
   visibility: hidden;
-  clip-path: inset(100% 0px 0px 0px round 48px 48px 0px 0px);
-  will-change: clip-path;
+  transform-origin: 0 0;
+  will-change: transform;
 
-  /* The sheet is fixed at inset 0, so absolute here is viewport coordinates,
-     which is what `getBoundingClientRect` hands over. */
+  /* Fixed, so these are viewport coordinates, which is what
+     `getBoundingClientRect` hands over. Above the sheet, under the page. */
   &-art {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
+    z-index: calc(var(--z-index-project-background) - 2);
     object-fit: cover;
     opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    will-change: transform, opacity;
   }
 
   &-blend {
@@ -281,6 +337,7 @@ watch(preloaderVisible, (visible) => {
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
+    will-change: opacity;
   }
 }
 </style>

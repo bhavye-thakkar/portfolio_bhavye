@@ -176,6 +176,11 @@ export const usePreloader = () => {
       three.bootNow();
       preloaderLoaded.value = true;
       await firstFrame();
+      // And the rest of the room, a group a frame then the shader compile
+      // (three/objects): behind the still name, not under its flight. On the
+      // owner's phone those tasks took the flight's first ~0.3 s of frames.
+      // Capped: on a CPU renderer the compile alone can run for seconds.
+      await Promise.race([three.settled(), wait(1000)]);
     };
     const exit = async () => {
       document.body.classList.remove("is-loading");

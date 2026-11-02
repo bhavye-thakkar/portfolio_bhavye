@@ -15,6 +15,12 @@ const { content } = defineProps<{
 
 const animationKey = ref(0);
 
+// A phone or tablet cannot run a Windows installer (owner, 2026-11-01): no
+// download button and no requirements line there. iPadOS reports a Mac, so a
+// "Mac" with a touch screen counts as a tablet.
+const mobileOs =
+  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
 // Force animation restart when projectId changes
 watch(projectId, () => {
   animationKey.value++;
@@ -60,7 +66,7 @@ watch(projectId, () => {
       </a>
       <!-- With no website to open, the installer is the project's first action and
            takes the accent, as Live View does on a project that has one. -->
-      <a v-if="content.msi" :href="content.msi" download class="project-hero-button" data-cursor="arrow-external">
+      <a v-if="content.msi && !mobileOs" :href="content.msi" download class="project-hero-button" data-cursor="arrow-external">
         <Button
           renderAs="div"
           :variant="content.live ? 'border' : 'accent'"
@@ -83,7 +89,7 @@ watch(projectId, () => {
         }}</Button>
       </Link>
     </div>
-    <p v-if="content.note" class="project-hero-note">{{ content.note }}</p>
+    <p v-if="content.note && !mobileOs" class="project-hero-note">{{ content.note }}</p>
   </div>
 </template>
 

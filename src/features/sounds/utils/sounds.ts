@@ -2,7 +2,7 @@ import { sounds as items, pools } from "../definitions/sounds";
 import { sprites } from "../definitions/sprites";
 import { isFeatureEnabled } from "../../../utils/features";
 
-import type { Howl } from "howler";
+import { Howler, type Howl } from "howler";
 import type { SoundKey, PoolKey } from "../types";
 
 /**
@@ -34,7 +34,10 @@ const playPoolSound = (poolKey: PoolKey) => {
 };
 
 export const playSound = (key: SoundKey | PoolKey) => {
-  if (!isFeatureEnabled("sounds")) return;
+  // No context = before the first gesture, or a touch device. A play() then
+  // could only queue on an unloaded Howl, a new GainNode each time (the snore
+  // loop added one every 4 s on phones, forever), and was silent anyway.
+  if (!isFeatureEnabled("sounds") || !Howler.ctx) return;
 
   if (key in pools) {
     playPoolSound(key as PoolKey);

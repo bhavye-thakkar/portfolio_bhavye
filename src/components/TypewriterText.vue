@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import gsap from "gsap";
 
 const props = defineProps<{
@@ -27,6 +27,9 @@ const longest = computed(() => items.value.reduce((a, b) => (b.length > a.length
 const spoken = computed(() => items.value.join(", "));
 
 let timeline: gsap.core.Timeline | null = null;
+const root = ref<HTMLElement | null>(null);
+let onScreen = true;
+let observer: IntersectionObserver | null = null;
 
 const stop = () => {
   timeline?.kill();
@@ -45,7 +48,7 @@ watch(
       return;
     }
 
-    animating.value = true;
+    animating.value = onScreen;
     // The first title is on screen from the first paint, not typed in: a
     // banner that starts blank stays blank for as long as the page gets no
     // animation frames (a background tab, a stalled compositor), and a blank
@@ -54,7 +57,7 @@ watch(
     const first = items.value[0] ?? "";
     display.value = first;
 
-    const tl = gsap.timeline({ repeat: -1, delay: props.delay ?? 0 });
+    const tl = gsap.timeline({ repeat: -1, delay: props.delay ?? 0, paused: !onScreen });
     let at = HOLD;
 
     // only touch the ref when the character count actually changes, not every frame
@@ -85,11 +88,27 @@ watch(
   { immediate: true },
 );
 
-onBeforeUnmount(stop);
+// Below the hero it was all work for nobody: 5 to 11 text changes a second and the
+// caret's animation, each a style pass, a layout and a repaint, for the whole page.
+onMounted(() => {
+  if (!root.value || typeof IntersectionObserver === "undefined") return;
+  observer = new IntersectionObserver((entries) => {
+    onScreen = entries[entries.length - 1]?.isIntersecting ?? true;
+    if (!timeline) return;
+    timeline.paused(!onScreen);
+    animating.value = onScreen;
+  });
+  observer.observe(root.value);
+});
+
+onBeforeUnmount(() => {
+  stop();
+  observer?.disconnect();
+});
 </script>
 
 <template>
-  <div class="typewriter">
+  <div ref="root" class="typewriter">
     <!-- What is typed, and the box it is typed into, are drawn as generated
          content: on screen, but not page text. Crawlers and AI extractors read
          the titles once, from the line below, never a half-typed one. -->

@@ -16,8 +16,6 @@ import type { SoundKey } from "../types";
 export const howlerUnlocked = ref(false);
 export const soundsEnabled = ref(false);
 
-Howler.volume(0);
-
 export const useHowler = () => {
   const { isTouch } = useAgent();
   const enabledVolume = ref<number>(0);
@@ -62,7 +60,7 @@ export const useHowler = () => {
   };
 
   const handleVisibilityChange = () => {
-    Howler.mute(document.visibilityState === "hidden");
+    if (Howler.ctx) Howler.mute(document.visibilityState === "hidden");
   };
 
   const handleKeyPress = (event: KeyboardEvent) => {
@@ -89,13 +87,22 @@ export const useHowler = () => {
      * 0.9 MB of identical bytes on every single page load, measured as five
      * concurrent 145 KB requests for the same URL.
      */
+    Howler.volume(0); // creates the context, muted until the unlock fades it in
     const howls = new Set((Object.keys(sounds) as SoundKey[]).map(getSoundsHowl).filter(Boolean));
     for (const howl of howls) howl.load();
   };
 
+  // The first gesture, not boot (see definitions/sounds): nothing can play before one anyway.
+  const start = () => {
+    removeEventListener("pointerdown", start, true);
+    removeEventListener("keydown", start, true);
+    if (resources.isReady) loadAllSounds();
+    else resources.once("ready", loadAllSounds);
+  };
+
   onMounted(() => {
     if (!isFeatureEnabled("sounds")) return;
-    Howler.volume(0);
+    if (Howler.ctx) Howler.volume(0);
 
     if (howlerUnlocked.value) {
       soundsEnabled.value = localStorage.getItem("portfolio-soundsEnabled") === "true";
@@ -109,8 +116,8 @@ export const useHowler = () => {
       // After the 3D assets, not alongside them: audio cannot play before a
       // user gesture anyway, so it has no business competing with the models
       // and textures for bandwidth during boot.
-      if (resources.isReady) loadAllSounds();
-      else resources.once("ready", loadAllSounds);
+      addEventListener("pointerdown", start, true);
+      addEventListener("keydown", start, true);
     }
   });
 
@@ -119,6 +126,8 @@ export const useHowler = () => {
     gsap.ticker.remove(tick);
     window.removeEventListener("visibilitychange", handleVisibilityChange);
     window.removeEventListener("keydown", handleKeyPress);
+    removeEventListener("pointerdown", start, true);
+    removeEventListener("keydown", start, true);
     stopSnoreRepetition();
   });
 };

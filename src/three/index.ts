@@ -97,4 +97,4 @@ const destroy = () => {
   canvas = null;
 };
 
-export const three = { init, destroy, bootNow };
+export const three = { init, destroy, bootNow, settled: () => objects.deferred() };
