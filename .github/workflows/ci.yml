@@ -37,9 +37,8 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
-      - name: Build
+      # Ends in scripts/seo-check.mjs, the actual gate: every page in the sitemap
+      # is there with its own title, description, canonical, text and links.
+      # (Vercel runs this same script, and deploy.yml checks the live result.)
+      - name: Build and check every page
         run: npm run build
-
-      # A build that emits nothing still exits 0. This is the actual gate.
-      - name: Check the bundle exists
-        run: test -f dist/index.html && test -f dist/sitemap.xml && test -f dist/robots.txt && test -f dist/project/garbacircle.html && test -f dist/404.html

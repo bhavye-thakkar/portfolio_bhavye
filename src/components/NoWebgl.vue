@@ -27,7 +27,9 @@ const failed = computed(() => webglAvailable && sceneFailed.value);
 </script>
 
 <template>
-  <aside class="no-webgl" role="status">
+  <!-- data-nosnippet: Googlebot has no WebGL, so this was the first sentence it
+       read on every page, and it is not what a result should quote. -->
+  <aside class="no-webgl" role="status" data-nosnippet>
     <p class="no-webgl-title">{{ failed ? t("scene-failed-title") : t("no-webgl-title") }}</p>
     <p class="no-webgl-body">{{ failed ? t("scene-failed-body") : t("no-webgl-body") }}</p>
   </aside>

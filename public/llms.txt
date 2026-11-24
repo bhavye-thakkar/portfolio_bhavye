@@ -128,7 +128,7 @@ it lifts the page, and a prompt opens the readable copy.
 ## Profiles
 
 - [GitHub](https://github.com/bhavye-thakkar)
-- [LinkedIn](https://www.linkedin.com/in/bhavyethakkar/)
+- [LinkedIn](https://www.linkedin.com/in/bhavyethakkar)
 - [X](https://x.com/bhavye_thakkar)
 
 The canonical address of this portfolio is https://bhavye.vercel.app/;

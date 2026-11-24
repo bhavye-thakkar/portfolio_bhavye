@@ -37,12 +37,12 @@ export default {
   videoBorder: false,
   // ─── LINKS ──────────────────────────────────────────────────────────────
   // `live` is the website, `app` is a store page, `apk` the Android build to
-  // download. The Play Store page went live on 2026-10-21; the APK stays as the
-  // same file garbacircle.in serves (copied from that site's repo, 2026-09-22),
-  // hosted here under public/downloads so the button works without the other
-  // site, for a phone without Google services.
-  live: "https://garbacircle.in",
-  app: "https://play.google.com/store/apps/details?id=in.garbacircle.app",
+  // download. The Play Store page (id=in.garbacircle.app) went live on
+  // 2026-10-21 and answers 404 since at least 2026-11-24, so there is no `app`
+  // until it is back: the button led to "not found". The APK is the same file
+  // garbacircle.in serves (copied from that site's repo, 2026-09-22), hosted
+  // here under public/downloads so the button works without the other site.
+  live: "https://www.garbacircle.in/",
   apk: "/downloads/garba-circle.apk",
   description:
     "The search ends. The ultimate garba app.<br/><br/>From your city to the garba floor. Discover major garba grounds, build your team, compete, and earn your place as a Garba champion, all from one beautiful app.",

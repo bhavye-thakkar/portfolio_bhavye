@@ -36,46 +36,46 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://bhavye.vercel.app/</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
     <loc>https://bhavye.vercel.app/experience/notionmind</loc>
-    <lastmod>2026-09-13</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/experience/unispace</loc>
-    <lastmod>2026-09-13</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
 
   <url>
     <loc>https://bhavye.vercel.app/object/orchid</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/object/starry-night</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
 
   <url>
     <loc>https://bhavye.vercel.app/project/garbacircle</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/project/monday</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -83,187 +83,187 @@
   <!-- The library (src/content/library.ts): the archive and one page per book. -->
   <url>
     <loc>https://bhavye.vercel.app/library</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/meditations</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/how-to-get-rich</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/the-subtle-art-of-not-giving-a-fck</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/how-to-win-friends-and-influence-people</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/rich-dad-poor-dad</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/ikigai</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/the-alchemist</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/war-of-lanka</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/raavan-enemy-of-aryavarta</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/sita-warrior-of-mithila</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/the-psychology-of-money</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/atomic-habits</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/the-monk-who-sold-his-ferrari</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/do-epic-shit</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/the-immortals-of-meluha</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/the-secret</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/cant-hurt-me</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/the-hidden-hindu</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/the-daily-stoic</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/think-and-grow-rich</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/shoe-dog</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/white-nights</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/the-secret-of-the-nagas</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/the-oath-of-the-vayuputras</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/the-power-of-habit</loc>
-    <lastmod>2026-10-06</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/the-hidden-hindu-2</loc>
-    <lastmod>2026-10-12</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/the-hidden-hindu-3</loc>
-    <lastmod>2026-10-12</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/ram-scion-of-ikshvaku</loc>
-    <lastmod>2026-10-12</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/eat-that-frog</loc>
-    <lastmod>2026-10-12</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://bhavye.vercel.app/library/i-dont-love-you-anymore</loc>
-    <lastmod>2026-10-12</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>

@@ -1,0 +1,59 @@
+name: Live site
+
+# The deploy itself is Vercel's: it builds every push to main, and its build is
+# `npm run build`, which ends in scripts/seo-check.mjs, so a page that lost its
+# title or its text fails there and production keeps the previous version. This
+# is the half after it: once Vercel reports production is up, the live site is
+# checked page by page and the search engines that take a ping are told.
+on:
+  deployment_status:
+  # Mondays, 09:00 in India: links and mirrors rot without a deploy.
+  schedule:
+    - cron: "30 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check and announce
+    if: github.event_name != 'deployment_status' || (github.event.deployment_status.state == 'success' && startsWith(github.event.deployment.environment, 'Production'))
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      # Up to three tries: the domain can take a few seconds to point at the
+      # new deployment, and one dropped connection is not a broken site.
+      - name: Check every page of the live site
+        run: |
+          for try in 1 2 3; do
+            node scripts/seo-check.mjs https://bhavye.vercel.app && exit 0
+            sleep 30
+          done
+          exit 1
+
+      # IndexNow: Bing (and so Copilot and DuckDuckGo), Yandex, Seznam, Naver.
+      # Google does not take pings, it reads the sitemap's lastmod. The key is
+      # public by design (public/<key>.txt proves the host is ours).
+      - name: Announce the pages to IndexNow
+        if: github.event_name == 'deployment_status'
+        continue-on-error: true
+        run: |
+          node --input-type=module -e '
+            const host = "bhavye.vercel.app";
+            const sitemap = await (await fetch(`https://${host}/sitemap.xml`)).text();
+            const urlList = [...sitemap.matchAll(/<loc>([^<]+)/g)].map((match) => match[1]);
+            const response = await fetch("https://api.indexnow.org/indexnow", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ host, key: "a5f401fab57d5ec353669aa8835382ac", urlList }),
+            });
+            console.log(`IndexNow answered ${response.status} for ${urlList.length} pages`);
+            if (!response.ok) process.exit(1);
+          '

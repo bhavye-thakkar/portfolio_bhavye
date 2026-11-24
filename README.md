@@ -30,10 +30,11 @@ The third-party assets keep their own terms: the artwork in the room's wall fram
 | `npm install`       | Install dependencies                             |
 | `npm run dev`       | Dev server (port 3000, or 5199 via `.claude/launch.json`) |
 | `npm run typecheck` | `vue-tsc -b`, no emit                            |
-| `npm run build`     | Typecheck, then production bundle into `dist/`   |
+| `npm run build`     | Typecheck, production bundle into `dist/`, then the SEO check |
+| `node scripts/seo-check.mjs [origin]` | Checks every page of `dist/`, or of the live site |
 | `npm run preview`   | Serve the production build locally               |
 
-CI runs typecheck → build → asserts the bundle exists, on every push and PR (`.github/workflows/ci.yml`).
+CI runs typecheck → build → SEO check on every push and PR (`.github/workflows/ci.yml`). Vercel deploys every push to `main`; its build runs the same `npm run build`, so a failing page never reaches production. After each production deploy, and every Monday, `.github/workflows/deploy.yml` checks the live site (pages, security headers, links, the retired mirrors' 301s) and tells the IndexNow engines what is there.
 
 ---
 
@@ -70,16 +71,12 @@ src/three/
 
 ### SEO / discoverability
 
-- `index.html` — title, description, Open Graph, JSON-LD, and a `<noscript>` text version of the page for crawlers that do not run JavaScript.
+- `index.html` — title, description, Open Graph, JSON-LD, and a text version of the page inside `#app` (Vue replaces it on mount) for crawlers that do not run JavaScript.
 - `src/composables/useHead.ts` — per-route title, description and canonical.
 - `public/llms.txt` — machine-readable summary for AI assistants.
 - `public/sitemap.xml`, `public/robots.txt`, `public/_redirects`.
-- `public/a5f401fab57d5ec353669aa8835382ac.txt` — the IndexNow key. After a deploy, one request tells Bing (and so Microsoft Copilot), Yandex, Seznam and Naver which pages changed; Google does not use IndexNow, it reads the sitemap:
-
-  ```sh
-  curl -s -X POST https://api.indexnow.org/indexnow -H "Content-Type: application/json" -d '{"host":"bhavye.vercel.app","key":"a5f401fab57d5ec353669aa8835382ac","urlList":["https://bhavye.vercel.app/","https://bhavye.vercel.app/library"]}'
-  ```
-- `vercel.json` — one URL per page (see below) and a year of `immutable` caching for `/assets` and `/chunks`, whose file names are content hashes.
+- `public/a5f401fab57d5ec353669aa8835382ac.txt` — the IndexNow key. `.github/workflows/deploy.yml` tells Bing (and so Microsoft Copilot), Yandex, Seznam and Naver after each production deploy; Google does not use IndexNow, it reads the sitemap.
+- `vercel.json` — one URL per page (see below), the security headers (a new external script, font, image or API host has to be added to the Content-Security-Policy here), and a year of `immutable` caching for `/assets` and `/chunks`, whose file names are content hashes.
 - `scripts/swManifest.ts` — writes the build's file list into `dist/sw.js`, so each deploy installs a new service worker that clears out the files it replaced.
 
 ---

@@ -23,13 +23,13 @@
       engines read a name: the description, the share-card titles, and
       `alternateName` in the Person and WebSite schema below. It is one name
       transliterated two ways, not a keyword, so it appears once per tag (and
-      once in llms.txt). NOT in <title>: that is the browser tab, and the owner
+      once in llms.txt). NOT in the title tag: that is the browser tab, and the owner
       wants the tab to read "Bhavye" alone (2026-09-18).
     -->
     <title>Bhavye Thakkar - AI Researcher</title>
     <meta
       name="description"
-      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter apps and agentic coding."
+      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter and agentic coding."
     />
     <meta name="author" content="Bhavye Thakkar" />
     <!-- Index everything, follow everything, and put no limit on how much of
@@ -49,7 +49,7 @@
     <meta property="og:title" content="Bhavye Thakkar (Bhavya Thakkar) - AI Researcher" />
     <meta
       property="og:description"
-      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter apps and agentic coding."
+      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter and agentic coding."
     />
     <meta property="og:type" content="profile" />
     <meta property="og:url" content="https://bhavye.vercel.app/" />
@@ -70,7 +70,7 @@
     <meta name="twitter:title" content="Bhavye Thakkar (Bhavya Thakkar) - AI Researcher" />
     <meta
       name="twitter:description"
-      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter apps and agentic coding."
+      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter and agentic coding."
     />
     <meta name="twitter:image" content="https://bhavye.vercel.app/meta/og-image.jpg" />
 
@@ -100,10 +100,11 @@
             "@type": "Person",
             "@id": "https://bhavye.vercel.app/#person",
             "name": "Bhavye Thakkar",
-            "alternateName": "Bhavya Thakkar",
+            "alternateName": ["Bhavya Thakkar", "Bhavye", "Bhavya"],
             "givenName": "Bhavye",
             "familyName": "Thakkar",
             "url": "https://bhavye.vercel.app/",
+            "image": "https://bhavye.vercel.app/meta/og-image.jpg",
             "mainEntityOfPage": { "@id": "https://bhavye.vercel.app/#webpage" },
             "jobTitle": "AI Researcher",
             "description": "AI Researcher working in AI/ML, computer vision and data analytics with Python and TensorFlow, building mobile apps with Flutter, and coding with AI agents.",
@@ -116,7 +117,7 @@
             },
             "sameAs": [
               "https://github.com/bhavye-thakkar",
-              "https://www.linkedin.com/in/bhavyethakkar/",
+              "https://www.linkedin.com/in/bhavyethakkar",
               "https://x.com/bhavye_thakkar"
             ],
             "knowsLanguage": "en",
@@ -205,7 +206,7 @@
             "@id": "https://bhavye.vercel.app/#website",
             "url": "https://bhavye.vercel.app/",
             "name": "Bhavye Thakkar",
-            "alternateName": "Bhavya Thakkar",
+            "alternateName": ["Bhavya Thakkar", "bhavye.vercel.app"],
             "publisher": { "@id": "https://bhavye.vercel.app/#person" },
             "inLanguage": "en"
           }
@@ -556,7 +557,7 @@
         true,
       );
     </script>
-    <noscript><style>.preloader { display: none; }</style></noscript>
+    <noscript><style>.preloader { display: none; } .is-loading { position: static !important; height: auto !important; }</style></noscript>
   </head>
   <body class="is-loading">
     <svg style="display: none" viewBox="0 0 56 61" xmlns="http://www.w3.org/2000/svg">
@@ -567,6 +568,85 @@
         ></path>
       </defs>
     </svg>
+    <!-- Decorative: the page underneath carries the same name as its h1. -->
+    <div class="preloader" aria-hidden="true">
+      <div class="preloader-stage">
+        <div class="preloader-backdrop"></div>
+        <p class="preloader-name">Bhavye <br />Thakkar</p>
+        <div class="preloader-curtain">
+          <div class="preloader-nudge">
+            <div class="preloader-door"></div>
+            <div class="preloader-walker">
+              <div class="preloader-avatar">
+                <div class="preloader-sheet">
+                  <div class="preloader-sheet-rows">
+                    <img src="/src/assets/loader/walk.webp" alt="" width="3456" height="1920" fetchpriority="high" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="preloader-retry">Couldn't load. Tap to try again.</button>
+      </div>
+    </div>
+    <!--
+      ── SHUT AND PUSH, BEFORE THE APP EXISTS ──────────────────────────────
+      The door and his walk start here, not in the app bundle. Measured on a
+      cold load at 8x CPU over slow 4G (2026-10-29): the bundle ran at 4.7s,
+      his WebGL renderer, files and shader compiles came later still, so the
+      visitor saw a dark page for 5s, the door slide off by itself, and him
+      appear behind it off-screen. Here he needs one image, and both moves are
+      WAAPI transforms the compositor runs on its own, so the bundle's long
+      tasks can neither skip nor freeze him. usePreloader.ts takes over from
+      `window.__opening`, which resolves once the door is gone.
+    -->
+    <script>
+      (() => {
+        const root = document.querySelector(".preloader");
+        const curtain = root?.querySelector(".preloader-curtain");
+        const frames = root?.querySelector(".preloader-sheet img");
+        if (!curtain?.animate || !frames || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        /** the dark beat the reference opens on */
+        const DARK_MS = 500;
+        /** past this, a connection too slow for his frames gets the door opened without him */
+        const WAIT_MS = 6000;
+        /** the door crosses at 45% of the screen a second, clamped to keep his cadence (walk cycles a second) between a brisk walk and a hurry */
+        const DOOR_SHARE = 0.45;
+        const MIN_CADENCE = 1.4;
+        const MAX_CADENCE = 2.4;
+        /** px of door one walk cycle covers per px of his height, measured off the renderer the frames came from */
+        const STRIDE_PER_HEIGHT = 0.754;
+        const t0 = performance.now();
+        const wait = (ms) => new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
+        const decoded = frames.decode().then(() => true, () => false);
+        window.__opening = Promise.race([decoded, wait(WAIT_MS).then(() => false)]).then(async (withHim) => {
+          await wait(DARK_MS - (performance.now() - t0));
+          const box = root.querySelector(".preloader-walker").getBoundingClientRect();
+          const cycle = STRIDE_PER_HEIGHT * box.height;
+          const speed = Math.min(MAX_CADENCE * cycle, Math.max(MIN_CADENCE * cycle, DOOR_SHARE * innerWidth));
+          // the door across the screen, and him off the far edge behind it
+          const distance = innerWidth - box.left;
+          const duration = withHim ? (distance / speed) * 1000 : 900;
+          if (withHim) {
+            // one walk cycle per stride of door, so his feet cannot slide: the rows step every quarter cycle, the columns every thirty-second
+            const period = (cycle / speed) * 1000;
+            const step = (axis) => [{ transform: `translate${axis}(0)` }, { transform: `translate${axis}(-100%)` }];
+            frames.parentElement.animate(step("Y"), { duration: period, easing: "steps(4)", iterations: Infinity });
+            frames.animate(step("X"), { duration: period / 4, easing: "steps(8)", iterations: Infinity });
+            root.classList.add("preloader-live");
+          }
+          root.classList.add("preloader-arrive");
+          const door = curtain.animate(
+            [{ transform: "translateX(0)" }, { transform: withHim ? `translateX(${distance}px)` : "translateX(100%)" }],
+            { duration, easing: withHim ? "linear" : "cubic-bezier(0.76, 0, 0.24, 1)", fill: "both" },
+          );
+          // a timer beside the promise: a tab that gets no animation frames holds `finished` back
+          await Promise.race([door.finished.catch(() => {}), wait(duration + 200)]);
+          return withHim ? "walked" : "alone";
+        });
+      })();
+    </script>
     <!--
       ── THE CRAWLABLE COPY OF THIS PAGE ───────────────────────────────────
 
@@ -575,29 +655,32 @@
       links. Google runs JS and sees the real app, but the crawlers behind AI
       answers mostly do not, they were being handed a blank document.
 
-      IT LIVES IN A NOSCRIPT BLOCK ON PURPOSE. It was inside #app first, on the
-      theory that Vue clears that container before it mounts. It does, but
-      only once the bundle has run, and the stylesheet arrives with that same
-      bundle in dev, so every refresh painted this as an unstyled document
-      first. A parser never renders noscript content when scripting is on, so
-      there is nothing to flash and nothing to hide with CSS; a crawler that
-      does not execute JS still reads it straight out of the HTML source.
+      IT LIVES INSIDE #app, which Vue empties when it mounts. It was a noscript
+      block until 2026-11-24, when a Screaming Frog crawl counted 8 words on
+      every page (the loader's): most text extractors drop noscript. Nothing
+      flashes: the loader is ABOVE this in the document, so a page still
+      streaming in has the loader first, and its inline styles cover the screen
+      until after Vue has replaced this. Keep that order. (It was in here once
+      before, when the loader was styled by the bundle, and it did flash.)
 
       Two rules for editing it:
         · It must stay TRUE to what the rendered page says. This is a no-JS
           fallback, not a keyword box, text here that the real page does not
           back up is cloaking, and it is what gets a site penalised.
+          scripts/routePages.ts replaces this <main> on every other page.
         · Every fact below is in src/content/profile.ts (the Experience list
           in src/content/experience.ts). Change it there and mirror it here
           and in public/llms.txt. It lists exactly what the site renders: the
           HUD's skills, the Projects grid, the Experience section, the
           certificates. Nothing the site does not show goes in.
     -->
-    <div id="app"></div>
-    <noscript>
+    <div id="app">
     <main>
-      <h1>Bhavye Thakkar - AI Researcher</h1>
-      <p>AI/ML Engineer, Web Developer, App Developer and Agentic Coder.</p>
+      <h1>Bhavye Thakkar</h1>
+      <p>
+        Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India: AI/ML Engineer, Web
+        Developer, App Developer and Agentic Coder.
+      </p>
       <p>
         I craft digital products that merge creativity with technology. With hands-on experience in Flutter and
         AI/ML, I've built apps, explored data-driven solutions, and brought ideas to life at hackathons. What
@@ -700,92 +783,13 @@
       <ul>
         <li><a href="mailto:thakkarbhavye1425@gmail.com">thakkarbhavye1425@gmail.com</a></li>
         <li><a href="https://github.com/bhavye-thakkar">GitHub</a></li>
-        <li><a href="https://www.linkedin.com/in/bhavyethakkar/">LinkedIn</a></li>
+        <li><a href="https://www.linkedin.com/in/bhavyethakkar">LinkedIn</a></li>
         <li><a href="https://x.com/bhavye_thakkar">X</a></li>
       </ul>
 
       <p><a href="/llms.txt">Machine-readable summary of this portfolio</a></p>
     </main>
-    </noscript>
-    <!-- Decorative: the page underneath carries the same name as its h1. -->
-    <div class="preloader" aria-hidden="true">
-      <div class="preloader-stage">
-        <div class="preloader-backdrop"></div>
-        <p class="preloader-name">Bhavye <br />Thakkar</p>
-        <div class="preloader-curtain">
-          <div class="preloader-nudge">
-            <div class="preloader-door"></div>
-            <div class="preloader-walker">
-              <div class="preloader-avatar">
-                <div class="preloader-sheet">
-                  <div class="preloader-sheet-rows">
-                    <img src="/src/assets/loader/walk.webp" alt="" width="3456" height="1920" fetchpriority="high" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button type="button" class="preloader-retry">Couldn't load. Tap to try again.</button>
-      </div>
     </div>
-    <!--
-      ── SHUT AND PUSH, BEFORE THE APP EXISTS ──────────────────────────────
-      The door and his walk start here, not in the app bundle. Measured on a
-      cold load at 8x CPU over slow 4G (2026-10-29): the bundle ran at 4.7s,
-      his WebGL renderer, files and shader compiles came later still, so the
-      visitor saw a dark page for 5s, the door slide off by itself, and him
-      appear behind it off-screen. Here he needs one image, and both moves are
-      WAAPI transforms the compositor runs on its own, so the bundle's long
-      tasks can neither skip nor freeze him. usePreloader.ts takes over from
-      `window.__opening`, which resolves once the door is gone.
-    -->
-    <script>
-      (() => {
-        const root = document.querySelector(".preloader");
-        const curtain = root?.querySelector(".preloader-curtain");
-        const frames = root?.querySelector(".preloader-sheet img");
-        if (!curtain?.animate || !frames || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        /** the dark beat the reference opens on */
-        const DARK_MS = 500;
-        /** past this, a connection too slow for his frames gets the door opened without him */
-        const WAIT_MS = 6000;
-        /** the door crosses at 45% of the screen a second, clamped to keep his cadence (walk cycles a second) between a brisk walk and a hurry */
-        const DOOR_SHARE = 0.45;
-        const MIN_CADENCE = 1.4;
-        const MAX_CADENCE = 2.4;
-        /** px of door one walk cycle covers per px of his height, measured off the renderer the frames came from */
-        const STRIDE_PER_HEIGHT = 0.754;
-        const t0 = performance.now();
-        const wait = (ms) => new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
-        const decoded = frames.decode().then(() => true, () => false);
-        window.__opening = Promise.race([decoded, wait(WAIT_MS).then(() => false)]).then(async (withHim) => {
-          await wait(DARK_MS - (performance.now() - t0));
-          const box = root.querySelector(".preloader-walker").getBoundingClientRect();
-          const cycle = STRIDE_PER_HEIGHT * box.height;
-          const speed = Math.min(MAX_CADENCE * cycle, Math.max(MIN_CADENCE * cycle, DOOR_SHARE * innerWidth));
-          // the door across the screen, and him off the far edge behind it
-          const distance = innerWidth - box.left;
-          const duration = withHim ? (distance / speed) * 1000 : 900;
-          if (withHim) {
-            // one walk cycle per stride of door, so his feet cannot slide: the rows step every quarter cycle, the columns every thirty-second
-            const period = (cycle / speed) * 1000;
-            const step = (axis) => [{ transform: `translate${axis}(0)` }, { transform: `translate${axis}(-100%)` }];
-            frames.parentElement.animate(step("Y"), { duration: period, easing: "steps(4)", iterations: Infinity });
-            frames.animate(step("X"), { duration: period / 4, easing: "steps(8)", iterations: Infinity });
-            root.classList.add("preloader-live");
-          }
-          root.classList.add("preloader-arrive");
-          const door = curtain.animate(
-            [{ transform: "translateX(0)" }, { transform: withHim ? `translateX(${distance}px)` : "translateX(100%)" }],
-            { duration, easing: withHim ? "linear" : "cubic-bezier(0.76, 0, 0.24, 1)", fill: "both" },
-          );
-          // a timer beside the promise: a tab that gets no animation frames holds `finished` back
-          await Promise.race([door.finished.catch(() => {}), wait(duration + 200)]);
-          return withHim ? "walked" : "alone";
-        });
-      })();
-    </script>
     <!-- QA-SHIM temporary, remove before ship -->
     <script>
       if (location.search.includes("qa=1")) {

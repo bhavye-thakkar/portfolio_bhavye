@@ -17,6 +17,20 @@ import type { ProjectPreview } from "./types";
 
 export const SUFFIX = "Bhavye Thakkar";
 
+/**
+ * The first candidate a search result shows whole, else the last one cut at a
+ * word. Google cuts at a pixel width (561 and 985), about these many letters;
+ * scripts/seo-check.mjs fails the build past them.
+ */
+const fit = (max: number, ...candidates: string[]) => {
+  const whole = candidates.find((text) => text.length <= max);
+  if (whole) return whole;
+  const last = candidates[candidates.length - 1]!;
+  return `${last.slice(0, last.lastIndexOf(" ", max - 1)).replace(/[\s,;:.]+$/, "")}…`;
+};
+const TITLE = 59;
+const DESCRIPTION = 155;
+
 export type Crumb = { name: string; url: string };
 export type Meta = {
   title: string;
@@ -42,15 +56,21 @@ export const experienceMeta = (slug: string): Meta | null => {
   // The only other geographic assertion is the Person schema in index.html
   // (Ahmedabad, Gujarat, IN), the city he actually publishes as his base.
   const place = entry.location ? `, ${entry.location}` : "";
+  // The card's own summary sentence, the one line this entry already has for
+  // "what was this job", rather than a generic one about chapter counts that
+  // every entry shared word for word.
+  const summary = entry.statement || `How the role came about and what it turned into, in ${entry.story.length} chapters.`;
   const description = entry.placeholder
     ? `A chapter of ${SUFFIX}'s career journal that has not been filled in yet.`
-    : // The card's own summary sentence, the one line this entry already has
-      // for "what was this job", rather than a generic one about chapter
-      // counts that every entry shared word for word.
-      `${entry.role} at ${entry.company}${place}${entry.duration ? `, ${entry.duration}` : ""}. ${entry.statement || `How the role came about and what it turned into, in ${entry.story.length} chapters.`}`;
+    : fit(
+        DESCRIPTION,
+        `${entry.role} at ${entry.company}${place}${entry.duration ? `, ${entry.duration}` : ""}. ${summary}`,
+        `${entry.role} at ${entry.company}${place}. ${summary}`,
+        `${entry.role} at ${entry.company}. ${summary}`,
+      );
 
   return {
-    title: `${entry.company}, Experience | ${SUFFIX}`,
+    title: fit(TITLE, `${entry.role} at ${entry.company} | ${SUFFIX}`, `${entry.company}, Experience | ${SUFFIX}`),
     description,
     url: `${site}/experience/${slug}`,
     breadcrumb: [
@@ -106,7 +126,7 @@ const bookNode = (slug: string) => {
 
 export const libraryMeta = (): Meta => ({
   title: `Library, a personal reading archive | ${SUFFIX}`,
-  description: `${SUFFIX}'s personal library: ${books.length} books on one shelf in ${shelves.length} groups, from the Shiva Trilogy to Meditations and Atomic Habits, each with a page of its own.`,
+  description: `${SUFFIX}'s personal library: ${books.length} books on one shelf in ${shelves.length} groups, from the Shiva Trilogy to Meditations, each with its own page.`,
   url: `${site}/library`,
   breadcrumb: [
     { name: SUFFIX, url: `${site}/` },
@@ -128,13 +148,23 @@ export const libraryMeta = (): Meta => ({
 export const bookMeta = (slug: string): Meta | null => {
   const book = bookBySlug(slug);
   if (!book) return null;
-  // Short on purpose: it closes every one of thirty descriptions, so the book's
-  // own sentence should be most of what a result shows (the group is on the page).
-  const where = ` In ${SUFFIX}'s personal library.`;
-
+  // Whose shelf it is closes the description only where the book's own sentence
+  // leaves room for it (the group is on the page).
   return {
-    title: `${book.title}, ${book.author} | Library | ${SUFFIX}`,
-    description: `${book.description}${where}`,
+    title: fit(
+      TITLE,
+      `${book.title}, ${book.author} | Library | ${SUFFIX}`,
+      `${book.title}, ${book.author} | ${SUFFIX}`,
+      `${book.title} | Library | ${SUFFIX}`,
+      `${book.title} | ${SUFFIX}`,
+      `${book.title.split(":")[0]} | Library | ${SUFFIX}`,
+    ),
+    description: fit(
+      DESCRIPTION,
+      `${book.description} In ${SUFFIX}'s personal library.`,
+      `${book.description} ${SUFFIX}'s library.`,
+      book.description,
+    ),
     url: `${site}/library/${slug}`,
     breadcrumb: [
       { name: SUFFIX, url: `${site}/` },
@@ -156,8 +186,8 @@ export const bookMeta = (slug: string): Meta | null => {
  * (2026-10-30) asks for about 50-60 characters with the topic in the title.
  */
 export const projectMeta = (preview: ProjectPreview): Meta => ({
-  title: `${preview.title}, ${preview.description} | ${SUFFIX}`,
-  description: preview.summary ?? `${preview.title}: ${preview.description}. A project by ${SUFFIX}, ${profile.role}.`,
+  title: fit(TITLE, `${preview.title}, ${preview.description} | ${SUFFIX}`, `${preview.title} | ${SUFFIX}`),
+  description: fit(DESCRIPTION, preview.summary ?? `${preview.title}: ${preview.description}. A project by ${SUFFIX}, ${profile.role}.`),
   url: `${site}/project/${preview.slug}`,
   breadcrumb: [
     { name: SUFFIX, url: `${site}/` },

@@ -78,7 +78,7 @@ export const roomObjects: RoomObject[] = [
     ],
     hotspotLabel: "View why Bhavye chose the orchid",
     description:
-      "A blue orchid on the shelf of Bhavye Thakkar's interactive 3D portfolio, a Phalaenopsis grown petal by petal in Three.js, on rarity, patience, and what quietly stays.",
+      "A blue orchid on the shelf of Bhavye Thakkar's 3D portfolio, grown petal by petal in Three.js: on rarity, patience, and what quietly stays.",
     framing: { distance: 2.5, height: 0.15 },
   },
   {
@@ -100,7 +100,7 @@ export const roomObjects: RoomObject[] = [
     ],
     hotspotLabel: "View why Bhavye chose The Starry Night",
     description:
-      "Why Van Gogh's The Starry Night hangs in the 3D room of Bhavye Thakkar's Three.js portfolio, night, motion, and imagination made visible in an interactive art experience.",
+      "Why Van Gogh's The Starry Night hangs in the 3D room of Bhavye Thakkar's portfolio: night, motion, and imagination made visible.",
     framing: { distance: 3.1, height: 0.05 },
   },
   // The Timex used to be the third object here, lying on the hero desk with

@@ -18,8 +18,8 @@ export default [
     slug: "garbacircle",
     thumbnail: garbacircleArtwork,
     description: "Navratri & Garba app",
-    // Every claim is on the case study page: the Play Store link and the APK,
-    // the product copy, and the three tags.
+    // Every claim is on the case study page: the APK, the product copy, and
+    // the three tags.
     summary:
       "Garba Circle, an Android app for Navratri: discover garba grounds, build your team and compete. Built with Flutter, Node.js and PostgreSQL.",
   },
@@ -31,7 +31,7 @@ export default [
     share: "/meta/monday.jpg",
     // The case study's first paragraph and its tags, nothing beyond them.
     summary:
-      "Monday, a local-first AI assistant for Windows that works the PC it runs on from a notch at the top of the screen. Built with Python, Qt, FastAPI and SQLite.",
+      "Monday, a local-first AI assistant for Windows that works the PC from a notch at the top of the screen. Built with Python, Qt, FastAPI and SQLite.",
   },
   // placeholderPreview(3),
   // placeholderPreview(4),

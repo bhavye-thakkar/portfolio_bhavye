@@ -69,7 +69,7 @@ export const contact = {
 
 export const profiles = {
   github: "https://github.com/bhavye-thakkar",
-  linkedin: "https://www.linkedin.com/in/bhavyethakkar/",
+  linkedin: "https://www.linkedin.com/in/bhavyethakkar",
   /** The owner's own handle (supplied 2026-09-09); also in index.html's `sameAs` and llms.txt. */
   x: "https://x.com/bhavye_thakkar",
 } as const;

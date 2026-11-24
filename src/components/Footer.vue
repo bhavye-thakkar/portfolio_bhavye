@@ -45,11 +45,13 @@ const { withSocial = true } = defineProps<Props>();
         <!-- Both spellings of the name, in rendered text and not only in the
              head: search engines and answer engines rank what the page shows,
              and the owner is looked for as "Bhavya" as often as "Bhavye"
-             (2026-10-07). Kept to one quiet line beside the credit. -->
+             (2026-10-07). Kept to one quiet line beside the credit. The role
+             and the city are what tells this Bhavye Thakkar from the others
+             (2026-11-24). -->
         <div class="footer-left">
           <p class="footer-credits">
             © {{ new Date().getFullYear() }} Bhavye Thakkar
-            <span class="footer-credits-alt">· also spelled Bhavya Thakkar</span>
+            <span class="footer-credits-alt">· also spelled Bhavya Thakkar · AI Researcher in Ahmedabad, India</span>
           </p>
           <!-- The library's second door, for anyone who did not find the books
                on the shelf in the room: a line in the footer, not a pill in the

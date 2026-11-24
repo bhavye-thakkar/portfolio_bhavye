@@ -19,8 +19,9 @@ import type { Plugin } from "vite";
  * route, `dist/project/garbacircle.html` and so on, with:
  *   · that route's head, from src/content/routeMeta.ts, the same values
  *     useHead.ts applies in the browser;
- *   · a <noscript> body written from the content files the page renders, so
- *     every word is one the page shows, plus links to every other page;
+ *   · the text inside #app (index.html explains it) written from the content
+ *     files the page renders, so every word is one the page shows, plus links
+ *     to the other pages;
  *   · the home title and description on <html data-home-*>, which useHead
  *     needs for a visit that starts here and then navigates home.
  * The scripts are untouched: a browser boots the same app on the same route.
@@ -98,7 +99,13 @@ const component = ({ type, props }: Component): string => {
   }
 };
 
-const body = (route: Route) => {
+const bookLine = (book: Book) =>
+  `<li><a href="/library/${book.slug}">${escape(book.title)}</a>, ${escape(book.author)}, ${escape(book.year)}${
+    book.series ? ` (${escape(book.series.name)}, book ${book.series.volume}${book.series.of ? ` of ${book.series.of}` : ""})` : ""
+  }</li>`;
+
+/** `shelfMates`: the other books of a book's own group, which its page is opened over. */
+const body = (route: Route, shelfMates: Book[]) => {
   switch (route.kind) {
     case "experience": {
       const { entry } = route;
@@ -121,6 +128,7 @@ const body = (route: Route) => {
       return lines(
         `<h1>${escape(entry.title)}</h1>`,
         `<p>${escape(entry.eyebrow)}. ${escape(entry.subtitle)}</p>`,
+        `<h2>Why ${escape(entry.title)} is here</h2>`,
         `<p><strong>${escape(entry.statement)}</strong></p>`,
         paragraphs(entry.body),
         `<dl>${entry.facts.map((fact) => `<dt>${escape(fact.label)}</dt><dd>${escape(fact.value)}</dd>`).join("")}</dl>`,
@@ -128,15 +136,11 @@ const body = (route: Route) => {
     }
     case "library": {
       const bySlug = new Map(route.books.map((book) => [book.slug, book]));
-      const line = (book: Book) =>
-        `<li><a href="/library/${book.slug}">${escape(book.title)}</a>, ${escape(book.author)}, ${escape(book.year)}${
-          book.series ? ` (${escape(book.series.name)}, book ${book.series.volume}${book.series.of ? ` of ${book.series.of}` : ""})` : ""
-        }</li>`;
       return lines(
         `<h1>Library</h1>`,
         `<p>A personal reading archive: ${route.books.length} books on one shelf, in ${route.shelves.length} groups, each with a page of its own.</p>`,
         ...route.shelves.map((shelf) =>
-          lines(`<h2>${escape(shelf.title)}</h2>`, `<ul>${shelf.books.map((slug) => bySlug.get(slug)).filter((book): book is Book => !!book).map(line).join("")}</ul>`),
+          lines(`<h2>${escape(shelf.title)}</h2>`, `<ul>${shelf.books.map((slug) => bySlug.get(slug)).filter((book): book is Book => !!book).map(bookLine).join("")}</ul>`),
         ),
       );
     }
@@ -148,6 +152,8 @@ const body = (route: Route) => {
         `<p>${escape(book.description)}</p>`,
         `<p>About ${book.pages} pages.${shelf ? ` Group: ${escape(shelf.title)}, in <a href="/library">the library</a>.` : ""}</p>`,
         book.personalNote ? `<p>${escape(book.personalNote)}</p>` : undefined,
+        `<h2>On the shelf beside ${escape(book.title.split(":")[0]!)}</h2>`,
+        `<ul>${shelfMates.map(bookLine).join("")}</ul>`,
       );
     }
     case "project": {
@@ -201,7 +207,8 @@ export const routePages = (): Plugin => {
       // every built text file gets the real one.
       const origin = resolveOrigin();
       const site = origin;
-      const stamp = (text: string) => text.split(DEFAULT_ORIGIN).join(origin);
+      // The source comments go: they were over a quarter of every page's HTML.
+      const stamp = (text: string) => text.split(DEFAULT_ORIGIN).join(origin).replace(/[ \t]*<!--[\s\S]*?-->\r?\n?/g, "");
       for (const name of ["index.html", "sitemap.xml", "robots.txt", "llms.txt"]) {
         const file = path.join(outDir, name);
         if (fs.existsSync(file)) fs.writeFileSync(file, stamp(fs.readFileSync(file, "utf8")));
@@ -222,11 +229,20 @@ export const routePages = (): Plugin => {
       const graph = JSON.parse(graphMatch[1]!);
 
       const pathOf = (route: Route) => new URL(route.meta.url).pathname;
+      // The text inside #app (index.html says why it is there).
+      const BODY = /<div id="app">\s*<main>[\s\S]*?<\/main>\s*<\/div>/;
+      const main = (...parts: (string | false | undefined)[]) => `<div id="app">\n    <main>\n${lines(...parts)}\n    </main>\n    </div>`;
       const linkTo = (route: Route) => `<li><a href="${pathOf(route)}">${escape(route.meta.title.split(" | ")[0]!)}</a></li>`;
 
       for (const route of routes) {
         const { title, description, url, breadcrumb } = route.meta;
-        const others = routes.filter((other) => other !== route);
+        // A book links to its own shelf, and every book is one link from
+        // /library. (All 37 links on all 38 pages made the books near-copies.)
+        const others = routes.filter((other) => other !== route && other.kind !== "book");
+        const shelfMates =
+          route.kind === "book"
+            ? routes.flatMap((other) => (other !== route && other.kind === "book" && other.shelf?.title === route.shelf?.title ? [other.book] : []))
+            : [];
 
         // The home page's ProfilePage node describes the home URL; here the
         // page is a WebPage of its own, still about the same Person.
@@ -278,19 +294,14 @@ export const routePages = (): Plugin => {
         if (route.meta.jsonLd) {
           html = replace(html, /<\/head>/, `    <script type="application/ld+json" id="route-jsonld">${json(route.meta.jsonLd)}</script>\n  </head>`);
         }
-        // The BODY fallback (<noscript><main>), not the head's first <noscript>,
-        // which is the <style> that hides the preloader without JS. Matching
-        // the first one put the route text inside <head> and left the home
-        // page's whole fallback, h1 included, on every deep page.
+        // A <nav>, not an <h2>: the same heading on every page says nothing about any of them.
         html = replace(
           html,
-          /<noscript>\s*<main>[\s\S]*?<\/noscript>/,
-          `<noscript>\n    <main>\n${lines(
-            `<p><a href="/">Bhavye Thakkar</a></p>`,
-            body(route),
-            `<h2>More from this portfolio</h2>`,
-            `<ul><li><a href="/">Bhavye Thakkar, home</a></li>${others.map(linkTo).join("")}</ul>`,
-          )}\n    </main>\n    </noscript>`,
+          BODY,
+          main(
+            body(route, shelfMates),
+            `<nav aria-label="More from this portfolio"><ul><li><a href="/">Bhavye Thakkar, AI Researcher</a></li>${others.map(linkTo).join("")}</ul></nav>`,
+          ),
         );
 
         const file = path.join(outDir, `${pathOf(route)}.html`);
@@ -308,6 +319,7 @@ export const routePages = (): Plugin => {
       notFound = replace(notFound, /<title>[^<]*<\/title>/, "<title>Page not found, Bhavye Thakkar</title>");
       notFound = replace(notFound, metaTag("name", "robots"), '<meta name="robots" content="noindex, follow" />');
       notFound = replace(notFound, /\s*<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/, "");
+      notFound = replace(notFound, BODY, main("<h1>Page not found</h1>", `<p><a href="/">Bhavye Thakkar, home</a></p>`));
       fs.writeFileSync(path.join(outDir, "404.html"), stamp(notFound));
       this.info?.(`wrote ${routes.length} route pages and 404.html for ${origin}`);
     },
