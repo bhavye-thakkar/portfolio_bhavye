@@ -109,9 +109,12 @@ for (const loc of locs) {
     else if (href.startsWith("http")) external.set(href, pathname);
   }
 
-  // the names the site is looked for by
+  // the names the site is looked for by, in the text of every page (owner, 2026-11-26: "visible on all pages")
   if (!html.includes("Bhavye Thakkar")) fail(pathname, 'does not say "Bhavye Thakkar"');
-  if (pathname === "/" && !body.includes("Bhavya Thakkar")) fail(pathname, 'does not say "Bhavya Thakkar"');
+  if (!body.includes("Bhavya Thakkar") || !/portfolio/i.test(body)) fail(pathname, 'its text does not say "Bhavya Thakkar" and "portfolio"');
+  // the organisations he is looked for by (owner, 2026-11-26), named on home; and one he asked never to be named
+  for (const name of ["Unispace", "NotionMind", "Shree Swaminarayan Institute of Technology", "SSIT"]) if (pathname === "/" && !body.includes(name)) fail(pathname, `its text does not name ${name}`);
+  if (/brainy\s*beam/i.test(html)) fail(pathname, "mentions Brainy Beam, which the owner asked to keep off the site");
 }
 
 if (!live && !/noindex/.test((await read("/404.html")) ?? "")) fail("/404.html", "missing, or not noindex");
@@ -126,11 +129,18 @@ if (live) {
     const status = await get(href).then((response) => response.status, (error) => error.cause?.code ?? error.name);
     if ([404, 410, "ENOTFOUND"].includes(status)) fail(from, `${status}: ${href}`);
   }
-  // no redirect (owner, 2026-11-26): each copy answers 200 itself and names this origin as the original
+  // no redirect (owner, 2026-11-26): each copy answers 200 itself, names this origin as the original,
+  // and is served like it (netlify.toml repeats vercel.json's headers)
+  const csp = (await get(`${live}/`)).headers.get("content-security-policy");
   for (const mirror of MIRRORS) {
     const response = await get(mirror);
-    const canonical = (await response.text()).match(/<link rel="canonical" href="([^"]*)"/)?.[1];
+    const html = await response.text();
+    const canonical = html.match(/<link rel="canonical" href="([^"]*)"/)?.[1];
     if (response.status !== 200 || canonical !== `${live}/`) fail(mirror, `${response.status} with canonical ${canonical}, not a 200 naming ${live}/`);
+    for (const header of HEADERS) if (!response.headers.get(header)) fail(mirror, `no ${header} header`);
+    if (response.headers.get("content-security-policy") !== csp) fail(mirror, "a different Content-Security-Policy from vercel.json's");
+    const script = html.match(/src="(\/chunks\/[^"]+\.js)"/)?.[1];
+    if (script && !/immutable/.test((await get(new URL(script, mirror), { method: "HEAD" })).headers.get("cache-control") ?? "")) fail(mirror, `${script} is not cached as immutable`);
   }
   // the one renamed page (Monday took slot 02)
   for (const { source, destination } of JSON.parse(fs.readFileSync(path.resolve(DIST, "../vercel.json"), "utf8")).redirects) {

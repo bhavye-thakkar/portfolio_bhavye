@@ -79,6 +79,13 @@ const json = (value: unknown) => JSON.stringify(value, null, 2).replace(/</g, "\
 const lines = (...parts: (string | false | undefined)[]) => parts.filter(Boolean).join("\n");
 const paragraphs = (texts: string[]) => lines(...texts.map((text) => `<p>${escape(text)}</p>`));
 
+/**
+ * Footer.vue's credit line, in every route page's text as well: both spellings
+ * and "portfolio", for a search result to quote whichever name is looked for
+ * (owner, 2026-11-26: "visible on all pages"). Keep the two in step.
+ */
+const CREDIT = "Bhavye Thakkar · also spelled Bhavya Thakkar · the portfolio of an AI Researcher in Ahmedabad, India · BE, SSIT Gandhinagar";
+
 // `text`, `items` and project `description` are authored HTML (<br/>, <strong>)
 // and go in as written; every other field is plain text and is escaped.
 const component = ({ type, props }: Component): string => {
@@ -293,6 +300,8 @@ export const routePages = (): Plugin => {
           BODY,
           main(
             body(route, shelfMates),
+            // a <p>, not a <footer>: text extractors drop footers
+            `<p>${CREDIT}</p>`,
             `<nav aria-label="More from this portfolio"><ul><li><a href="/">Bhavye Thakkar, AI Researcher</a></li>${others.map(linkTo).join("")}</ul></nav>`,
           ),
         );

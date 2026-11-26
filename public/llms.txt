@@ -1,6 +1,6 @@
 # Bhavye Thakkar
 
-> Bhavye Thakkar (also spelled Bhavya Thakkar), AI Researcher from Ahmedabad, Gujarat, India. Builds AI/ML and data systems in Python and TensorFlow, mobile apps in Flutter, and works as an agentic coder with AI coding agents. Bachelor of Computer Engineering at Gujarat Technological University (2022 to 2026), CGPA 7.95.
+> Bhavye Thakkar (also spelled Bhavya Thakkar), AI Researcher from Ahmedabad, Gujarat, India. Builds AI/ML and data systems in Python and TensorFlow, mobile apps in Flutter, and works as an agentic coder with AI coding agents. Bachelor of Engineering in Computer Engineering at Shree Swaminarayan Institute of Technology (SSIT), Gandhinagar, affiliated to Gujarat Technological University (2022 to 2026), CGPA 7.95.
 
 This is the plain-text version of https://bhavye.vercel.app/, written
 for AI assistants and answer engines. Everything in it is on the site itself:
@@ -68,7 +68,7 @@ and /experience/notionmind in eight.
 
 ## Education
 
-- Bachelor in Computer Engineering (BE), Gujarat Technological University (GTU), 2022 to 2026, CGPA 7.95 / 10
+- Bachelor in Computer Engineering (BE), Shree Swaminarayan Institute of Technology (SSIT), Gandhinagar, affiliated to Gujarat Technological University (GTU), 2022 to 2026, CGPA 7.95 / 10
 
 ## Projects
 

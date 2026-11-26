@@ -26,13 +26,20 @@
  *
  * ── HOW THE STORIES ARE WRITTEN ───────────────────────────────────────────
  *
- * Formal first person, plain sentences, the owner's facts and nothing else
- * (owner, 2026-09-11: "formal yet SEO and GEO friendly", "human made"). In
- * practice: name the technology, the number and the date instead of gesturing
- * at them, because a search or answer engine lifts one sentence out of the
- * page and it has to stay true on its own; say each thing once; no em or en
- * dashes, no staged reveals ("It worked. That turned out to be..."), no
- * questions to the reader. Labels are sentence case in source and uppercased
+ * The owner's facts and nothing else, in both. NotionMind's story is formal
+ * first person in plain sentences (owner, 2026-09-11: "formal yet SEO and GEO
+ * friendly", "human made"): name the technology, the number and the date
+ * instead of gesturing at them, because a search or answer engine lifts one
+ * sentence out of the page and it has to stay true on its own; say each thing
+ * once; no staged reveals ("It worked. That turned out to be..."), no
+ * questions to the reader.
+ *
+ * Unispace's is told in the voice of hitheredevs.com (owner, 2026-11-26: "use
+ * his way of styling" for the company intro): a hook for each headline, short
+ * candid sentences, plain headings ("What I actually do"), contractions
+ * allowed. Only the voice moved: every line is still one the owner gave.
+ *
+ * Both: no em or en dashes. Labels are sentence case in source and uppercased
  * in CSS, except project names, which are proper nouns.
  */
 
@@ -136,7 +143,7 @@ export const experiences: ExperienceEntry[] = [
     type: "Full-time",
     location: "Ahmedabad, India",
     duration: "",
-    statement: "I do AI research and build software, and this work is my passion.",
+    statement: "Research and engineering in one job: I study AI and build software in Python, across several projects.",
     /**
      * Five chapters. The first three are the same questions NotionMind's
      * story answers, on the same poses, so the avatar's interview beats match
@@ -150,44 +157,39 @@ export const experiences: ExperienceEntry[] = [
     story: [
       {
         key: "discovery",
-        label: "Hiring process",
-        headline: "The interview process at Unispace had two rounds and no assignment.",
-        body: ["The first was a technical round with the team, and the second was a final round with the CEO."],
+        label: "Where it started",
+        headline: "Two rounds, no assignment. That was the whole way into Unispace.",
+        body: ["A technical round with the team came first, then a final round with the CEO."],
       },
       {
         key: "interview",
-        label: "Technical round",
-        headline: "In the technical round, the team looked at the reasoning behind my work.",
+        label: "What they actually asked",
+        headline: "The team went through my projects and kept asking one thing: why.",
         body: [
-          "They asked about my Python knowledge and the projects I had already built, and most of the questions were about why I had made the decisions I did. The emphasis was on understanding the concepts behind the code.",
+          "Python came up, and so did the projects I had already built. But most of the questions were about the reasoning behind each decision, not the syntax. They wanted the concepts under the code.",
         ],
       },
       {
         key: "hired",
-        label: "CEO round and offer",
-        headline: "The final round with the CEO focused on my goals and whether I could take on the role.",
-        body: [
-          "It was less technical than the first round and more of a conversation.",
-          "The offer was a full-time position as an AI Researcher, and I joined the company directly as an employee.",
-        ],
+        label: "The CEO round",
+        headline: "Less of a test, more of a conversation: my goals, and whether I could carry the role.",
+        body: ["It ended with a full-time offer as an AI Researcher. No internship first: I joined directly as an employee."],
       },
       {
         key: "projectOne",
-        label: "Role and tech stack",
-        headline: "I work across different projects, and the job mixes AI research with software engineering in Python.",
+        label: "What I actually do",
+        headline: "Research on one side, Python engineering on the other, across several projects.",
         body: [
-          "On the engineering side, I develop and maintain scripts and applications in core Python, with an emphasis on clean, readable and efficient code. The work includes real-world data processing, such as file operations, string processing and exception handling.",
-          "I write unit tests and validation scripts to keep the code correct and reliable, and I work with team members to design and implement core features using object-oriented programming principles.",
+          "On the engineering side, I write and maintain scripts and applications in core Python, and I keep them clean, readable and efficient. The work includes real-world data processing: file operations, string processing and the exception handling that comes with both.",
+          "Unit tests and validation scripts keep the code honest, and I design and build core features with the team on object-oriented principles.",
         ],
         meta: "Python, unit testing, data processing",
       },
       {
         key: "experience",
-        label: "Why I love this work",
-        headline: "Research and building software are my passion, and this role lets me do both.",
-        body: [
-          "I love this work. Moving between the research and the code is exactly what I want to be doing, and I get to do it every day.",
-        ],
+        label: "Why this work",
+        headline: "Research and building software are my passion, and this job is both, every day.",
+        body: ["Going from the research to the code and back again is exactly the work I want to be doing."],
       },
     ],
   },

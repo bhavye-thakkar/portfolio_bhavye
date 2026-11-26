@@ -14,3 +14,25 @@
 
 [build.environment]
   SITE_ORIGIN = "https://bhavye.vercel.app"
+
+# Served like the original now that these copies serve pages: vercel.json's
+# headers word for word (seo-check's live mode fails if the CSP drifts). The
+# hashed files (/assets, /chunks) never change, so a browser keeps them a year
+# instead of asking again on every visit (Netlify's default is max-age=0).
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/chunks/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

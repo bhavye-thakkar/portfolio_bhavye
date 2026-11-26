@@ -93,9 +93,13 @@
           this list until the owner supplied the real one.
         · `hasCredential` is the five real certificates, each with the URL the
           card links to.
-        · There is deliberately no `worksFor` and no `alumniOf`. The
-          Experience section owns employment history and none of it is
-          asserted here.
+        · `worksFor` is Unispace and `alumniOf` is the BE (Shree Swaminarayan
+          Institute of Technology, SSIT, under GTU) and the NotionMind
+          internship, so a search for any of those names can find the person
+          they belong to (owner, 2026-11-26; SSIT confirmed as his BE college
+          that day). The Experience section still owns the details.
+        · Brainy Beam is never mentioned anywhere on this site (owner,
+          2026-11-26); scripts/seo-check.mjs fails the build if it appears.
     -->
     <script type="application/ld+json">
       {
@@ -112,6 +116,26 @@
             "image": "https://bhavye.vercel.app/meta/og-image.jpg",
             "mainEntityOfPage": { "@id": "https://bhavye.vercel.app/#webpage" },
             "jobTitle": "AI Researcher",
+            "worksFor": {
+              "@type": "Organization",
+              "name": "Unispace",
+              "address": { "@type": "PostalAddress", "addressLocality": "Ahmedabad", "addressRegion": "Gujarat", "addressCountry": "IN" }
+            },
+            "alumniOf": [
+              {
+                "@type": "CollegeOrUniversity",
+                "name": "Shree Swaminarayan Institute of Technology",
+                "alternateName": ["SSIT", "SSIT Gandhinagar", "Sri Swaminarayan Institute of Technology"],
+                "url": "https://ssit.co.in/",
+                "address": { "@type": "PostalAddress", "addressLocality": "Gandhinagar", "addressRegion": "Gujarat", "addressCountry": "IN" }
+              },
+              { "@type": "CollegeOrUniversity", "name": "Gujarat Technological University", "alternateName": "GTU" },
+              {
+                "@type": "Organization",
+                "name": "NotionMind",
+                "address": { "@type": "PostalAddress", "addressLocality": "Ahmedabad", "addressRegion": "Gujarat", "addressCountry": "IN" }
+              }
+            ],
             "description": "AI Researcher working in AI/ML, computer vision and data analytics with Python and TensorFlow, building mobile apps with Flutter, and coding with AI agents.",
             "email": "mailto:thakkarbhavye1425@gmail.com",
             "address": {
@@ -728,6 +752,14 @@
         <li>
           <a href="/experience/notionmind">NotionMind</a>: Software Developer Intern, Ahmedabad, India, October
           2025 to March 2026
+        </li>
+      </ul>
+
+      <h2>Education</h2>
+      <ul>
+        <li>
+          Bachelor of Engineering (BE) in Computer Engineering, Shree Swaminarayan Institute of Technology (SSIT),
+          Gandhinagar, affiliated to Gujarat Technological University (GTU), 2022 to 2026
         </li>
       </ul>
 

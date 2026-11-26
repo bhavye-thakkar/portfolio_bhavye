@@ -34,7 +34,7 @@ The third-party assets keep their own terms: the artwork in the room's wall fram
 | `node scripts/seo-check.mjs [origin]` | Checks every page of `dist/`, or of the live site |
 | `npm run preview`   | Serve the production build locally               |
 
-CI runs typecheck → build → SEO check on every push and PR (`.github/workflows/ci.yml`). Vercel deploys every push to `main`; its build runs the same `npm run build`, so a failing page never reaches production. After each production deploy, and every Monday, `.github/workflows/deploy.yml` checks the live site (pages, security headers, links, the Netlify copies' canonicals) and tells the IndexNow engines what is there.
+CI runs typecheck → build → SEO check on every push and PR (`.github/workflows/ci.yml`). Vercel deploys every push to `main`; its build runs the same `npm run build`, so a failing page never reaches production. After each production deploy, and every Monday, `.github/workflows/deploy.yml` checks the live site (pages, security headers, links, the Netlify copies' canonicals and headers) and tells the IndexNow engines what is there.
 
 ---
 

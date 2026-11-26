@@ -48,11 +48,13 @@ const { withSocial = true } = defineProps<Props>();
              (2026-10-07). Kept to one quiet line beside the credit. The role
              and the city are what tells this Bhavye Thakkar from the others
              (2026-11-24). "Portfolio" is the word people add to the name
-             when they look for the site (2026-11-26). -->
+             when they look for the site (2026-11-26). So is SSIT, his BE
+             college (owner, 2026-11-26). scripts/routePages.ts repeats this
+             line in every page's text (CREDIT): keep the two in step. -->
         <div class="footer-left">
           <p class="footer-credits">
             © {{ new Date().getFullYear() }} Bhavye Thakkar
-            <span class="footer-credits-alt">· also spelled Bhavya Thakkar · the portfolio of an AI Researcher in Ahmedabad, India</span>
+            <span class="footer-credits-alt">· also spelled Bhavya Thakkar · the portfolio of an AI Researcher in Ahmedabad, India · BE, SSIT Gandhinagar</span>
           </p>
           <!-- The library's second door, for anyone who did not find the books
                on the shelf in the room: a line in the footer, not a pill in the
