@@ -25,11 +25,16 @@
       transliterated two ways, not a keyword, so it appears once per tag (and
       once in llms.txt). NOT in the title tag: that is the browser tab, and the owner
       wants the tab to read "Bhavye" alone (2026-09-18).
+
+      "Portfolio" is in the title, the description and the share titles since
+      2026-11-26: Google India ranked the OLD site #1 for "bhavye thakkar
+      portfolio" on a title with that word, and "bhavye portfolio" / "portfolio
+      bhavya" went to other people's pages titled "... Portfolio".
     -->
-    <title>Bhavye Thakkar - AI Researcher</title>
+    <title>Bhavye Thakkar - AI Researcher Portfolio</title>
     <meta
       name="description"
-      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter and agentic coding."
+      content="Portfolio of Bhavye Thakkar (Bhavya Thakkar), AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter and agentic coding."
     />
     <meta name="author" content="Bhavye Thakkar" />
     <!-- Index everything, follow everything, and put no limit on how much of
@@ -46,10 +51,10 @@
     -->
     <meta name="google-site-verification" content="ftyrrWQdem0RDC_u3KxgDZjlHom6hLwjGkLxm0YmwdM" />
 
-    <meta property="og:title" content="Bhavye Thakkar (Bhavya Thakkar) - AI Researcher" />
+    <meta property="og:title" content="Bhavye Thakkar (Bhavya Thakkar) - AI Researcher Portfolio" />
     <meta
       property="og:description"
-      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter and agentic coding."
+      content="Portfolio of Bhavye Thakkar (Bhavya Thakkar), AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter and agentic coding."
     />
     <meta property="og:type" content="profile" />
     <meta property="og:url" content="https://bhavye.vercel.app/" />
@@ -67,10 +72,10 @@
     <meta property="profile:last_name" content="Thakkar" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Bhavye Thakkar (Bhavya Thakkar) - AI Researcher" />
+    <meta name="twitter:title" content="Bhavye Thakkar (Bhavya Thakkar) - AI Researcher Portfolio" />
     <meta
       name="twitter:description"
-      content="Bhavye Thakkar, also spelled Bhavya Thakkar, is an AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter and agentic coding."
+      content="Portfolio of Bhavye Thakkar (Bhavya Thakkar), AI Researcher in Ahmedabad, India: AI/ML, computer vision, data analytics, Flutter and agentic coding."
     />
     <meta name="twitter:image" content="https://bhavye.vercel.app/meta/og-image.jpg" />
 
@@ -195,7 +200,7 @@
             "@type": "ProfilePage",
             "@id": "https://bhavye.vercel.app/#webpage",
             "url": "https://bhavye.vercel.app/",
-            "name": "Bhavye Thakkar - AI Researcher",
+            "name": "Bhavye Thakkar - AI Researcher Portfolio",
             "isPartOf": { "@id": "https://bhavye.vercel.app/#website" },
             "about": { "@id": "https://bhavye.vercel.app/#person" },
             "mainEntity": { "@id": "https://bhavye.vercel.app/#person" },
@@ -206,7 +211,7 @@
             "@id": "https://bhavye.vercel.app/#website",
             "url": "https://bhavye.vercel.app/",
             "name": "Bhavye Thakkar",
-            "alternateName": ["Bhavya Thakkar", "bhavye.vercel.app"],
+            "alternateName": ["Bhavya Thakkar", "Bhavye Thakkar Portfolio", "Bhavya Thakkar Portfolio", "bhavye.vercel.app"],
             "publisher": { "@id": "https://bhavye.vercel.app/#person" },
             "inLanguage": "en"
           }
@@ -623,6 +628,8 @@
         window.__opening = Promise.race([decoded, wait(WAIT_MS).then(() => false)]).then(async (withHim) => {
           await wait(DARK_MS - (performance.now() - t0));
           const box = root.querySelector(".preloader-walker").getBoundingClientRect();
+          // a window with no size yet (a hidden pane, a minimised window): he measures 0, his pace is 0/0, and animate() throws on it
+          withHim = withHim && box.height > 0;
           const cycle = STRIDE_PER_HEIGHT * box.height;
           const speed = Math.min(MAX_CADENCE * cycle, Math.max(MIN_CADENCE * cycle, DOOR_SHARE * innerWidth));
           // the door across the screen, and him off the far edge behind it
@@ -644,7 +651,8 @@
           // a timer beside the promise: a tab that gets no animation frames holds `finished` back
           await Promise.race([door.finished.catch(() => {}), wait(duration + 200)]);
           return withHim ? "walked" : "alone";
-        });
+          // decoration: whatever fails in here, usePreloader.ts must still get an answer or the loader never leaves
+        }).catch(() => "alone");
       })();
     </script>
     <!--

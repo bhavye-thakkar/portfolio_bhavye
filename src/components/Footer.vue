@@ -47,11 +47,12 @@ const { withSocial = true } = defineProps<Props>();
              and the owner is looked for as "Bhavya" as often as "Bhavye"
              (2026-10-07). Kept to one quiet line beside the credit. The role
              and the city are what tells this Bhavye Thakkar from the others
-             (2026-11-24). -->
+             (2026-11-24). "Portfolio" is the word people add to the name
+             when they look for the site (2026-11-26). -->
         <div class="footer-left">
           <p class="footer-credits">
             © {{ new Date().getFullYear() }} Bhavye Thakkar
-            <span class="footer-credits-alt">· also spelled Bhavya Thakkar · AI Researcher in Ahmedabad, India</span>
+            <span class="footer-credits-alt">· also spelled Bhavya Thakkar · the portfolio of an AI Researcher in Ahmedabad, India</span>
           </p>
           <!-- The library's second door, for anyone who did not find the books
                on the shelf in the room: a line in the footer, not a pill in the

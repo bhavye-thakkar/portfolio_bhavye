@@ -81,9 +81,9 @@ export const profiles = {
  * Other websites" list was removed on 2026-09-03 as a link dump, and listing
  * copies in `sameAs` or llms.txt only tells crawlers there are copies. Since
  * 2026-10-21 every deployment stamps `site` at build (scripts/siteOrigin.ts;
- * netlify.toml sets SITE_ORIGIN for the Netlify ones, which also 301 to it).
- * bhavyethakkar.netlify.app is NOT this repo: it still serves the owner's
- * older site, found on 2026-10-12, and only the owner can retire it.
+ * netlify.toml sets SITE_ORIGIN for the Netlify ones). They serve every page
+ * themselves, no redirect (owner, 2026-11-26). bhavyethakkar.netlify.app held
+ * the owner's older site until 2026-11-25 and builds this repo now.
  */
 
 // The CV lives in `content/cv.ts`, transcribed from the PDF in `public/cv/`.

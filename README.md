@@ -34,7 +34,7 @@ The third-party assets keep their own terms: the artwork in the room's wall fram
 | `node scripts/seo-check.mjs [origin]` | Checks every page of `dist/`, or of the live site |
 | `npm run preview`   | Serve the production build locally               |
 
-CI runs typecheck → build → SEO check on every push and PR (`.github/workflows/ci.yml`). Vercel deploys every push to `main`; its build runs the same `npm run build`, so a failing page never reaches production. After each production deploy, and every Monday, `.github/workflows/deploy.yml` checks the live site (pages, security headers, links, the retired mirrors' 301s) and tells the IndexNow engines what is there.
+CI runs typecheck → build → SEO check on every push and PR (`.github/workflows/ci.yml`). Vercel deploys every push to `main`; its build runs the same `npm run build`, so a failing page never reaches production. After each production deploy, and every Monday, `.github/workflows/deploy.yml` checks the live site (pages, security headers, links, the Netlify copies' canonicals) and tells the IndexNow engines what is there.
 
 ---
 
@@ -90,15 +90,11 @@ Every page names one canonical origin: `<link rel="canonical">`, `og:url`, the J
 3. Vercel's `VERCEL_PROJECT_PRODUCTION_URL`.
 4. The default in `scripts/siteOrigin.ts`, for local builds.
 
-So an untouched deployment names itself, never a host it does not serve. When `SITE_ORIGIN` names a different host than the deployment's own production address, that deployment is retired: on Netlify the build prepends a host-wide 301 to `dist/_redirects`, and on every host `src/main.ts` sends a visitor who still lands on the retired production host to the same page on the canonical one. Vercel reads server-side redirects from `vercel.json` before the build, so on a Vercel deployment that is being retired also add by hand:
+So an untouched deployment names itself, never a host it does not serve. When `SITE_ORIGIN` names a different host than the deployment's own production address, that deployment still serves every page itself (nothing redirects, the owner's call on 2026-11-26); only its canonical tags name the `SITE_ORIGIN` host.
 
-```json
-"redirects": [{ "source": "/(.*)", "has": [{ "type": "host", "value": "bhavye.vercel.app" }], "destination": "https://<canonical host>/$1", "permanent": true }]
-```
+This repo is deployed to more than one host; every host serves the whole site, and all of them name one canonical, so search engines credit one address. A canonical pointing at a host that serves something else tells every crawler to index that other thing instead.
 
-This repo is deployed to more than one host; only one of them should be the canonical, and the others should redirect to it. A canonical pointing at a host that serves something else tells every crawler to index that other thing instead.
-
-The canonical is `https://bhavye.vercel.app`, the default in `scripts/siteOrigin.ts`. The Netlify mirrors (thakkarbhavya, bhavyathakkar and thakkarbhavye .netlify.app) get `SITE_ORIGIN` from `netlify.toml` in this repo, so every Netlify build names the Vercel address as its canonical and redirects to it; nothing has to be set in the Netlify dashboard. On Vercel, `vercel.json` keeps one URL per page (`cleanUrls` serves each route's own built HTML file and redirects `/page.html` to `/page`; `trailingSlash: false` redirects `/page/` to `/page`) and leaves an unknown path to `dist/404.html` with a real 404 status instead of rewriting it to the home page.
+The canonical is `https://bhavye.vercel.app`, the default in `scripts/siteOrigin.ts`. The Netlify copies (bhavyethakkar, thakkarbhavya, bhavyathakkar and thakkarbhavye .netlify.app) get `SITE_ORIGIN` from `netlify.toml` in this repo, so every Netlify build serves the site and names the Vercel address as its canonical; nothing has to be set in the Netlify dashboard. On Vercel, `vercel.json` keeps one URL per page (`cleanUrls` serves each route's own built HTML file and redirects `/page.html` to `/page`; `trailingSlash: false` redirects `/page/` to `/page`) and leaves an unknown path to `dist/404.html` with a real 404 status instead of rewriting it to the home page.
 
 ---
 

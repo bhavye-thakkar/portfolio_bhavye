@@ -21,8 +21,8 @@ const DESCRIPTION = [50, 155];
 /** words inside #app; the shortest real page (a book) has about 60 */
 const WORDS_MIN = 50;
 const HEADERS = ["content-security-policy", "x-content-type-options", "x-frame-options", "referrer-policy", "strict-transport-security"];
-/** addresses this repo retired in favour of the canonical one (netlify.toml) */
-const MIRRORS = ["thakkarbhavya", "bhavyathakkar", "thakkarbhavye"].map((name) => `https://${name}.netlify.app/`);
+/** the Netlify copies of this site (netlify.toml): they serve it themselves and name the canonical; the first held the older portfolio until 2026-11-25 */
+const MIRRORS = ["bhavyethakkar", "thakkarbhavya", "bhavyathakkar", "thakkarbhavye"].map((name) => `https://${name}.netlify.app/`);
 
 const problems = [];
 const fail = (where, what) => problems.push(`${where}  ${what}`);
@@ -126,10 +126,17 @@ if (live) {
     const status = await get(href).then((response) => response.status, (error) => error.cause?.code ?? error.name);
     if ([404, 410, "ENOTFOUND"].includes(status)) fail(from, `${status}: ${href}`);
   }
+  // no redirect (owner, 2026-11-26): each copy answers 200 itself and names this origin as the original
   for (const mirror of MIRRORS) {
     const response = await get(mirror);
-    const to = response.headers.get("location");
-    if (response.status !== 301 || to !== `${live}/`) fail(mirror, `${response.status} to ${to}, not a 301 to ${live}/`);
+    const canonical = (await response.text()).match(/<link rel="canonical" href="([^"]*)"/)?.[1];
+    if (response.status !== 200 || canonical !== `${live}/`) fail(mirror, `${response.status} with canonical ${canonical}, not a 200 naming ${live}/`);
+  }
+  // the one renamed page (Monday took slot 02)
+  for (const { source, destination } of JSON.parse(fs.readFileSync(path.resolve(DIST, "../vercel.json"), "utf8")).redirects) {
+    const response = await get(live + source);
+    const to = new URL(response.headers.get("location") ?? "", live).href;
+    if (response.status !== 308 || to !== new URL(destination, live).href) fail(source, `${response.status} to ${to}, not a 308 to ${destination}`);
   }
   const missing = await get(`${live}/there-is-no-such-page`);
   if (missing.status !== 404) fail("/there-is-no-such-page", `${missing.status}, not a 404`);

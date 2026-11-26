@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import glsl from "vite-plugin-glsl";
 import { routePages } from "./scripts/routePages";
-import { resolveOrigin, retiredOrigin } from "./scripts/siteOrigin";
+import { resolveOrigin } from "./scripts/siteOrigin";
 import { swManifest } from "./scripts/swManifest";
 
 import type { Connect, Plugin } from "vite";
@@ -45,8 +45,6 @@ export default defineConfig({
   // the built HTML, sitemap, robots.txt and llms.txt.
   define: {
     __SITE_ORIGIN__: JSON.stringify(resolveOrigin()),
-    // The host this deployment is retiring from, for main.ts's redirect; null unless SITE_ORIGIN says so.
-    __RETIRED_HOST__: JSON.stringify(retiredOrigin() ? new URL(retiredOrigin()!).host : null),
   },
   server: {
     port: 3000,

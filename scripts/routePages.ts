@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { runnerImport } from "vite";
-import { DEFAULT_ORIGIN, resolveOrigin, retiredOrigin } from "./siteOrigin";
+import { DEFAULT_ORIGIN, resolveOrigin } from "./siteOrigin";
 
 import type { Plugin } from "vite";
 
@@ -212,13 +212,6 @@ export const routePages = (): Plugin => {
       for (const name of ["index.html", "sitemap.xml", "robots.txt", "llms.txt"]) {
         const file = path.join(outDir, name);
         if (fs.existsSync(file)) fs.writeFileSync(file, stamp(fs.readFileSync(file, "utf8")));
-      }
-      const from = retiredOrigin();
-      if (from) {
-        const redirects = path.join(outDir, "_redirects");
-        const rules = fs.existsSync(redirects) ? fs.readFileSync(redirects, "utf8") : "";
-        fs.writeFileSync(redirects, `# This address is retired in favour of the canonical one (SITE_ORIGIN).\n${from}/*  ${origin}/:splat  301!\n\n${rules}`);
-        this.info?.(`redirecting ${from} to ${origin}`);
       }
 
       const index = fs.readFileSync(path.join(outDir, "index.html"), "utf8");

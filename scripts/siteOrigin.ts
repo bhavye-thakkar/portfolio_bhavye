@@ -20,6 +20,10 @@
  * So an untouched deployment names itself, never a host it does not serve.
  * Two untouched deployments are two self-declared copies, which search
  * engines fold into one on their own; setting SITE_ORIGIN on both ends it.
+ *
+ * Nothing redirects (owner, 2026-11-26: "no redirection at all"). A host whose
+ * SITE_ORIGIN names another one (the Netlify copies, netlify.toml) serves the
+ * whole site itself and only its canonical tags point at SITE_ORIGIN.
  */
 export const DEFAULT_ORIGIN = "https://bhavye.vercel.app";
 
@@ -29,20 +33,3 @@ const trim = (url: string) => url.replace(/\/+$/, "");
 const ownOrigin = (env: NodeJS.ProcessEnv) => (env.URL ? trim(env.URL) : env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL}` : null);
 
 export const resolveOrigin = (env: NodeJS.ProcessEnv = process.env) => trim(env.SITE_ORIGIN || ownOrigin(env) || DEFAULT_ORIGIN);
-
-/**
- * This deployment's own production address when SITE_ORIGIN names a
- * DIFFERENT host, i.e. when this address is retired in favour of the
- * canonical one; null otherwise. Three things hang off it:
- *   · on Netlify, route-pages prepends a host-wide 301 to dist/_redirects;
- *   · on every host, src/main.ts sends a visitor who still lands on the
- *     retired production host to the same path on the canonical one (a
- *     deploy preview on another host is left alone);
- *   · Vercel reads its redirects from vercel.json before the build, so a
- *     server-side 301 there is added by hand (the README has the entry).
- */
-export const retiredOrigin = (env: NodeJS.ProcessEnv = process.env) => {
-  const own = ownOrigin(env);
-  if (!env.SITE_ORIGIN || !own) return null;
-  return new URL(own).host === new URL(resolveOrigin(env)).host ? null : own;
-};
